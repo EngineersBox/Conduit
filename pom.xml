@@ -24,6 +24,7 @@
         <reflections.version>0.10.2</reflections.version>
         <antlr4.version>4.7.1</antlr4.version>
         <aspectj.version>1.9.9.1</aspectj.version>
+		<jsonpath.version>2.7.0</jsonpath.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -44,7 +45,14 @@
     </properties>
 
     <dependencyManagement>
-        <dependencies>
+		<dependencies>
+			<!-- JsonPath -->
+			<dependency>
+				<groupId>com.jayway.jsonpath</groupId>
+				<artifactId>json-path</artifactId>
+				<version>${jsonpath.version}</version>
+			</dependency>
+
             <!-- Reflection Utils -->
             <dependency>
                 <groupId>org.reflections</groupId>
