@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.schema;
 
+import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -9,7 +10,7 @@ public class PathBinding {
 
     private String path;
     private String metricName;
-    private Class<?> dataType;
+    private TypeRef<?> dataType;
     private Function<Map<String, Object>, Boolean> inclusionHandler;
     private boolean isComplete;
 
@@ -32,7 +33,7 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding type(final Class<?> dataType) {
+    public PathBinding type(final TypeRef<?> dataType) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
@@ -76,7 +77,7 @@ public class PathBinding {
         return this.metricName;
     }
 
-    public Class<?> getDataType() {
+    public TypeRef<?> getDataType() {
         return this.dataType;
     }
 

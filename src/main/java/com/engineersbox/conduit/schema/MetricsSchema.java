@@ -1,16 +1,15 @@
 package com.engineersbox.conduit.schema;
 
+import com.jayway.jsonpath.TypeRef;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class MetricsSchema {
-
-    private final Map<String, PathBinding> paths;
+public class MetricsSchema extends HashMap<String, PathBinding> {
 
     private MetricsSchema() {
-        this.paths = new HashMap<>();
     }
 
     public static Builder builder() {
@@ -33,7 +32,7 @@ public class MetricsSchema {
 
         public Builder put(final PathBinding binding) {
             binding.validate();
-            this.schema.paths.put(
+            this.schema.put(
                     binding.getPath(),
                     binding
             );
@@ -42,7 +41,7 @@ public class MetricsSchema {
 
         public Builder put(final String path,
                            final String name,
-                           final Class<?> dataType) {
+                           final TypeRef<?> dataType) {
             return put(PathBinding.path(path)
                     .name(name)
                     .type(dataType)
@@ -52,7 +51,7 @@ public class MetricsSchema {
 
         public Builder put(final String path,
                            final String name,
-                           final Class<?> dataType,
+                           final TypeRef<?> dataType,
                            final Function<Map<String, Object>, Boolean> inclusionHandler) {
             return put(PathBinding.path(path)
                     .name(name)
