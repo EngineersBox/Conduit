@@ -10,10 +10,12 @@
     <packaging>jar</packaging>
     <name>Conduit</name>
 
-	<repository>
-	  <id>clojars.org</id>
-	  <url>http://clojars.org/repo</url>
-	</repository>
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>https://repo.clojars.org</url>
+        </repository>
+    </repositories>
 
     <properties>
         <!-- Dependency Versions -->
