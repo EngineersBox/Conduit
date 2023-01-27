@@ -22,7 +22,9 @@
         <asm.version>9.3</asm.version>
         <reflections.version>0.10.2</reflections.version>
 		<jsonpath.version>2.7.0</jsonpath.version>
-        <jackson.version>2.14.0</jackson.version>
+		<jackson.version>2.14.0</jackson.version>
+		<riemann.version>0.3.8</riemann.version>
+
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -42,7 +44,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <dependencies>
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/riemann/riemann -->
+		<dependency>
+			<groupId>riemann</groupId>
+			<artifactId>riemann</artifactId>
+			<version>${riemann.version}</version>
+		</dependency>
         <!-- Jackson FasterXML -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
