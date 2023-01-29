@@ -15,7 +15,7 @@ public class BatchingConfiguration {
         this.bulkSize = bulkSize;
     }
 
-    public List<List<?>> splitWorkload(final List<?> workload) {
+    public <T> List<List<T>> splitWorkload(final List<T> workload) {
         // TODO: Implement this
         return List.of();
     }

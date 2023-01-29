@@ -10,15 +10,20 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import com.jayway.jsonpath.TypeRef;
 import io.riemann.riemann.Proto;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class Pipeline {
 
@@ -65,7 +70,47 @@ public class Pipeline {
     }
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
+        final List<List<PathBinding>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
+        final ExecutorService executor = this.batchConfig.generateExecutorService();
+        final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
+                        .parse(this.ingestSource.ingest(this.ingestionContext));
+        workload.stream()
+                .map((final List<PathBinding> batch) -> CompletableFuture.runAsync(
+                        () -> handleBatch(
+                                batch,
+                                context,
+                                batchedEventsConsumer
+                        ),
+                        executor
+                )).forEach(CompletableFuture::join);
 
+    }
+
+    private void handleBatch(final List<PathBinding> batch,
+                             final ReadContext context,
+                             final Consumer<List<Proto.Event>> batchedEventsConsumer) {
+        final List<List<PathBinding>> partitionedBatch = ListUtils.partition(
+                batch,
+                Math.min(
+                        batchConfig.getBulkSize(),
+                        batch.size()
+                )
+        );
+        for (final List<PathBinding> bindings : partitionedBatch) {
+            final List<Proto.Event> events = bindings.stream()
+                    .flatMap((final PathBinding binding) -> {
+                        try {
+                            return parseEvents(
+                                    context,
+                                    binding
+                            ).stream();
+                        } catch (final ClassNotFoundException ignored) {
+                            // TODO: Log this
+                            return Stream.of();
+                        }
+                    }).toList();
+            batchedEventsConsumer.accept(events);
+        }
     }
 
     private List<Proto.Event> parseEvents(final ReadContext context,
