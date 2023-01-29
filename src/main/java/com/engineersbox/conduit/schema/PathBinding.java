@@ -9,12 +9,16 @@ import java.util.function.Function;
 public class PathBinding {
 
     private String path;
-    private String metricName;
+    private String metricNamespace;
     private TypeRef<?> dataType;
+    private int dimension;
+    private DimensionallyIndexedRangeMap dimensionalNamespaceSuffix;
     private Function<Map<String, Object>, Boolean> inclusionHandler;
     private boolean isComplete;
 
     private PathBinding() {
+        this.dimension = 1;
+        this.dimensionalNamespaceSuffix = new DimensionallyIndexedRangeMap();
         this.isComplete = false;
         this.inclusionHandler = (_ignored) -> true;
     }
@@ -29,7 +33,7 @@ public class PathBinding {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
-        this.metricName = metricName;
+        this.metricNamespace = metricName;
         return this;
     }
 
@@ -38,6 +42,50 @@ public class PathBinding {
             throw new IllegalStateException("Path binding is already complete");
         }
         this.dataType = dataType;
+        return this;
+    }
+
+    public PathBinding dimensions(final int dimension) {
+        if (this.isComplete) {
+            throw new IllegalStateException("Path binding is already complete");
+        } else if (dimension < 0) {
+            throw new IllegalArgumentException("Dimension must be positive");
+        }
+        this.dimension = dimension;
+        return this;
+    }
+
+    public PathBinding suffixes(final DimensionallyIndexedRangeMap suffixes) {
+        if (this.isComplete) {
+            throw new IllegalStateException("Path binding is already complete");
+        } else if (this.dimension != suffixes.dimensionSize()) {
+            throw new IllegalStateException(String.format(
+                    "Existing 'dimension' property does not match with dimensions of suffix map: %d != %d",
+                    this.dimension,
+                    suffixes.dimensionSize()
+            ));
+        }
+        this.dimensionalNamespaceSuffix = suffixes;
+        return this;
+    }
+
+    public PathBinding suffix(final DimensionIndex dimensionIndex,
+                              final String suffixFormat) {
+        if (this.isComplete) {
+            throw new IllegalStateException("Path binding is already complete");
+        } else if (dimensionIndex.getDimension().upperEndpoint() > this.dimension) {
+            throw new IllegalArgumentException(String.format(
+                    "Dimension range in provided DimensionIndex cannot exceed configured dimension as an upper bound: %s > %s",
+                    dimensionIndex.getDimension().upperEndpoint(),
+                    this.dimension
+            ));
+        } else if (dimensionIndex.getDimension().lowerEndpoint() < 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Dimension range in provided DimensionIndex cannot have negative lower bound: {} < 0",
+                    dimensionIndex.getDimension().lowerEndpoint()
+            ));
+        }
+        this.dimensionalNamespaceSuffix.put(dimensionIndex, suffixFormat);
         return this;
     }
 
@@ -60,7 +108,7 @@ public class PathBinding {
     public void validate() {
         if (StringUtils.isBlank(this.path)) {
             throw new IllegalStateException("Path cannot be blank/empty/null in binding");
-        } else if (StringUtils.isBlank(this.metricName)) {
+        } else if (StringUtils.isBlank(this.metricNamespace)) {
             throw new IllegalStateException("Metric name cannot be blank/empty/null in binding");
         } else if (this.dataType == null) {
             throw new IllegalStateException("Data type cannot be null in binding");
@@ -74,7 +122,7 @@ public class PathBinding {
     }
 
     public String getMetricName() {
-        return this.metricName;
+        return this.metricNamespace;
     }
 
     public TypeRef<?> getDataType() {

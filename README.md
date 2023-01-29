@@ -130,9 +130,8 @@ final DimensionIndex queryIndex = new DimensionIndex(<dimension>, <index>);
 final String suffixFormat = pathBinding.dimensionalNamespaceSuffix.get(queryIndex);
 ```
 
-The matching behaviour will first inquire on the `dimension` directly to see if it matches for the query `index`. If it does,
-then a match to assosciated suffix format is returned. If the `index` does not match but the `dimension` does,
-then it will check if `universalWithin` is present, returning the suffix format if it is. Otherwise, it will not match. If
+The matching behaviour will first inquire on the `dimension` directly to see if it matches for the query `dimension`. If it does,
+then it will check if the `index` matches, if so the assosciated suffix format is returned. If the `index` does not match but the `dimension` does, then it will check if `universalWithin` is present, returning the suffix format if it is. Otherwise, it will not match. If
 the `index` matches but the `dimension` does not, then the `applyToHigherDimensions` is checked if the query `dimension` is
 greater than the current `dimension`, if both of these are true then the suffix is returned. A similar logic path is taken in
 inverse conditions for the less than dimension case. Given neither the `dimension` nor `index` match, and the `universalWithin`

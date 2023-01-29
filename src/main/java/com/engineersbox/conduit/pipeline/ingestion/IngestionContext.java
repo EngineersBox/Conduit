@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.pipeline;
+package com.engineersbox.conduit.pipeline.ingestion;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -31,7 +31,7 @@
 		<jsonpath.version>2.7.0</jsonpath.version>
 		<jackson.version>2.14.0</jackson.version>
 		<riemann-client.version>0.5.3</riemann-client.version>
-
+        <guava.version>31.1-jre</guava.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -52,7 +52,7 @@
     </properties>
 
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/riemann/riemann -->
+		<!-- Riemann Client -->
 		<dependency>
 			<groupId>io.riemann</groupId>
 			<artifactId>riemann-java-client</artifactId>
@@ -116,6 +116,13 @@
             <artifactId>eclipse-collections</artifactId>
             <version>${eclipse.colections.version}</version>
         </dependency>
+        <!-- Guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
         <!-- Jupiter API for writing tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

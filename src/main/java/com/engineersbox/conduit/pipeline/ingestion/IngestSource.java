@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.pipeline;
+package com.engineersbox.conduit.pipeline.ingestion;
 
 @FunctionalInterface
 public interface IngestSource {

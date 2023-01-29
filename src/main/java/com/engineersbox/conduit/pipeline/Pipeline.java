@@ -1,13 +1,13 @@
 package com.engineersbox.conduit.pipeline;
 
+import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
+import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.PathBinding;
-import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;

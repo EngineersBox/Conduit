@@ -1,25 +1,20 @@
 package com.engineersbox.conduit;
 
-import com.engineersbox.conduit.pipeline.IngestionContext;
+import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.PathBinding;
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import io.riemann.riemann.Proto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class Main {
 
