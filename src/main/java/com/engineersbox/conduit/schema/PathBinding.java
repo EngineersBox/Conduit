@@ -121,7 +121,7 @@ public class PathBinding {
         return this.path;
     }
 
-    public String getMetricName() {
+    public String getMetricNamespace() {
         return this.metricNamespace;
     }
 

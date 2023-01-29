@@ -10,7 +10,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import com.jayway.jsonpath.TypeRef;
 import io.riemann.riemann.Proto;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.reflect.TypeUtils;
@@ -18,7 +17,6 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -97,6 +95,7 @@ public class Pipeline {
             return List.of(parsePrimitiveMetricEvent(
                     value,
                     clazz,
+                    binding.getMetricNamespace(),
                     suffix
             ));
         } else if (clazz.isArray()) {
@@ -196,15 +195,18 @@ public class Pipeline {
         ));
         if (dimIdxSuffix != null) {
             nextSuffix += dimIdxSuffix.replace("{index}", Integer.toString(index));
+        } else {
+            nextSuffix += "/" + index;
         }
         return nextSuffix;
     }
 
     private Proto.Event parsePrimitiveMetricEvent(final Object value,
                                                   final Class<?> type,
+                                                  final String metricNamespace,
                                                   final String suffix) {
-        final Proto.Event.Builder builder = this.eventTemplate.toBuilder();
-        builder.setService(builder.getService() + suffix);
+        final Proto.Event.Builder builder = this.eventTemplate.toBuilder()
+                .setService(metricNamespace + suffix);
         if (ClassUtils.isAssignable(type, double.class, true)) {
             builder.setMetricD((double) value);
         } else if (ClassUtils.isAssignable(type, float.class, true)) {
@@ -224,7 +226,7 @@ public class Pipeline {
                 .parse(this.ingestSource.ingest(this.ingestionContext));
         this.schema.values().forEach((final PathBinding binding) -> {
             metricConsumer.accept(
-                    binding.getMetricName(),
+                    binding.getMetricNamespace(),
                     new TypedMetricValue<>(context.read(
                             binding.getPath(),
                             binding.getDataType()
