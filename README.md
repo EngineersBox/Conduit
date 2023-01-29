@@ -103,7 +103,7 @@ During processing of metrics with definitions using `dimension > 1` for values, 
 queried with a minimal `DimensionIndex` value of:
 
 ```java
-final DimensionIndex queryIndex = new DimensionIndex(<dimension>);
+final DimensionIndex queryIndex = new DimensionIndex(<dimension>, <index>);
 final String suffixFormat = pathBinding.dimensionalNamespaceSuffix.get(queryIndex);
 ```
 
