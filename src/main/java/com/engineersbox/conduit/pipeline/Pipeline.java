@@ -2,6 +2,7 @@ package com.engineersbox.conduit.pipeline;
 
 import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
+import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.PathBinding;
 import com.google.common.reflect.TypeToken;
@@ -78,38 +79,89 @@ public class Pipeline {
         return parseCoerceMetricEvents(
                 value.getValue(),
                 value.getTypeClass(),
-                value.getTypeRef().getType()
+                value.getTypeRef().getType(),
+                binding,
+                0,
+                ""
         );
     }
 
     @SuppressWarnings("unchecked")
     private List<Proto.Event> parseCoerceMetricEvents(final Object value,
                                                       final Class<?> clazz,
-                                                      final Type type) throws ClassNotFoundException {
+                                                      final Type type,
+                                                      final PathBinding binding,
+                                                      final int currentDimension,
+                                                      final String suffix) throws ClassNotFoundException {
         if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
-            return List.of(parsePrimitiveMetricEvent(value, clazz));
+            return List.of(parsePrimitiveMetricEvent(
+                    value,
+                    clazz,
+                    suffix
+            ));
         } else if (clazz.isArray()) {
             final Object[] array = (Object[]) value;
             final Class<?> arrayComponentClass = clazz.arrayType();
             final Type arrayComponentType = TypeUtils.getArrayComponentType(type);
             final List<Proto.Event> events = new ArrayList<>();
+            int index = 0;
             for (final Object component : array) {
+                final String nextSuffix = formatSuffix(
+                        suffix,
+                        currentDimension,
+                        index,
+                        binding
+                );
                 events.addAll(parseCoerceMetricEvents(
                         component,
                         arrayComponentClass,
-                        arrayComponentType
+                        arrayComponentType,
+                        binding,
+                        currentDimension + 1,
+                        nextSuffix
                 ));
+                index++;
             }
             return events;
         } else if (TypeUtils.isAssignable(type, ClassUtils.getClass(Collection.class.getName()))) {
             final Collection<Object> collection = (Collection<Object>) value;
             final List<Proto.Event> events = new ArrayList<>();
             final Type collectionComponentType = ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+            final Class<?> collectionComponentClass = TypeToken.of(collectionComponentType).getRawType();
+            int index = 0;
             for (final Object component : collection) {
+                final String nextSuffix = formatSuffix(
+                        suffix,
+                        currentDimension,
+                        index,
+                        binding
+                );
                 events.addAll(parseCoerceMetricEvents(
                         component,
-                        TypeToken.of(collectionComponentType).getRawType(),
-                        collectionComponentType
+                        collectionComponentClass,
+                        collectionComponentType,
+                        binding,
+                        currentDimension + 1,
+                        nextSuffix
+                ));
+            }
+            return events;
+        } else if (TypeUtils.isAssignable(type, ClassUtils.getClass(Map.class.getName()))) {
+            final Type[] mapTypeArguments = ((ParameterizedType) type).getActualTypeArguments();
+            if (!TypeUtils.isAssignable(mapTypeArguments[0], TypeUtils.wrap(String.class).getType())) {
+                throw new ClassNotFoundException("Map type metric does not have string keys, cannot convert to metric");
+            }
+            final Class<?> mapValueClass = TypeToken.of(mapTypeArguments[1]).getRawType();
+            final Map<Object, Object> map = (Map<Object, Object>) value;
+            final List<Proto.Event> events = new ArrayList<>();
+            for (final Map.Entry<Object, Object> entry : map.entrySet()) {
+                events.addAll(parseCoerceMetricEvents(
+                        entry.getValue(),
+                        mapValueClass,
+                        mapTypeArguments[1],
+                        binding,
+                        currentDimension + 1,
+                        suffix + entry.getKey()
                 ));
             }
             return events;
@@ -126,30 +178,45 @@ public class Pipeline {
         return parseCoerceMetricEvents(
                 value,
                 convertedMetric.getClass(),
-                TypeToken.of(convertedMetric.getClass()).getType()
+                TypeToken.of(convertedMetric.getClass()).getType(),
+                binding,
+                currentDimension + 1,
+                suffix
         );
     }
 
-    private Proto.Event parsePrimitiveMetricEvent(final Object value,
-                                                  final Class<?> type) {
-        if (ClassUtils.isAssignable(type, double.class, true)) {
-            return this.eventTemplate.toBuilder()
-                    .setMetricD((double) value)
-                    .build();
-        } else if (ClassUtils.isAssignable(type, float.class, true)) {
-            return this.eventTemplate.toBuilder()
-                    .setMetricF((float) value)
-                    .build();
-        } else if (ClassUtils.isAssignable(type, long.class, true)) {
-            return this.eventTemplate.toBuilder()
-                    .setMetricSint64((long) value)
-                    .build();
-        } else if (ClassUtils.isAssignable(type, boolean.class, true)) {
-            return this.eventTemplate.toBuilder()
-                    .setMetricSint64((boolean) value ? 1 : 0)
-                    .build();
+    private String formatSuffix(final String current,
+                                final int dimension,
+                                final int index,
+                                final PathBinding binding) {
+        String nextSuffix = current;
+        final String dimIdxSuffix = binding.getSuffix(DimensionIndex.ofQuery(
+                dimension,
+                index
+        ));
+        if (dimIdxSuffix != null) {
+            nextSuffix += dimIdxSuffix.replace("{index}", Integer.toString(index));
         }
-        throw new ClassCastException("Unexpected non-primitive type: " + type);
+        return nextSuffix;
+    }
+
+    private Proto.Event parsePrimitiveMetricEvent(final Object value,
+                                                  final Class<?> type,
+                                                  final String suffix) {
+        final Proto.Event.Builder builder = this.eventTemplate.toBuilder();
+        builder.setService(builder.getService() + suffix);
+        if (ClassUtils.isAssignable(type, double.class, true)) {
+            builder.setMetricD((double) value);
+        } else if (ClassUtils.isAssignable(type, float.class, true)) {
+            builder.setMetricF((float) value);
+        } else if (ClassUtils.isAssignable(type, long.class, true)) {
+            builder.setMetricSint64((long) value);
+        } else if (ClassUtils.isAssignable(type, boolean.class, true)) {
+            builder.setMetricSint64((boolean) value ? 1 : 0);
+        } else {
+            throw new ClassCastException("Unexpected non-primitive type: " + type);
+        }
+        return builder.build();
     }
 
     public void executeYielding(final BiConsumer<String, TypedMetricValue<?>> metricConsumer) {
