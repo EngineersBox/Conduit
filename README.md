@@ -172,7 +172,7 @@ TODO: Finish this
 
 TODO: Finish this. Essentially the following:
 ```java
-@FunctinalInterface
+@FunctionalInterface
 public interface IngestionSource {
 	String ingest();
 }
