@@ -173,8 +173,22 @@ TODO: Finish this
 TODO: Finish this. Essentially the following:
 ```java
 @FunctionalInterface
-public interface IngestionSource {
-	Object ingest();
+interface IngestionSource {
+	Object ingest(final IngestionContext ctx);
+}
+
+abstract class IngestionContext implements Closable {
+	private Map<String, Object> attributes;
+	private long timeout;
+
+	putAttribute(String, Object): void;
+	getAttribute(String): Object;
+	setTimeout(long): void;
+	getTimeout(long): void;
+	
+	default cancel() throws Exception: void { ... }
+	@Override
+	default close() throws Exception: void { ... };
 }
 ```
 
