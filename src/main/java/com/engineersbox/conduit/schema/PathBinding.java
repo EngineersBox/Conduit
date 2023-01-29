@@ -129,6 +129,14 @@ public class PathBinding {
         return this.dataType;
     }
 
+    public int getDimension() {
+        return this.dimension;
+    }
+
+    public String getSuffix(final DimensionIndex dimensionIndex) {
+        return this.dimensionalNamespaceSuffix.get(dimensionIndex);
+    }
+
     public Function<Map<String, Object>, Boolean> getInclusionHandler() {
         return this.inclusionHandler;
     }

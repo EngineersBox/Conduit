@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.pipeline;
 
+import com.google.common.reflect.TypeToken;
 import com.jayway.jsonpath.TypeRef;
 
 public class TypedMetricValue<T> {
@@ -14,6 +15,10 @@ public class TypedMetricValue<T> {
 
     public TypeRef<T> getTypeRef() {
         return this.type;
+    }
+
+    public Class<?> getTypeClass() {
+        return TypeToken.of(this.type.getType()).getRawType();
     }
 
     public T getValue() {
