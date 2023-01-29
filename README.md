@@ -1,6 +1,29 @@
 # Conduit
 Structured metrics ingester based on JSON paths and destructuring patterns to produce Riemann events
 
+## Schema
+
+At the core of conduit is the `MetricsSchema` defintion, which outlines the format of ingestable metrics and how they
+should be interpreted. This is simple in its structure, merely a wrapper to house the individual `PathBinding` definitions
+that are parsed from ingested JSON blobs.
+
+```java
+struct MetricsSchema {
+	implicit HashMap<String, PathBinding> bindings;
+	Configuration jsonPathParserConfig;
+
+	put(String, PathBinding): void;
+	get(String): PathBinding;
+	remove(String): PathBinding;
+}
+
+builder MetricsSchema {
+	put(PathBinding): this;
+	with(Configuration): this;
+	build(): MetricsSchema;
+}
+```
+
 ## Path Binding
 Metrics to ingest are defined by a path and binding to their ingested format.
 This forms the basis for the pipeline to parse when it has recieved the ingestable blob from a given ingestion handler.
@@ -129,4 +152,42 @@ unique on a global scale so for example, duplicate leaf names are allowed under 
 /service/mem/load
 ```
 
-##
+## Pipelines
+
+Separate from the metrics schema definitions, piplines are the services that take a particular `MetricsSchema` with some extra
+Riemann metadata to parse JSON blobs from an ingestion point to generate Riemann events.
+
+```java
+struct Pipeline {
+	MetricsSchema schema;
+	Proto.Event eventTemplate;
+	IngestionSource ingestionPoint;
+	BatchingConfiguration batchConfig;
+}
+```
+
+TODO: Finish this
+
+### Ingestion Source
+
+TODO: Finish this. Essentially the following:
+```java
+@FunctinalInterface
+public interface IngestionSource {
+	String ingest();
+}
+```
+
+### Batching Configuration
+
+TODO: Finish this. Essentiall thread pooling and execution configuration. Can generate a thread pool.
+
+```java
+struct BatchingConfiguration {
+	int threads;
+	int bulkSize;
+
+	generateThreadPool(): ExecutorService;
+	splitWorkload(List<?>): List<List<?>>;
+}
+```
