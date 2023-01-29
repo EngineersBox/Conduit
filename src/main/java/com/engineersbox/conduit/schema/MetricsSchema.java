@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.schema;
 
+import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.TypeRef;
 
 import java.util.Arrays;
@@ -9,7 +10,13 @@ import java.util.function.Function;
 
 public class MetricsSchema extends HashMap<String, PathBinding> {
 
+    private Configuration jsonPathConfiguration;
+
     private MetricsSchema() {
+    }
+
+    public Configuration getJsonPathConfiguration() {
+        return this.jsonPathConfiguration;
     }
 
     public static Builder builder() {
@@ -61,7 +68,15 @@ public class MetricsSchema extends HashMap<String, PathBinding> {
             );
         }
 
+        public Builder withJsonPathConfig(final Configuration jsonPathConfig) {
+            this.schema.jsonPathConfiguration = jsonPathConfig;
+            return this;
+        }
+
         public MetricsSchema build() {
+            if (this.schema.jsonPathConfiguration == null) {
+                this.schema.jsonPathConfiguration = Configuration.defaultConfiguration();
+            }
             return this.schema;
         }
 

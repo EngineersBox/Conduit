@@ -1,5 +1,6 @@
 package com.engineersbox.conduit;
 
+import com.engineersbox.conduit.pipeline.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
 import com.engineersbox.conduit.schema.MetricsSchema;
@@ -11,6 +12,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import io.riemann.riemann.Proto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -76,11 +78,12 @@ public class Main {
 						.name("authors_names")
 						.type(new TypeRef<List<String>>(){})
 						.complete()
-				).build();
+				).withJsonPathConfig(configuration)
+				.build();
 		final Pipeline pipeline = new Pipeline(
 				schema,
-				() -> TEST_JSON_BLOB,
-				configuration
+				Proto.Event.getDefaultInstance(),
+				(final IngestionContext ctx) -> TEST_JSON_BLOB
 		);
 		final Map<String, TypedMetricValue<?>> results = pipeline.executeGrouped();
 		LOGGER.info("==== GROUPED ====");

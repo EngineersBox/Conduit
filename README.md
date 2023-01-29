@@ -177,7 +177,7 @@ interface IngestionSource {
 	Object ingest(final IngestionContext ctx);
 }
 
-abstract class IngestionContext implements Closable {
+abstract class IngestionContext implements Closeable {
 	private Map<String, Object> attributes;
 	private long timeout;
 
