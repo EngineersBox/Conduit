@@ -4,7 +4,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit.schema.PathBinding;
+import com.engineersbox.conduit.schema.Metric;
 import com.google.common.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -17,7 +17,6 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -70,12 +69,12 @@ public class Pipeline {
     }
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
-        final List<List<PathBinding>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
+        final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                         .parse(this.ingestSource.ingest(this.ingestionContext));
         workload.stream()
-                .map((final List<PathBinding> batch) -> CompletableFuture.runAsync(
+                .map((final List<Metric> batch) -> CompletableFuture.runAsync(
                         () -> handleBatch(
                                 batch,
                                 context,
@@ -86,19 +85,19 @@ public class Pipeline {
 
     }
 
-    private void handleBatch(final List<PathBinding> batch,
+    private void handleBatch(final List<Metric> batch,
                              final ReadContext context,
                              final Consumer<List<Proto.Event>> batchedEventsConsumer) {
-        final List<List<PathBinding>> partitionedBatch = ListUtils.partition(
+        final List<List<Metric>> partitionedBatch = ListUtils.partition(
                 batch,
                 Math.min(
                         batchConfig.getBulkSize(),
                         batch.size()
                 )
         );
-        for (final List<PathBinding> bindings : partitionedBatch) {
+        for (final List<Metric> bindings : partitionedBatch) {
             final List<Proto.Event> events = bindings.stream()
-                    .flatMap((final PathBinding binding) -> {
+                    .flatMap((final Metric binding) -> {
                         try {
                             return parseEvents(
                                     context,
@@ -114,7 +113,7 @@ public class Pipeline {
     }
 
     private List<Proto.Event> parseEvents(final ReadContext context,
-                                          final PathBinding binding) throws ClassNotFoundException {
+                                          final Metric binding) throws ClassNotFoundException {
         final TypedMetricValue<?> value = new TypedMetricValue<>(context.read(
                 binding.getPath(),
                 binding.getDataType()
@@ -133,7 +132,7 @@ public class Pipeline {
     private List<Proto.Event> parseCoerceMetricEvents(final Object value,
                                                       final Class<?> clazz,
                                                       final Type type,
-                                                      final PathBinding binding,
+                                                      final Metric binding,
                                                       final int currentDimension,
                                                       final String suffix) throws ClassNotFoundException {
         if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
@@ -232,7 +231,7 @@ public class Pipeline {
     private String formatSuffix(final String current,
                                 final int dimension,
                                 final int index,
-                                final PathBinding binding) {
+                                final Metric binding) {
         String nextSuffix = current;
         final String dimIdxSuffix = binding.getSuffix(DimensionIndex.ofQuery(
                 dimension,
@@ -269,7 +268,7 @@ public class Pipeline {
     public void executeYielding(final BiConsumer<String, TypedMetricValue<?>> metricConsumer) {
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(this.ingestSource.ingest(this.ingestionContext));
-        this.schema.values().forEach((final PathBinding binding) -> {
+        this.schema.values().forEach((final Metric binding) -> {
             metricConsumer.accept(
                     binding.getMetricNamespace(),
                     new TypedMetricValue<>(context.read(

@@ -1,0 +1,34 @@
+{
+    "source_type": "REST",
+    "source": "localhost:9200",
+    "configuration": {
+        "json_provider": "jackson",
+        "mapping_provider": "jackson"
+    },
+    "schema": {
+        "/service/plugin/test_metric": {
+            "path": "$..book[?(@.price <= $['expensive'])].price",
+            "type": {
+                "container": "array",
+                "type": "double",
+                "suffix_format": "/book_{index}"
+            }
+        },
+        "/service/other_plugin/last_two_books": {
+            "path": "$..book[-2:]",
+            "type": {
+                "container": "map",
+                "type": {
+                    "container": "array",
+                    "type": "float",
+                    "suffix_format": "/value_{index}"
+                },
+                "suffix_format": "/book_{index}"
+            }
+        },
+        "/service/core/books_count": {
+            "path": "$..book[?(@.isbn)].length()",
+            "type": "int"
+        }
+    }
+}

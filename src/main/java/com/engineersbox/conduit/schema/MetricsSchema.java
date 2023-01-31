@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class MetricsSchema extends HashMap<String, PathBinding> {
+public class MetricsSchema extends HashMap<String, Metric> {
 
     private Configuration jsonPathConfiguration;
 
@@ -23,7 +23,7 @@ public class MetricsSchema extends HashMap<String, PathBinding> {
         return new Builder();
     }
 
-    public static MetricsSchema from(final PathBinding ...bindings) {
+    public static MetricsSchema from(final Metric...bindings) {
         final Builder builder = MetricsSchema.builder();
         Arrays.stream(bindings).forEach(builder::put);
         return builder.build();
@@ -37,7 +37,7 @@ public class MetricsSchema extends HashMap<String, PathBinding> {
             this.schema = new MetricsSchema();
         }
 
-        public Builder put(final PathBinding binding) {
+        public Builder put(final Metric binding) {
             binding.validate();
             this.schema.put(
                     binding.getPath(),
@@ -49,8 +49,8 @@ public class MetricsSchema extends HashMap<String, PathBinding> {
         public Builder put(final String path,
                            final String name,
                            final TypeRef<?> dataType) {
-            return put(PathBinding.path(path)
-                    .name(name)
+            return put(Metric.path(path)
+                    .namespace(name)
                     .type(dataType)
                     .complete()
             );
@@ -60,8 +60,8 @@ public class MetricsSchema extends HashMap<String, PathBinding> {
                            final String name,
                            final TypeRef<?> dataType,
                            final Function<Map<String, Object>, Boolean> inclusionHandler) {
-            return put(PathBinding.path(path)
-                    .name(name)
+            return put(Metric.path(path)
+                    .namespace(name)
                     .type(dataType)
                     .handler(inclusionHandler)
                     .complete()

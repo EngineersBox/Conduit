@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.function.Function;
 
-public class PathBinding {
+public class Metric {
 
     private String path;
     private String metricNamespace;
@@ -16,28 +16,28 @@ public class PathBinding {
     private Function<Map<String, Object>, Boolean> inclusionHandler;
     private boolean isComplete;
 
-    private PathBinding() {
+    private Metric() {
         this.dimension = 1;
         this.dimensionalNamespaceSuffix = new DimensionallyIndexedRangeMap();
         this.isComplete = false;
         this.inclusionHandler = (_ignored) -> true;
     }
 
-    public static PathBinding path(final String path) {
-        final PathBinding binding = new PathBinding();
+    public static Metric path(final String path) {
+        final Metric binding = new Metric();
         binding.path = path;
         return binding;
     }
 
-    public PathBinding name(final String metricName) {
+    public Metric namespace(final String namespace) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
-        this.metricNamespace = metricName;
+        this.metricNamespace = namespace;
         return this;
     }
 
-    public PathBinding type(final TypeRef<?> dataType) {
+    public Metric type(final TypeRef<?> dataType) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
@@ -45,7 +45,7 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding dimensions(final int dimension) {
+    public Metric dimensions(final int dimension) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         } else if (dimension < 0) {
@@ -55,7 +55,7 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding suffixes(final DimensionallyIndexedRangeMap suffixes) {
+    public Metric suffixes(final DimensionallyIndexedRangeMap suffixes) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         } else if (this.dimension != suffixes.dimensionSize()) {
@@ -69,8 +69,8 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding suffix(final DimensionIndex dimensionIndex,
-                              final String suffixFormat) {
+    public Metric suffix(final DimensionIndex dimensionIndex,
+                         final String suffixFormat) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         } else if (dimensionIndex.getDimension().upperEndpoint() > this.dimension) {
@@ -89,7 +89,7 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding handler(final Function<Map<String, Object>, Boolean> inclusionHandler) {
+    public Metric handler(final Function<Map<String, Object>, Boolean> inclusionHandler) {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
@@ -97,7 +97,7 @@ public class PathBinding {
         return this;
     }
 
-    public PathBinding complete() {
+    public Metric complete() {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }

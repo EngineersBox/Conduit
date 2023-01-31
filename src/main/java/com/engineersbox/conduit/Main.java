@@ -4,7 +4,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit.schema.PathBinding;
+import com.engineersbox.conduit.schema.Metric;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
@@ -26,27 +26,31 @@ public class Main {
 			                "category": "reference",
 			                "author": "Nigel Rees",
 			                "title": "Sayings of the Century",
-			                "price": 8.95
+			                "price": 8.95,
+			                "test_values": [ 153.0, -0.324 ]
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "Evelyn Waugh",
 			                "title": "Sword of Honour",
-			                "price": 12.99
+			                "price": 12.99,
+			                "test_values": [ 35.182, -22.59 303.744 ]
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "Herman Melville",
 			                "title": "Moby Dick",
 			                "isbn": "0-553-21311-3",
-			                "price": 8.99
+			                "price": 8.99,
+			                "test_values": [ -5326.3385, 73.025 ]
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "J. R. R. Tolkien",
 			                "title": "The Lord of the Rings",
 			                "isbn": "0-395-19395-8",
-			                "price": 22.99
+			                "price": 22.99,
+			                "test_values": [ 1.003, -0.983, -2.2603 ]
 			            }
 			        ],
 			        "bicycle": {
@@ -65,12 +69,12 @@ public class Main {
 						.mappingProvider(new JacksonMappingProvider())
 						.build();
 		final MetricsSchema schema = MetricsSchema.builder()
-				.put(PathBinding.path("$..book[?(@.price <= $['expensive'])].price")
-						.name("non_expensive_prices")
+				.put(Metric.path("$..book[?(@.price <= $['expensive'])].price")
+						.namespace("/books/prices/non_expensive_prices")
 						.type(new TypeRef<List<Double>>(){})
 						.complete()
-				).put(PathBinding.path("$.store.book[*].author")
-						.name("authors_names")
+				).put(Metric.path("$.store.book[*].author")
+						.namespace("/books/authors_names")
 						.type(new TypeRef<List<String>>(){})
 						.complete()
 				).withJsonPathConfig(configuration)
