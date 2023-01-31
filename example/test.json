@@ -1,12 +1,20 @@
 {
-    "source_type": "REST",
-    "source": "localhost:9200",
+    "source": {
+        "uri": "localhost:9200",
+        "type": "REST",
+        "auth": {
+            "type": "basic",
+            "username": "some_test_user",
+            "password": "P4ss-w0rd1!2@3#4$"
+        }
+    },
     "configuration": {
         "json_provider": "jackson",
         "mapping_provider": "jackson"
     },
-    "schema": {
-        "/service/plugin/test_metric": {
+    "metrics": [
+        {
+            "namespace": "/service/plugin/test_metric",
             "path": "$..book[?(@.price <= $['expensive'])].price",
             "type": {
                 "container": "array",
@@ -14,8 +22,9 @@
                 "suffix_format": "/book_{index}"
             }
         },
-        "/service/other_plugin/last_two_books": {
-            "path": "$..book[-2:]",
+        {
+            "namespace": "/service/other_plugin/last_two_books",
+            "path": "$..book[-2:].test_values",
             "type": {
                 "container": "map",
                 "type": {
@@ -26,9 +35,10 @@
                 "suffix_format": "/book_{index}"
             }
         },
-        "/service/core/books_count": {
+        {
+            "namespace": "/service/core/books_count",
             "path": "$..book[?(@.isbn)].length()",
             "type": "int"
         }
-    }
+    ]
 }
