@@ -1,11 +1,14 @@
 package com.engineersbox.conduit.schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.TypeRef;
+import com.networknt.schema.ValidationMessage;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class MetricsSchema extends HashMap<String, Metric> {
@@ -26,6 +29,21 @@ public class MetricsSchema extends HashMap<String, Metric> {
     public static MetricsSchema from(final Metric...bindings) {
         final Builder builder = MetricsSchema.builder();
         Arrays.stream(bindings).forEach(builder::put);
+        return builder.build();
+    }
+
+    public static MetricsSchema from(final JsonNode definition) {
+        final Set<ValidationMessage> messages = Validator.validate(definition);
+        if (messages.isEmpty()) {
+            return parse(definition);
+        }
+        // TODO: Throw error with validation messages
+        return null;
+    }
+
+    private static MetricsSchema parse(final JsonNode definition) {
+        final MetricsSchema.Builder builder = new MetricsSchema.Builder();
+        // TODO: parse metrics into builder
         return builder.build();
     }
 
