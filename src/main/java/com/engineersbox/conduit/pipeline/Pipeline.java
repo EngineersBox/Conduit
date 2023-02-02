@@ -4,7 +4,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit.schema.Metric;
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.google.common.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;

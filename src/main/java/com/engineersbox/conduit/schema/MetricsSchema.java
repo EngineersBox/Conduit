@@ -1,15 +1,13 @@
 package com.engineersbox.conduit.schema;
 
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.TypeRef;
 import com.networknt.schema.ValidationMessage;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public class MetricsSchema extends HashMap<String, Metric> {
 
@@ -62,28 +60,6 @@ public class MetricsSchema extends HashMap<String, Metric> {
                     binding
             );
             return this;
-        }
-
-        public Builder put(final String path,
-                           final String name,
-                           final TypeRef<?> dataType) {
-            return put(Metric.path(path)
-                    .namespace(name)
-                    .type(dataType)
-                    .complete()
-            );
-        }
-
-        public Builder put(final String path,
-                           final String name,
-                           final TypeRef<?> dataType,
-                           final Function<Map<String, Object>, Boolean> inclusionHandler) {
-            return put(Metric.path(path)
-                    .namespace(name)
-                    .type(dataType)
-                    .handler(inclusionHandler)
-                    .complete()
-            );
         }
 
         public Builder withJsonPathConfig(final Configuration jsonPathConfig) {
