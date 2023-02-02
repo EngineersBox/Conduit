@@ -135,6 +135,7 @@ public class Pipeline {
                                                       final Metric binding,
                                                       final int currentDimension,
                                                       final String suffix) throws ClassNotFoundException {
+        // TODO: Refactor this to use enum type definitions in recursive MetricType value on binding
         if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
             return List.of(parsePrimitiveMetricEvent(
                     value,
