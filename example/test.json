@@ -17,7 +17,7 @@
             "namespace": "/service/plugin/test_metric",
             "path": "$..book[?(@.price <= $['expensive'])].price",
             "type": {
-                "container": "array",
+                "container": "list",
                 "type": "double",
                 "suffix_format": "/book_{index}"
             }
@@ -28,7 +28,7 @@
             "type": {
                 "container": "map",
                 "type": {
-                    "container": "array",
+                    "container": "list",
                     "type": "float",
                     "suffix_format": "/value_{index}"
                 },
