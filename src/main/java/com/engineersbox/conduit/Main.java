@@ -3,8 +3,10 @@ package com.engineersbox.conduit;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
-import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit.schema.metric.MetricContainerType;
+import com.engineersbox.conduit.schema.metric.MetricType;
+import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
@@ -71,12 +73,26 @@ public class Main {
 		final MetricsSchema schema = MetricsSchema.builder()
 				.put(Metric.path("$..book[?(@.price <= $['expensive'])].price")
 						.namespace("/books/prices/non_expensive_prices")
-						.type(new TypeRef<List<Double>>(){})
-						.complete()
+						.type(
+								MetricType.builder()
+										.withContainerType(MetricContainerType.LIST)
+										.withChild(
+												MetricType.builder()
+														.withValueType(MetricValueType.FLOAT)
+														.build()
+										).build()
+						).complete()
 				).put(Metric.path("$.store.book[*].author")
 						.namespace("/books/authors_names")
-						.type(new TypeRef<List<String>>(){})
-						.complete()
+						.type(
+								MetricType.builder()
+										.withContainerType(MetricContainerType.LIST)
+										.withChild(
+												MetricType.builder()
+														.withValueType(MetricValueType.STRING)
+														.build()
+										).build()
+						).complete()
 				).withJsonPathConfig(configuration)
 				.build();
 		final Pipeline pipeline = new Pipeline(

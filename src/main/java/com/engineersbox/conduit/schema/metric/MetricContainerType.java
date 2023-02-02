@@ -6,18 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 public enum MetricContainerType {
-    MAP(new TypeRef<Map<String, String>>(){}),
-    LIST(new TypeRef<List<String>>(){}),
+    MAP(Map.class),
+    LIST(List.class),
     NONE(null);
 
-    private final TypeRef<?> typeRef;
+    private final Class<?> type;
 
-    MetricContainerType(final TypeRef<?> typeRef) {
-        this.typeRef = typeRef;
+    MetricContainerType(final Class<?> type) {
+        this.type = type;
     }
 
-    public TypeRef<?> getTypeRef() {
-        return this.typeRef;
+    public Class<?> getType() {
+        return this.type;
     }
 
 }

@@ -2,6 +2,7 @@ package com.engineersbox.conduit.schema.metric;
 
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
+import com.google.common.collect.Range;
 import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,10 +13,12 @@ public class Metric {
 
     private String path;
     private String metricNamespace;
-    private MetricType type;
+    private ParameterizedMetricType type;
+    private final DimensionallyIndexedRangeMap suffixes;
     private boolean isComplete;
 
     private Metric() {
+        this.suffixes = new DimensionallyIndexedRangeMap();
         this.isComplete = false;
     }
 
@@ -37,8 +40,28 @@ public class Metric {
         if (this.isComplete) {
             throw new IllegalStateException("Path binding is already complete");
         }
-        this.type = type;
+        this.type = new ParameterizedMetricType(
+                type.getChild().orElse(null),
+                type.getContainerType(),
+                type.getValueType(),
+                type.getSuffixFormat()
+        );
+        extractSuffixesToMap(0, type);
         return this;
+    }
+
+    private void extractSuffixesToMap(final int dimension, final MetricType metricType) {
+        if (metricType.getChild().isEmpty()) {
+            return;
+        }
+        this.suffixes.put(
+                new DimensionIndex(dimension, Range.all()),
+                metricType.getSuffixFormat()
+        );
+        extractSuffixesToMap(
+                dimension + 1,
+                metricType.getChild().get()
+        );
     }
 
     public Metric complete() {
@@ -67,7 +90,11 @@ public class Metric {
         return this.metricNamespace;
     }
 
-    public MetricType getType() {
+    public String getSuffix(final DimensionIndex query) {
+        return this.suffixes.get(query);
+    }
+
+    public ParameterizedMetricType getType() {
         return this.type;
     }
 

@@ -116,7 +116,7 @@ public class Pipeline {
                                           final Metric binding) throws ClassNotFoundException {
         final TypedMetricValue<?> value = new TypedMetricValue<>(context.read(
                 binding.getPath(),
-                binding.getDataType()
+                binding.getType().intoConcrete()
         ));
         return parseCoerceMetricEvents(
                 value.getValue(),
@@ -273,7 +273,7 @@ public class Pipeline {
                     binding.getMetricNamespace(),
                     new TypedMetricValue<>(context.read(
                             binding.getPath(),
-                            binding.getDataType()
+                            binding.getType().intoConcrete()
                     ))
             );
         });

@@ -28,14 +28,34 @@ public class MetricType {
         this.suffixFormat = StringUtils.isBlank(suffixFormat) ? "/{index}" : suffixFormat;
     }
 
-    private MetricType(final MetricType child,
-                       final MetricContainerType containerType,
-                       final MetricValueType valueType,
-                       final String suffixFormat) {
+    public MetricType(final MetricType child,
+                      final MetricContainerType containerType,
+                      final MetricValueType valueType,
+                      final String suffixFormat) {
         this.child = Optional.ofNullable(child);
         this.containerType = containerType;
         this.valueType = valueType;
         this.suffixFormat = StringUtils.isBlank(suffixFormat) ? "/{index}" : suffixFormat;
+    }
+
+    public Optional<MetricType> getChild() {
+        return this.child;
+    }
+
+    public MetricContainerType getContainerType() {
+        return this.containerType;
+    }
+
+    public MetricValueType getValueType() {
+        return this.valueType;
+    }
+
+    public String getSuffixFormat() {
+        return this.suffixFormat;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static final class Builder {
@@ -44,7 +64,7 @@ public class MetricType {
         private MetricValueType _valueType;
         private String _suffixFormat;
 
-        public Builder() {
+        private Builder() {
             this._child = null;
             this._containerType = MetricContainerType.NONE;
             this._valueType = MetricValueType.STRING;

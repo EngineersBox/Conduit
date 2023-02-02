@@ -1,23 +1,21 @@
 package com.engineersbox.conduit.schema.metric;
 
-import com.jayway.jsonpath.TypeRef;
-
 public enum MetricValueType {
-    STRING(new TypeRef<String>() {}),
-    FLOAT(new TypeRef<Float>() {}),
-    DOUBLE(new TypeRef<Double>() {}),
-    INT(new TypeRef<Integer>() {}),
-    BOOLEAN(new TypeRef<Boolean>() {}),
+    STRING(String.class),
+    FLOAT(float.class),
+    DOUBLE(double.class),
+    INT(int.class),
+    BOOLEAN(boolean.class),
     CONTAINER(null);
 
-    private final TypeRef<?> typeRef;
+    private final Class<?> clazz;
 
-    MetricValueType(final TypeRef<?> typeRef) {
-        this.typeRef = typeRef;
+    MetricValueType(final Class<?> clazz) {
+        this.clazz = clazz;
     }
 
-    public TypeRef<?> getTypeRef() {
-        return this.typeRef;
+    public Class<?> getType() {
+        return this.clazz;
     }
 
 }
