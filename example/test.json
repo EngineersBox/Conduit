@@ -19,7 +19,16 @@
             "type": {
                 "container": "list",
                 "type": "double",
-                "suffix_format": "/book_{index}"
+                "suffix_format": [
+                    {
+                        "template": "/book_{index}",
+                        "to": 2
+                    },
+                    {
+                        "template": "/other_book_{index}",
+                        "from": 2
+                    }
+                ]
             }
         },
         {

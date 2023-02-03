@@ -1,7 +1,10 @@
 package com.engineersbox.conduit.schema.metric;
 
+import com.google.common.collect.Range;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MetricType {
@@ -9,33 +12,43 @@ public class MetricType {
     private final Optional<MetricType> child;
     private final MetricContainerType containerType;
     private final MetricValueType valueType;
-    private final String suffixFormat;
+    private final List<Pair<Range<Integer>, String>> suffixFormat;
 
     public MetricType(final MetricType child,
                       final MetricContainerType containerType,
-                      final String suffixFormat) {
+                      final List<Pair<Range<Integer>, String>> suffixFormat) {
         this.child = Optional.ofNullable(child);
         this.containerType = containerType;
         this.valueType = MetricValueType.CONTAINER;
-        this.suffixFormat = StringUtils.isBlank(suffixFormat) ? "/{index}" : suffixFormat;
+        this.suffixFormat = suffixFormat.isEmpty()
+                ? List.of(Pair.of(Range.all(), "/{index}"))
+                : suffixFormat;
     }
 
     public MetricType(final MetricValueType valueType,
-                      final String suffixFormat) {
+                      final List<Pair<Range<Integer>, String>> suffixFormat) {
         this.child = Optional.empty();
         this.containerType = MetricContainerType.NONE;
         this.valueType = valueType;
-        this.suffixFormat = StringUtils.isBlank(suffixFormat) ? "/{index}" : suffixFormat;
+        this.suffixFormat = suffixFormat.isEmpty()
+                ? List.of(Pair.of(Range.all(), "/{index}"))
+                : suffixFormat;
     }
 
     public MetricType(final MetricType child,
                       final MetricContainerType containerType,
                       final MetricValueType valueType,
-                      final String suffixFormat) {
+                      final List<Pair<Range<Integer>, String>> suffixFormat) {
         this.child = Optional.ofNullable(child);
         this.containerType = containerType;
         this.valueType = valueType;
-        this.suffixFormat = StringUtils.isBlank(suffixFormat) ? "/{index}" : suffixFormat;
+        this.suffixFormat = suffixFormat.isEmpty()
+                ? List.of(Pair.of(Range.all(), "/{index}"))
+                : suffixFormat;
+    }
+
+    public boolean isLeaf() {
+        return this.child.isEmpty();
     }
 
     public Optional<MetricType> getChild() {
@@ -50,7 +63,7 @@ public class MetricType {
         return this.valueType;
     }
 
-    public String getSuffixFormat() {
+    public List<Pair<Range<Integer>, String>> getSuffixFormat() {
         return this.suffixFormat;
     }
 
@@ -62,13 +75,13 @@ public class MetricType {
         private MetricType _child;
         private MetricContainerType _containerType;
         private MetricValueType _valueType;
-        private String _suffixFormat;
+        private List<Pair<Range<Integer>, String>> _suffixFormat;
 
         private Builder() {
             this._child = null;
             this._containerType = MetricContainerType.NONE;
             this._valueType = MetricValueType.STRING;
-            this._suffixFormat = "/{index}";
+            this._suffixFormat = List.of();
         }
 
         public Builder withChild(final MetricType child) {
@@ -86,8 +99,15 @@ public class MetricType {
             return this;
         }
 
-        public Builder withSuffixFormat(final String suffixFormat) {
+        public Builder addSuffixFormat(final Range<Integer> range,
+                                       final String format) {
+            this._suffixFormat.add(Pair.of(range, format));
+            return this;
+        }
+
+        public Builder withSuffixFormat(final List<Pair<Range<Integer>, String>> suffixFormat) {
             this._suffixFormat = suffixFormat;
+            return this;
         }
 
         public MetricType build() {

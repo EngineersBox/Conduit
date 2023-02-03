@@ -3,11 +3,8 @@ package com.engineersbox.conduit.schema.metric;
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
 import com.google.common.collect.Range;
-import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
-import java.util.function.Function;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class Metric {
 
@@ -50,14 +47,16 @@ public class Metric {
         return this;
     }
 
-    private void extractSuffixesToMap(final int dimension, final MetricType metricType) {
-        if (metricType.getChild().isEmpty()) {
+    private void extractSuffixesToMap(final int dimension,
+                                      final MetricType metricType) {
+        if (metricType.isLeaf()) {
             return;
         }
-        this.suffixes.put(
-                new DimensionIndex(dimension, Range.all()),
-                metricType.getSuffixFormat()
-        );
+        metricType.getSuffixFormat()
+                .forEach((final Pair<Range<Integer>, String> format) -> this.suffixes.put(
+                        new DimensionIndex(dimension, format.getLeft()),
+                        format.getRight()
+                ));
         extractSuffixesToMap(
                 dimension + 1,
                 metricType.getChild().get()
@@ -86,7 +85,7 @@ public class Metric {
         return this.path;
     }
 
-    public String getMetricNamespace() {
+    public String getNamespace() {
         return this.metricNamespace;
     }
 

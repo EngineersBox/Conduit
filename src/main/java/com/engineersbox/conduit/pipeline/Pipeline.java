@@ -5,6 +5,9 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit.schema.metric.MetricContainerType;
+import com.engineersbox.conduit.schema.metric.MetricType;
+import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.google.common.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -31,7 +34,6 @@ public class Pipeline {
     private final IngestSource ingestSource;
     private final BatchingConfiguration batchConfig;
     private IngestionContext ingestionContext;
-    private final Map<Type, TriFunction<Object, Class<?>, Type, ?>> typeConversionHandlers;
 
     public Pipeline(final MetricsSchema schema,
                     final Proto.Event eventTemplate,
@@ -42,7 +44,6 @@ public class Pipeline {
         this.ingestSource = ingestSource;
         this.batchConfig = batchConfig;
         this.ingestionContext = IngestionContext.defaultContext();
-        this.typeConversionHandlers = new HashMap<>();
     }
 
     public Pipeline(final MetricsSchema schema,
@@ -58,14 +59,6 @@ public class Pipeline {
 
     public void configureIngestionContext(final IngestionContext ctx) {
         this.ingestionContext = ctx;
-    }
-
-    public <T> void submitTypeConversionHandler(final TypeRef<?> type,
-                                            final TriFunction<Object, Class<?>, Type, ?> typeConversionHandler) {
-        this.typeConversionHandlers.put(
-                type.getType(),
-                typeConversionHandler
-        );
     }
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
@@ -97,11 +90,11 @@ public class Pipeline {
         );
         for (final List<Metric> bindings : partitionedBatch) {
             final List<Proto.Event> events = bindings.stream()
-                    .flatMap((final Metric binding) -> {
+                    .flatMap((final Metric metric) -> {
                         try {
                             return parseEvents(
                                     context,
-                                    binding
+                                    metric
                             ).stream();
                         } catch (final ClassNotFoundException ignored) {
                             // TODO: Log this
@@ -113,120 +106,81 @@ public class Pipeline {
     }
 
     private List<Proto.Event> parseEvents(final ReadContext context,
-                                          final Metric binding) throws ClassNotFoundException {
-        final TypedMetricValue<?> value = new TypedMetricValue<>(context.read(
-                binding.getPath(),
-                binding.getType().intoConcrete()
-        ));
+                                          final Metric metric) throws ClassNotFoundException {
         return parseCoerceMetricEvents(
-                value.getValue(),
-                value.getTypeClass(),
-                value.getTypeRef().getType(),
-                binding,
+                context.read(
+                        metric.getPath(),
+                        metric.getType().intoConcrete()
+                ),
+                metric.getType(),
+                metric,
                 0,
                 ""
         );
     }
 
-    @SuppressWarnings("unchecked")
     private List<Proto.Event> parseCoerceMetricEvents(final Object value,
-                                                      final Class<?> clazz,
-                                                      final Type type,
-                                                      final Metric binding,
+                                                      final MetricType type,
+                                                      final Metric metric,
                                                       final int currentDimension,
-                                                      final String suffix) throws ClassNotFoundException {
-        // TODO: Refactor this to use enum type definitions in recursive MetricType value on binding
-        if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
+                                                      final String suffix) {
+        if (type.isLeaf()) {
             return List.of(parsePrimitiveMetricEvent(
                     value,
-                    clazz,
-                    binding.getMetricNamespace(),
+                    type.getValueType(),
+                    metric.getNamespace(),
                     suffix
             ));
-        } else if (clazz.isArray()) {
-            final Object[] array = (Object[]) value;
-            final Class<?> arrayComponentClass = clazz.arrayType();
-            final Type arrayComponentType = TypeUtils.getArrayComponentType(type);
-            final List<Proto.Event> events = new ArrayList<>();
-            int index = 0;
-            for (final Object component : array) {
-                final String nextSuffix = formatSuffix(
-                        suffix,
-                        currentDimension,
-                        index,
-                        binding
-                );
-                events.addAll(parseCoerceMetricEvents(
-                        component,
-                        arrayComponentClass,
-                        arrayComponentType,
-                        binding,
-                        currentDimension + 1,
-                        nextSuffix
-                ));
-                index++;
-            }
-            return events;
-        } else if (TypeUtils.isAssignable(type, ClassUtils.getClass(Collection.class.getName()))) {
-            final Collection<Object> collection = (Collection<Object>) value;
-            final List<Proto.Event> events = new ArrayList<>();
-            final Type collectionComponentType = ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
-            final Class<?> collectionComponentClass = TypeToken.of(collectionComponentType).getRawType();
-            int index = 0;
-            for (final Object component : collection) {
-                final String nextSuffix = formatSuffix(
-                        suffix,
-                        currentDimension,
-                        index,
-                        binding
-                );
-                events.addAll(parseCoerceMetricEvents(
-                        component,
-                        collectionComponentClass,
-                        collectionComponentType,
-                        binding,
-                        currentDimension + 1,
-                        nextSuffix
-                ));
-            }
-            return events;
-        } else if (TypeUtils.isAssignable(type, ClassUtils.getClass(Map.class.getName()))) {
-            final Type[] mapTypeArguments = ((ParameterizedType) type).getActualTypeArguments();
-            if (!TypeUtils.isAssignable(mapTypeArguments[0], TypeUtils.wrap(String.class).getType())) {
-                throw new ClassNotFoundException("Map type metric does not have string keys, cannot convert to metric");
-            }
-            final Class<?> mapValueClass = TypeToken.of(mapTypeArguments[1]).getRawType();
-            final Map<Object, Object> map = (Map<Object, Object>) value;
-            final List<Proto.Event> events = new ArrayList<>();
-            for (final Map.Entry<Object, Object> entry : map.entrySet()) {
-                events.addAll(parseCoerceMetricEvents(
-                        entry.getValue(),
-                        mapValueClass,
-                        mapTypeArguments[1],
-                        binding,
-                        currentDimension + 1,
-                        suffix + entry.getKey()
-                ));
-            }
-            return events;
         }
-        final TriFunction<Object, Class<?>, Type, ?> handler = this.typeConversionHandlers.get(type);
-        if (handler == null) {
-            // TODO: Make this configurable to skip and just log with return of List.of()
-            throw new ClassNotFoundException(String.format(
-                    "Unable to convert metric of type %s into usable value",
-                    type
-            ));
+        final MetricContainerType containerType = type.getContainerType();
+        final MetricType componentType = type.getChild().get();
+        switch (containerType) {
+            case LIST -> {
+                final List<?> list = (List<?>) value;
+                final List<Proto.Event> events = new ArrayList<>();
+                int index = 0;
+                for (final Object component : list) {
+                    final String nextSuffix = formatSuffix(
+                            suffix,
+                            currentDimension,
+                            index,
+                            metric
+                    );
+                    events.addAll(parseCoerceMetricEvents(
+                            component,
+                            componentType,
+                            metric,
+                            currentDimension + 1,
+                            nextSuffix
+                    ));
+                    index++;
+                }
+                return events;
+            }
+            case MAP -> {
+                final Map<String, ?> map = (Map<String, ?>) value;
+                final List<Proto.Event> events = new ArrayList<>();
+                int index = 0;
+                for (final Map.Entry<String, ?> entry : map.entrySet()) {
+                    final String nextSuffix = formatSuffix(
+                            suffix,
+                            currentDimension,
+                            index,
+                            metric
+                    );
+                    events.addAll(parseCoerceMetricEvents(
+                            entry.getValue(),
+                            componentType,
+                            metric,
+                            currentDimension + 1,
+                            nextSuffix + entry.getKey()
+                    ));
+                    index++;
+                }
+                return events;
+            }
+            default -> throw new IllegalStateException("Unknown metric container type: " + containerType.name());
         }
-        final Object convertedMetric = handler.apply(value, clazz, type);
-        return parseCoerceMetricEvents(
-                value,
-                convertedMetric.getClass(),
-                TypeToken.of(convertedMetric.getClass()).getType(),
-                binding,
-                currentDimension + 1,
-                suffix
-        );
     }
 
     private String formatSuffix(final String current,
@@ -247,21 +201,18 @@ public class Pipeline {
     }
 
     private Proto.Event parsePrimitiveMetricEvent(final Object value,
-                                                  final Class<?> type,
+                                                  final MetricValueType type,
                                                   final String metricNamespace,
                                                   final String suffix) {
         final Proto.Event.Builder builder = this.eventTemplate.toBuilder()
                 .setService(metricNamespace + suffix);
-        if (ClassUtils.isAssignable(type, double.class, true)) {
-            builder.setMetricD((double) value);
-        } else if (ClassUtils.isAssignable(type, float.class, true)) {
-            builder.setMetricF((float) value);
-        } else if (ClassUtils.isAssignable(type, long.class, true)) {
-            builder.setMetricSint64((long) value);
-        } else if (ClassUtils.isAssignable(type, boolean.class, true)) {
-            builder.setMetricSint64((boolean) value ? 1 : 0);
-        } else {
-            throw new ClassCastException("Unexpected non-primitive type: " + type);
+        switch (type) {
+            case DOUBLE -> builder.setMetricD((double) value);
+            case FLOAT -> builder.setMetricF((float) value);
+            case INT -> builder.setMetricF((long) value);
+            case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
+            case STRING -> builder.setState((String) value);
+            default -> throw new ClassCastException("Unsupported leaf type: " + type.name());
         }
         return builder.build();
     }
@@ -271,7 +222,7 @@ public class Pipeline {
                 .parse(this.ingestSource.ingest(this.ingestionContext));
         this.schema.values().forEach((final Metric binding) -> {
             metricConsumer.accept(
-                    binding.getMetricNamespace(),
+                    binding.getNamespace(),
                     new TypedMetricValue<>(context.read(
                             binding.getPath(),
                             binding.getType().intoConcrete()

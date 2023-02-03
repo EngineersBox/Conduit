@@ -21,7 +21,7 @@ public class ParametrizedTypeConstructor {
     }
 
     private static Type constructReflectiveType(final MetricType metricType) {
-        if (metricType.getChild().isEmpty()) {
+        if (metricType.isLeaf()) {
             return metricType.getValueType().getType();
         } else if (metricType.getContainerType().equals(MetricContainerType.MAP)) {
             return TypeUtils.parameterize(

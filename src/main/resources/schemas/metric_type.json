@@ -29,7 +29,30 @@
                     "$ref": "#"
                 },
                 "suffix_format": {
-                    "type": "string"
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "template": {
+                                        "type": "string"
+                                    },
+                                    "from": {
+                                        "type": "int",
+                                        "default": -1
+                                    },
+                                    "to": {
+                                        "type": "int",
+                                        "default": -1
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
                 }
             }
         }
