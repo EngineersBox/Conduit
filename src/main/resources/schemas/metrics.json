@@ -8,10 +8,28 @@
             "type": "object",
             "properties": {
                 "mapping_provider": {
-                    "type": "string"
+                    "type": {
+                        "enum": [
+                            "GSON",
+                            "JACKSON",
+                            "JAKARTA",
+                            "JSON_ORG",
+                            "JSON_SMART",
+                            "TAPESTRY"
+                        ]
+                    }
                 },
                 "json_provider": {
-                    "type": "string"
+                    "type": {
+                        "enum": [
+                            "GSON",
+                            "JACKSON",
+                            "JAKARTA",
+                            "JSON_ORG",
+                            "JSON_SMART",
+                            "TAPESTRY"
+                        ]
+                    }
                 }
             }
         },

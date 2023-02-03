@@ -1,6 +1,9 @@
 package com.engineersbox.conduit.schema;
 
 import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit.schema.metric.MetricType;
+import com.engineersbox.conduit.schema.provider.JsonProvider;
+import com.engineersbox.conduit.schema.provider.MappingProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.Configuration;
 import com.networknt.schema.ValidationMessage;
@@ -40,9 +43,34 @@ public class MetricsSchema extends HashMap<String, Metric> {
     }
 
     private static MetricsSchema parse(final JsonNode definition) {
-        final MetricsSchema.Builder builder = new MetricsSchema.Builder();
-        // TODO: parse metrics into builder
+        final Builder builder = new MetricsSchema.Builder();
+        final JsonNode configuration = definition.get("configuration");
+        builder.withJsonPathConfig(parseJsonPathConfiguration(configuration));
+        // TODO: Parse and handle the 'source' node here
+        final JsonNode metrics = definition.get("metrics");
+        for (final JsonNode metric : metrics) {
+            builder.put(
+                    Metric.path(metric.get("path").asText())
+                            .namespace(metric.get("namespace").asText())
+                            .type(parseMetricType(
+                                    MetricType.builder(),
+                                    metric.get("type")
+                            )).complete()
+            );
+        }
         return builder.build();
+    }
+
+    private static MetricType parseMetricType(final MetricType.Builder builder,
+                                              final JsonNode typeNode) {
+
+    }
+
+    private static Configuration parseJsonPathConfiguration(final JsonNode configuration) {
+        return Configuration.builder()
+                .jsonProvider(JsonProvider.valueOf(configuration.get("json_provider").asText().toUpperCase()).getNewProvider())
+                .mappingProvider(MappingProvider.valueOf(configuration.get("mapping_provider").asText().toUpperCase()).getNewProvider())
+                .build();
     }
 
     public static class Builder {
