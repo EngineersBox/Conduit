@@ -209,7 +209,7 @@ public class Pipeline {
         switch (type) {
             case DOUBLE -> builder.setMetricD((double) value);
             case FLOAT -> builder.setMetricF((float) value);
-            case INT -> builder.setMetricF((long) value);
+            case INT -> builder.setMetricSint64((long) value);
             case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
             case STRING -> builder.setState((String) value);
             default -> throw new ClassCastException("Unsupported leaf type: " + type.name());
