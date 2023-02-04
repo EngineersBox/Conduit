@@ -1,5 +1,7 @@
 package com.engineersbox.conduit.pipeline;
 
+import com.google.common.collect.Lists;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,8 +18,7 @@ public class BatchingConfiguration {
     }
 
     public <T> List<List<T>> splitWorkload(final List<T> workload) {
-        // TODO: Implement this
-        return List.of();
+        return Lists.partition(workload, this.bulkSize);
     }
 
     public ExecutorService generateExecutorService() {
