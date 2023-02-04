@@ -1,10 +1,13 @@
 package com.engineersbox.conduit.schema;
 
 import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
+import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Range;
 import com.jayway.jsonpath.Configuration;
 import com.networknt.schema.ValidationMessage;
 
@@ -63,7 +66,38 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
     private static MetricType parseMetricType(final MetricType.Builder builder,
                                               final JsonNode typeNode) {
-
+        final JsonNode childTypeNode = typeNode.get("type");
+        if (!childTypeNode.isObject()) {
+            return builder.withValueType(MetricValueType.valueOf(typeNode.asText())).build();
+        }
+        builder.withContainerType(MetricContainerType.valueOf(typeNode.get("container").asText()));
+        final JsonNode suffixFormatNode = typeNode.get("suffix_format");
+        if (suffixFormatNode.isArray()) {
+            for (final JsonNode formatNode : suffixFormatNode) {
+                final int from = formatNode.get("from").asInt();
+                final int to = formatNode.get("to").asInt();
+                Range<Integer> range;
+                if (from == -1 && to == -1) {
+                    range = Range.all();
+                } else if (from > -1 && to == -1) {
+                    range = Range.atLeast(from);
+                } else if (from == -1 && to > -1) {
+                    range = Range.atMost(to);
+                } else {
+                    range = Range.closed(from, to);
+                }
+                builder.addSuffixFormat(
+                        range,
+                        formatNode.get("template").asText()
+                );
+            }
+        } else {
+            builder.addSuffixFormat(Range.all(), suffixFormatNode.asText());
+        }
+        return  builder.withChild(parseMetricType(
+                MetricType.builder(),
+                childTypeNode
+        )).build();
     }
 
     private static Configuration parseJsonPathConfiguration(final JsonNode configuration) {
