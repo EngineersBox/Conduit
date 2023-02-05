@@ -9,8 +9,8 @@
         }
     },
     "configuration": {
-        "json_provider": "jackson",
-        "mapping_provider": "jackson"
+        "json_provider": "JACKSON",
+        "mapping_provider": "JACKSON"
     },
     "metrics": [
         {
@@ -29,19 +29,6 @@
                         "from": 2
                     }
                 ]
-            }
-        },
-        {
-            "namespace": "/service/other_plugin/last_two_books",
-            "path": "$..book[-2:].test_values",
-            "type": {
-                "container": "map",
-                "type": {
-                    "container": "list",
-                    "type": "float",
-                    "suffix_format": "/value_{index}"
-                },
-                "suffix_format": "/book_{index}"
             }
         },
         {

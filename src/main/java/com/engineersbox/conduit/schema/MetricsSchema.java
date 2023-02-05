@@ -9,10 +9,12 @@ import com.engineersbox.conduit.schema.provider.MappingProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Range;
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.internal.filter.ValueNodes;
 import com.networknt.schema.ValidationMessage;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
 
 public class MetricsSchema extends HashMap<String, Metric> {
@@ -41,8 +43,17 @@ public class MetricsSchema extends HashMap<String, Metric> {
         if (messages.isEmpty()) {
             return parse(definition);
         }
-        // TODO: Throw error with validation messages
-        return null;
+        final StringBuilder builder = new StringBuilder("Invalid schema definition: \n");
+        int index = 0;
+        for (final ValidationMessage msg : messages) {
+            builder.append(" - [")
+                    .append(index + 1)
+                    .append("]: ")
+                    .append(msg.getMessage())
+                    .append("\n");
+            index++;
+        }
+        throw new IllegalArgumentException(builder.toString());
     }
 
     private static MetricsSchema parse(final JsonNode definition) {
@@ -66,16 +77,27 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
     private static MetricType parseMetricType(final MetricType.Builder builder,
                                               final JsonNode typeNode) {
-        final JsonNode childTypeNode = typeNode.get("type");
+
+        final JsonNode childTypeNode = typeNode.isObject() ? typeNode.get("type") : typeNode;
         if (!childTypeNode.isObject()) {
-            return builder.withValueType(MetricValueType.valueOf(typeNode.asText())).build();
+            builder.withValueType(MetricValueType.valueOf(childTypeNode.asText().toUpperCase())).build();
         }
-        builder.withContainerType(MetricContainerType.valueOf(typeNode.get("container").asText()));
+        final JsonNode containerTypeNode = typeNode.get("container");
+        if (containerTypeNode == null) {
+            return builder.build();
+        }
+        final MetricContainerType containerType = MetricContainerType.valueOf(containerTypeNode.asText().toUpperCase());
+        if (containerType.equals(MetricContainerType.NONE)) {
+            return builder.build();
+        }
+        builder.withContainerType(containerType);
         final JsonNode suffixFormatNode = typeNode.get("suffix_format");
         if (suffixFormatNode.isArray()) {
             for (final JsonNode formatNode : suffixFormatNode) {
-                final int from = formatNode.get("from").asInt();
-                final int to = formatNode.get("to").asInt();
+                final JsonNode fromJsonNode = formatNode.get("from");
+                final JsonNode toJsonNode = formatNode.get("to");
+                final int from = fromJsonNode == null ? -1 : fromJsonNode.asInt();
+                final int to = toJsonNode == null ? -1 : toJsonNode.asInt();
                 Range<Integer> range;
                 if (from == -1 && to == -1) {
                     range = Range.all();
@@ -94,7 +116,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
         } else {
             builder.addSuffixFormat(Range.all(), suffixFormatNode.asText());
         }
-        return  builder.withChild(parseMetricType(
+        return builder.withChild(parseMetricType(
                 MetricType.builder(),
                 childTypeNode
         )).build();

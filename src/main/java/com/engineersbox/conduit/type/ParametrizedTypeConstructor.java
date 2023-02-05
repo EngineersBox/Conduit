@@ -14,6 +14,7 @@ public class ParametrizedTypeConstructor {
 
             @Override
             public Type getType() {
+//                return constructReflectiveType(metricType);
                 return TypeUtils.parameterize(metricType.getValueType().getType());
             }
 

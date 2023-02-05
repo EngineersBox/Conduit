@@ -4,6 +4,7 @@ import com.google.common.collect.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,7 +82,7 @@ public class MetricType {
             this._child = null;
             this._containerType = MetricContainerType.NONE;
             this._valueType = MetricValueType.STRING;
-            this._suffixFormat = List.of();
+            this._suffixFormat = new ArrayList<>();
         }
 
         public Builder withChild(final MetricType child) {

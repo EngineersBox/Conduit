@@ -1,22 +1,32 @@
 package com.engineersbox.conduit;
 
+import com.engineersbox.conduit.pipeline.BatchingConfiguration;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
+import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit.type.Functional;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.TypeRef;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.riemann.riemann.Proto;
+import io.riemann.riemann.client.RiemannClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -36,7 +46,7 @@ public class Main {
 			                "author": "Evelyn Waugh",
 			                "title": "Sword of Honour",
 			                "price": 12.99,
-			                "test_values": [ 35.182, -22.59 303.744 ]
+			                "test_values": [ 35.182, -22.59, 303.744 ]
 			            },
 			            {
 			                "category": "fiction",
@@ -65,55 +75,50 @@ public class Main {
 
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
-	public static void main (final String[] args) {
-		final Configuration configuration = Configuration.builder()
-						.jsonProvider(new JacksonJsonProvider())
-						.mappingProvider(new JacksonMappingProvider())
-						.build();
-		final MetricsSchema schema = MetricsSchema.builder()
-				.put(Metric.path("$..book[?(@.price <= $['expensive'])].price")
-						.namespace("/books/prices/non_expensive_prices")
-						.type(
-								MetricType.builder()
-										.withContainerType(MetricContainerType.LIST)
-										.withChild(
-												MetricType.builder()
-														.withValueType(MetricValueType.FLOAT)
-														.build()
-										).build()
-						).complete()
-				).put(Metric.path("$.store.book[*].author")
-						.namespace("/books/authors_names")
-						.type(
-								MetricType.builder()
-										.withContainerType(MetricContainerType.LIST)
-										.withChild(
-												MetricType.builder()
-														.withValueType(MetricValueType.STRING)
-														.build()
-										).build()
-						).complete()
-				).withJsonPathConfig(configuration)
-				.build();
+	public static void main (final String[] args) throws IOException {
+		final List<Double> values = JsonPath.using(Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build())
+				.parse(TEST_JSON_BLOB).read("$..book[?(@.price <= $['expensive'])].price");
+		final JsonNode definition = new ObjectMapper().readTree(new File("./example/test.json"));
+		if (definition == null) {
+			System.err.println("Cannot load file");
+			return;
+		}
+		final MetricsSchema schema = MetricsSchema.from(definition);
 		final Pipeline pipeline = new Pipeline(
 				schema,
 				Proto.Event.getDefaultInstance(),
-				(final IngestionContext ctx) -> TEST_JSON_BLOB
+				(final IngestionContext ctx) -> TEST_JSON_BLOB,
+				new BatchingConfiguration(1, 3)
 		);
-		final Map<String, TypedMetricValue<?>> results = pipeline.executeGrouped();
-		LOGGER.info("==== GROUPED ====");
-		results.forEach((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
-					"[Metric: {}] [Value: {}]",
-					metricName,
-					value.getValue()
-		));
-		results.clear();
-		LOGGER.info("==== YIELDED ====");
-		pipeline.executeYielding((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
-				"[Metric: {}] [Value: {}]",
-				metricName,
-				value.getValue()
-		));
+		try (final RiemannClient client = RiemannClient.tcp("127.0.0.1", 5555)) {
+			client.connect();
+			pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
+				System.out.println("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
+						" - [Service: %s] [State: %s] [Float: %f] [Double: %f] [Int: %d]%n",
+						event.getService(),
+						event.getState(),
+						event.getMetricF(),
+						event.getMetricD(),
+						event.getMetricSint64()
+				)).collect(Collectors.joining()));
+				client.sendEvents(events.toArray(Proto.Event[]::new))
+						.deref(1, TimeUnit.SECONDS);
+			}));
+		}
+//		final Map<String, TypedMetricValue<?>> results = pipeline.executeGrouped();
+//		LOGGER.info("==== GROUPED ====");
+//		results.forEach((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
+//					"[Metric: {}] [Value: {}]",
+//					metricName,
+//					value.getValue()
+//		));
+//		results.clear();
+//		LOGGER.info("==== YIELDED ====");
+//		pipeline.executeYielding((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
+//				"[Metric: {}] [Value: {}]",
+//				metricName,
+//				value.getValue()
+//		));
 	}
 
 }

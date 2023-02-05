@@ -6,11 +6,11 @@ import java.util.function.Supplier;
 
 public enum JsonProvider {
     GSON(GsonJsonProvider::new),
-    JACKSON(JacksonJsonProvider::new),
-    JAKARTA(JakartaJsonProvider::new),
-    JSON_ORG(JsonOrgJsonProvider::new),
-    JSON_SMART(JsonSmartJsonProvider::new),
-    TAPESTRY(TapestryJsonProvider::new);
+    JACKSON(JacksonJsonProvider::new);
+//    JAKARTA(JakartaJsonProvider::new),
+//    JSON_ORG(JsonOrgJsonProvider::new),
+//    JSON_SMART(JsonSmartJsonProvider::new),
+//    TAPESTRY(TapestryJsonProvider::new);
 
     private final Supplier<? extends com.jayway.jsonpath.spi.json.JsonProvider> constructor;
 

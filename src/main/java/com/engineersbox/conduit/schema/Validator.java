@@ -20,7 +20,7 @@ public class Validator {
         JsonNode node = null;
         try (final InputStream resource = Thread.currentThread()
                 .getContextClassLoader()
-                .getResourceAsStream("")) {
+                .getResourceAsStream("schemas/metrics.json")) {
             node = OBJECT_MAPPER.readTree(resource);
         } catch (final IOException ignored) {
             // Won't occur

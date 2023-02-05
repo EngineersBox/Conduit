@@ -6,20 +6,20 @@
     "oneOf": [
         {
             "properties": {
-                "type": {
-                    "enum": [
-                        "string",
-                        "float",
-                        "double",
-                        "int",
-                        "boolean"
-                    ]
-                }
+                "type": "string",
+                "enum": [
+                    "STRING",
+                    "FLOAT",
+                    "DOUBLE",
+                    "INT",
+                    "BOOLEAN"
+                ]
             }
         },
         {
             "properties": {
                 "container": {
+                    "type": "string",
                     "enum": [
                         "list",
                         "map"

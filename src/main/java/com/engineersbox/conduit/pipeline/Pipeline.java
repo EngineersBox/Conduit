@@ -96,8 +96,8 @@ public class Pipeline {
                                     context,
                                     metric
                             ).stream();
-                        } catch (final ClassNotFoundException ignored) {
-                            // TODO: Log this
+                        } catch (final ClassNotFoundException msg) {
+                            System.err.println(msg.getMessage());
                             return Stream.of();
                         }
                     }).toList();
@@ -107,7 +107,8 @@ public class Pipeline {
 
     private List<Proto.Event> parseEvents(final ReadContext context,
                                           final Metric metric) throws ClassNotFoundException {
-        return parseCoerceMetricEvents(
+//        System.out.println("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
+        final List<Proto.Event> events = parseCoerceMetricEvents(
                 context.read(
                         metric.getPath(),
                         metric.getType().intoConcrete()
@@ -117,6 +118,7 @@ public class Pipeline {
                 0,
                 ""
         );
+        return events;
     }
 
     private List<Proto.Event> parseCoerceMetricEvents(final Object value,

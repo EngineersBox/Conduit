@@ -8,28 +8,26 @@
             "type": "object",
             "properties": {
                 "mapping_provider": {
-                    "type": {
-                        "enum": [
-                            "GSON",
-                            "JACKSON",
-                            "JAKARTA",
-                            "JSON_ORG",
-                            "JSON_SMART",
-                            "TAPESTRY"
-                        ]
-                    }
+                    "type": "string",
+                    "enum": [
+                        "GSON",
+                        "JACKSON",
+                        "JAKARTA",
+                        "JSON_ORG",
+                        "JSON_SMART",
+                        "TAPESTRY"
+                    ]
                 },
                 "json_provider": {
-                    "type": {
-                        "enum": [
-                            "GSON",
-                            "JACKSON",
-                            "JAKARTA",
-                            "JSON_ORG",
-                            "JSON_SMART",
-                            "TAPESTRY"
-                        ]
-                    }
+                    "type": "string",
+                    "enum": [
+                        "GSON",
+                        "JACKSON",
+                        "JAKARTA",
+                        "JSON_ORG",
+                        "JSON_SMART",
+                        "TAPESTRY"
+                    ]
                 }
             }
         },
@@ -39,13 +37,12 @@
                 "auth": {
                     "type": "object",
                     "properties": {
-                        "type": {
-                            "enum": [
-                                "basic",
-                                "truststore",
-                                "certificate"
-                            ]
-                        }
+                        "type": "string",
+                        "enum": [
+                            "basic",
+                            "truststore",
+                            "certificate"
+                        ]
                     },
                     "if": { "properties": { "type": { "const": "basic" } } },
                     "then": {
