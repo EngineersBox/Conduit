@@ -33,7 +33,7 @@
         },
         {
             "namespace": "/service/core/books_count",
-            "path": "$..book[?(@.isbn)].length()",
+            "path": "$..book.length()",
             "type": "int"
         }
     ]

@@ -76,8 +76,6 @@ public class Main {
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	public static void main (final String[] args) throws IOException {
-		final List<Double> values = JsonPath.using(Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build())
-				.parse(TEST_JSON_BLOB).read("$..book[?(@.price <= $['expensive'])].price");
 		final JsonNode definition = new ObjectMapper().readTree(new File("./example/test.json"));
 		if (definition == null) {
 			System.err.println("Cannot load file");

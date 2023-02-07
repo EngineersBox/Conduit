@@ -17,6 +17,8 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -28,6 +30,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class Pipeline {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
     private final MetricsSchema schema;
     private final Proto.Event eventTemplate;
@@ -96,8 +100,8 @@ public class Pipeline {
                                     context,
                                     metric
                             ).stream();
-                        } catch (final ClassNotFoundException msg) {
-                            System.err.println(msg.getMessage());
+                        } catch (final ClassNotFoundException e) {
+                            LOGGER.error("Unable to parse events: ", e);
                             return Stream.of();
                         }
                     }).toList();
@@ -107,7 +111,7 @@ public class Pipeline {
 
     private List<Proto.Event> parseEvents(final ReadContext context,
                                           final Metric metric) throws ClassNotFoundException {
-        System.out.println("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
+        LOGGER.debug("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
         final List<Proto.Event> events = parseCoerceMetricEvents(
                 context.read(
                         metric.getPath(),
@@ -217,26 +221,6 @@ public class Pipeline {
             default -> throw new ClassCastException("Unsupported leaf type: " + type.name());
         }
         return builder.build();
-    }
-
-    public void executeYielding(final BiConsumer<String, TypedMetricValue<?>> metricConsumer) {
-        final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
-                .parse(this.ingestSource.ingest(this.ingestionContext));
-        this.schema.values().forEach((final Metric binding) -> {
-            metricConsumer.accept(
-                    binding.getNamespace(),
-                    new TypedMetricValue<>(context.read(
-                            binding.getPath(),
-                            binding.getType().intoConcrete()
-                    ))
-            );
-        });
-    }
-
-    public Map<String, TypedMetricValue<?>> executeGrouped() {
-        final Map<String, TypedMetricValue<?>> results = new HashMap<>();
-        executeYielding(results::put);
-        return results;
     }
 
 }

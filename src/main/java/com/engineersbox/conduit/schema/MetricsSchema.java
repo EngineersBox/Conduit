@@ -106,7 +106,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
                 } else if (from == -1 && to > -1) {
                     range = Range.atMost(to);
                 } else {
-                    range = Range.closed(from, to);
+                    range = Range.closedOpen(from, to);
                 }
                 builder.addSuffixFormat(
                         range,
