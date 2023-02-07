@@ -9,11 +9,13 @@ import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit.schema.provider.LRUCache;
 import com.engineersbox.conduit.type.Functional;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.spi.cache.CacheProvider;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.riemann.riemann.Proto;
@@ -76,6 +78,9 @@ public class Main {
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	public static void main (final String[] args) throws IOException {
+		CacheProvider.setCache(new LRUCache(10));
+		final List<Double> values = JsonPath.using(Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build())
+				.parse(TEST_JSON_BLOB).read("$..book[?(@.price <= $['expensive'])].price");
 		final JsonNode definition = new ObjectMapper().readTree(new File("./example/test.json"));
 		if (definition == null) {
 			System.err.println("Cannot load file");
