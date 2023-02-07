@@ -107,7 +107,7 @@ public class Pipeline {
 
     private List<Proto.Event> parseEvents(final ReadContext context,
                                           final Metric metric) throws ClassNotFoundException {
-//        System.out.println("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
+        System.out.println("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
         final List<Proto.Event> events = parseCoerceMetricEvents(
                 context.read(
                         metric.getPath(),

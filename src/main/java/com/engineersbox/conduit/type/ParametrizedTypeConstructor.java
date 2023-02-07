@@ -14,8 +14,7 @@ public class ParametrizedTypeConstructor {
 
             @Override
             public Type getType() {
-//                return constructReflectiveType(metricType);
-                return TypeUtils.parameterize(metricType.getValueType().getType());
+                return constructReflectiveType(metricType);
             }
 
         };
@@ -23,11 +22,11 @@ public class ParametrizedTypeConstructor {
 
     private static Type constructReflectiveType(final MetricType metricType) {
         if (metricType.isLeaf()) {
-            return metricType.getValueType().getType();
+            return TypeUtils.wrap(metricType.getValueType().getType()).getType();
         } else if (metricType.getContainerType().equals(MetricContainerType.MAP)) {
             return TypeUtils.parameterize(
                     metricType.getContainerType().getType(),
-                    String.class,
+                    TypeUtils.wrap(String.class).getType(),
                     constructReflectiveType(metricType.getChild().get())
             );
         }

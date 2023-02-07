@@ -2,10 +2,10 @@ package com.engineersbox.conduit.schema.metric;
 
 public enum MetricValueType {
     STRING(String.class),
-    FLOAT(float.class),
-    DOUBLE(double.class),
-    INT(long.class),
-    BOOLEAN(boolean.class),
+    FLOAT(Float.class),
+    DOUBLE(Double.class),
+    INT(Long.class),
+    BOOLEAN(Boolean.class),
     CONTAINER(null);
 
     private final Class<?> clazz;
