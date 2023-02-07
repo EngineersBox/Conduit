@@ -5,10 +5,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
 import com.engineersbox.conduit.pipeline.TypedMetricValue;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit.schema.metric.Metric;
-import com.engineersbox.conduit.schema.metric.MetricContainerType;
-import com.engineersbox.conduit.schema.metric.MetricType;
-import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit.schema.metric.*;
 import com.engineersbox.conduit.schema.provider.LRUCache;
 import com.engineersbox.conduit.type.Functional;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -79,8 +76,6 @@ public class Main {
 
 	public static void main (final String[] args) throws IOException {
 		CacheProvider.setCache(new LRUCache(10));
-		final List<Double> values = JsonPath.using(Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build())
-				.parse(TEST_JSON_BLOB).read("$..book[?(@.price <= $['expensive'])].price");
 		final JsonNode definition = new ObjectMapper().readTree(new File("./example/test.json"));
 		if (definition == null) {
 			System.err.println("Cannot load file");
@@ -97,7 +92,7 @@ public class Main {
 			client.connect();
 			pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
 				System.out.println("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
-						" - [Service: %s] [State: %s] [Float: %f] [Double: %f] [Int: %d]%n",
+						" - [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
 						event.getService(),
 						event.getState(),
 						event.getMetricF(),
