@@ -104,7 +104,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
                 } else if (from > -1 && to == -1) {
                     range = Range.atLeast(from);
                 } else if (from == -1 && to > -1) {
-                    range = Range.atMost(to);
+                    range = Range.lessThan(to);
                 } else {
                     range = Range.closedOpen(from, to);
                 }
