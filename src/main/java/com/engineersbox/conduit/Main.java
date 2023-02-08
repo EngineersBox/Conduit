@@ -1,20 +1,14 @@
 package com.engineersbox.conduit;
 
 import com.engineersbox.conduit.pipeline.BatchingConfiguration;
-import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.pipeline.Pipeline;
-import com.engineersbox.conduit.pipeline.TypedMetricValue;
+import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit.schema.metric.*;
 import com.engineersbox.conduit.schema.provider.LRUCache;
 import com.engineersbox.conduit.type.Functional;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
