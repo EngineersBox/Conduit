@@ -141,7 +141,6 @@ public class Pipeline {
             ));
         }
         final MetricContainerType containerType = type.getContainerType();
-        final MetricType componentType = type.getChild().get();
         return switch (containerType) {
             case LIST -> parseListMetricEvents(
                     value,
