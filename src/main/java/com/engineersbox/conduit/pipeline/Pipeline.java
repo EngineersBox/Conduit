@@ -82,7 +82,6 @@ public class Pipeline {
                         ),
                         executor
                 )).forEach(CompletableFuture::join);
-
     }
 
     private void handleBatch(final List<Metric> batch,
