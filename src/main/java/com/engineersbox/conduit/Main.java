@@ -103,20 +103,6 @@ public class Main {
 						.deref(1, TimeUnit.SECONDS);
 			}));
 		}
-//		final Map<String, TypedMetricValue<?>> results = pipeline.executeGrouped();
-//		LOGGER.info("==== GROUPED ====");
-//		results.forEach((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
-//					"[Metric: {}] [Value: {}]",
-//					metricName,
-//					value.getValue()
-//		));
-//		results.clear();
-//		LOGGER.info("==== YIELDED ====");
-//		pipeline.executeYielding((final String metricName, final TypedMetricValue<?> value) -> LOGGER.info(
-//				"[Metric: {}] [Value: {}]",
-//				metricName,
-//				value.getValue()
-//		));
 	}
 
 }
