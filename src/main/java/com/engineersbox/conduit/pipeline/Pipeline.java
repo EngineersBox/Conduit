@@ -142,53 +142,77 @@ public class Pipeline {
         }
         final MetricContainerType containerType = type.getContainerType();
         final MetricType componentType = type.getChild().get();
-        switch (containerType) {
-            case LIST -> {
-                final List<?> list = (List<?>) value;
-                final List<Proto.Event> events = new ArrayList<>();
-                int index = 0;
-                for (final Object component : list) {
-                    final String nextSuffix = formatSuffix(
-                            suffix,
-                            currentDimension,
-                            index,
-                            metric
-                    );
-                    events.addAll(parseCoerceMetricEvents(
-                            component,
-                            componentType,
-                            metric,
-                            currentDimension + 1,
-                            nextSuffix
-                    ));
-                    index++;
-                }
-                return events;
-            }
-            case MAP -> {
-                final Map<String, ?> map = (Map<String, ?>) value;
-                final List<Proto.Event> events = new ArrayList<>();
-                int index = 0;
-                for (final Map.Entry<String, ?> entry : map.entrySet()) {
-                    final String nextSuffix = formatSuffix(
-                            suffix,
-                            currentDimension,
-                            index,
-                            metric
-                    );
-                    events.addAll(parseCoerceMetricEvents(
-                            entry.getValue(),
-                            componentType,
-                            metric,
-                            currentDimension + 1,
-                            nextSuffix + entry.getKey()
-                    ));
-                    index++;
-                }
-                return events;
-            }
+        return switch (containerType) {
+            case LIST -> parseListMetricEvents(
+                    value,
+                    type,
+                    metric,
+                    currentDimension,
+                    suffix
+            );
+            case MAP -> parseMapMetricEvents(
+                    value,
+                    type,
+                    metric,
+                    currentDimension,
+                    suffix
+            );
             default -> throw new IllegalStateException("Unknown metric container type: " + containerType.name());
+        };
+    }
+
+    private List<Proto.Event> parseListMetricEvents(final Object value,
+                                                    final MetricType type,
+                                                    final Metric metric,
+                                                    final int currentDimension,
+                                                    final String suffix) {
+        final List<?> list = (List<?>) value;
+        final List<Proto.Event> events = new ArrayList<>();
+        int index = 0;
+        for (final Object component : list) {
+            final String nextSuffix = formatSuffix(
+                    suffix,
+                    currentDimension,
+                    index,
+                    metric
+            );
+            events.addAll(parseCoerceMetricEvents(
+                    component,
+                    type.getChild().get(),
+                    metric,
+                    currentDimension + 1,
+                    nextSuffix
+            ));
+            index++;
         }
+        return events;
+    }
+
+    private List<Proto.Event> parseMapMetricEvents(final Object value,
+                                                   final MetricType type,
+                                                   final Metric metric,
+                                                   final int currentDimension,
+                                                   final String suffix) {
+        final Map<String, ?> map = (Map<String, ?>) value;
+        final List<Proto.Event> events = new ArrayList<>();
+        int index = 0;
+        for (final Map.Entry<String, ?> entry : map.entrySet()) {
+            final String nextSuffix = formatSuffix(
+                    suffix,
+                    currentDimension,
+                    index,
+                    metric
+            );
+            events.addAll(parseCoerceMetricEvents(
+                    entry.getValue(),
+                    type.getChild().get(),
+                    metric,
+                    currentDimension + 1,
+                    nextSuffix + entry.getKey()
+            ));
+            index++;
+        }
+        return events;
     }
 
     private String formatSuffix(final String current,
