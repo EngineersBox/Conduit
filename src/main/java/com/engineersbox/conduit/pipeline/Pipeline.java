@@ -115,6 +115,7 @@ public class Pipeline {
                                           final Metric metric) throws ClassNotFoundException {
         LOGGER.debug("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
         return parseCoerceMetricEvents(
+                // TODO: Why doesn't this read work, but it does work when I replicate it anywhere else?
                 context.read(
                         metric.getPath(),
                         metric.getType().intoConcrete()
