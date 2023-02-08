@@ -73,20 +73,83 @@
         },
         "metrics": {
             "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "type": "string"
-                    },
-                    "path": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "$ref": "/schemas/metric_type"
+            "prefixItems": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "namespace": {
+                            "type": "string"
+                        },
+                        "path": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "$ref": "#/$defs/metric_type"
+                        }
                     }
                 }
-            }
+            ]
+        }
+    },
+    "$defs": {
+        "metric_type": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "properties": {
+                        "type": "string",
+                        "enum": [
+                            "STRING",
+                            "FLOAT",
+                            "DOUBLE",
+                            "INT",
+                            "BOOLEAN"
+                        ]
+                    }
+                },
+                {
+                    "properties": {
+                        "container": {
+                            "type": "string",
+                            "enum": [
+                                "list",
+                                "map"
+                            ]
+                        },
+                        "type": {
+                            "$ref": "#/$defs/metric_type"
+                        },
+                        "suffix_format": {
+                            "oneOf": [
+                                {
+                                    "type": "array",
+                                    "prefixItems": [
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "template": {
+                                                    "type": "string"
+                                                },
+                                                "from": {
+                                                    "type": "int",
+                                                    "default": -1
+                                                },
+                                                "to": {
+                                                    "type": "int",
+                                                    "default": -1
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         }
     }
 }

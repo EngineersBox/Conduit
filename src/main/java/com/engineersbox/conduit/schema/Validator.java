@@ -27,6 +27,7 @@ public class Validator {
         }
         final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(node));
         SCHEMA = factory.getSchema(node);
+        SCHEMA.initializeValidators();
     }
 
     public static Set<ValidationMessage> validate(final JsonNode metricsSchema) {
