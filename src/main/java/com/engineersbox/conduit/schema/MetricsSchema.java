@@ -35,12 +35,12 @@ public class MetricsSchema extends HashMap<String, Metric> {
         return this.eventTemplate;
     }
 
-    public static Builder builder() {
+    public static MetricsSchema.Builder builder() {
         return new Builder();
     }
 
     public static MetricsSchema from(final Metric...bindings) {
-        final Builder builder = MetricsSchema.builder();
+        final MetricsSchema.Builder builder = MetricsSchema.builder();
         Arrays.stream(bindings).forEach(builder::put);
         return builder.build();
     }
@@ -64,7 +64,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
     }
 
     private static MetricsSchema parse(final JsonNode definition) {
-        final Builder builder = new MetricsSchema.Builder();
+        final MetricsSchema.Builder builder = MetricsSchema.builder();
         builder.withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
         // TODO: Parse and handle the 'source' node here
         try {
