@@ -231,7 +231,6 @@ public class Pipeline {
                                                   final String suffix) {
         final Proto.Event.Builder builder = this.schema.getEventTemplate().toBuilder()
                 .setService(metricNamespace + suffix);
-        System.out.println("Event: " + this.schema.getEventTemplate().toString());
         switch (type) {
             case DOUBLE -> builder.setMetricD((double) value);
             case FLOAT -> builder.setMetricF((float) value);
