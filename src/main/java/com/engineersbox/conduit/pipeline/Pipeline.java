@@ -8,27 +8,17 @@ import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
-import com.engineersbox.conduit.schema.provider.LRUCache;
-import com.google.common.reflect.TypeToken;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
-import com.jayway.jsonpath.TypeRef;
-import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.Proto;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.function.TriFunction;
-import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -234,7 +224,7 @@ public class Pipeline {
         switch (type) {
             case DOUBLE -> builder.setMetricD((double) value);
             case FLOAT -> builder.setMetricF((float) value);
-            case INT -> builder.setMetricSint64((long) value);
+            case INTEGER -> builder.setMetricSint64((long) value);
             case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
             case STRING -> builder.setState((String) value);
             default -> throw new ClassCastException("Unsupported primitive type: " + type.name());

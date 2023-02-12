@@ -142,7 +142,7 @@
                 "STRING",
                 "FLOAT",
                 "DOUBLE",
-                "INT",
+                "INTEGER",
                 "BOOLEAN"
             ]
         },

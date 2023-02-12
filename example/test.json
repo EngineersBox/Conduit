@@ -35,7 +35,7 @@
         {
             "namespace": "/service/core/books_count",
             "path": "$..book.length()",
-            "type": "INT"
+            "type": "INTEGER"
         }
     ]
 }

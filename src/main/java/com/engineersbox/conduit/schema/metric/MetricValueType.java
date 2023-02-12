@@ -4,7 +4,7 @@ public enum MetricValueType {
     STRING(String.class),
     FLOAT(Float.class),
     DOUBLE(Double.class),
-    INT(Long.class),
+    INTEGER(Long.class),
     BOOLEAN(Boolean.class),
     CONTAINER(null);
 
