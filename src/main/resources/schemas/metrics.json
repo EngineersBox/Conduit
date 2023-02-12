@@ -10,6 +10,9 @@
         "source": {
             "$ref": "#/$defs/source"
         },
+        "event_template": {
+            "type": "string"
+        },
         "metrics": {
             "type": "array",
             "prefixItems": [

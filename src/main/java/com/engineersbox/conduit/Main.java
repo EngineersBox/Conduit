@@ -73,7 +73,6 @@ public class Main {
 		final MetricsSchema schema = MetricsSchema.from(definition);
 		final Pipeline pipeline = new Pipeline(
 				schema,
-				Proto.Event.getDefaultInstance(),
 				(final IngestionContext ctx) -> TEST_JSON_BLOB,
 				new BatchingConfiguration(1, 3)
 		);

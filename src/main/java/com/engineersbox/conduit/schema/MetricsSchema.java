@@ -8,9 +8,11 @@ import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Range;
+import com.google.protobuf.TextFormat;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.internal.filter.ValueNodes;
 import com.networknt.schema.ValidationMessage;
+import io.riemann.riemann.Proto;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,12 +22,17 @@ import java.util.Set;
 public class MetricsSchema extends HashMap<String, Metric> {
 
     private Configuration jsonPathConfiguration;
+    private Proto.Event eventTemplate;
 
     private MetricsSchema() {
     }
 
     public Configuration getJsonPathConfiguration() {
         return this.jsonPathConfiguration;
+    }
+
+    public Proto.Event getEventTemplate() {
+        return this.eventTemplate;
     }
 
     public static Builder builder() {
@@ -60,6 +67,11 @@ public class MetricsSchema extends HashMap<String, Metric> {
         final Builder builder = new MetricsSchema.Builder();
         builder.withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
         // TODO: Parse and handle the 'source' node here
+        try {
+            builder.withEventTemplate(parseEventTemplate(definition.get("event_template")));
+        } catch (final TextFormat.ParseException e) {
+            throw new IllegalArgumentException("Unable to parse Riemann Proto.Event template for MetricsSchema", e);
+        }
         final JsonNode metrics = definition.get("metrics");
         for (final JsonNode metric : metrics) {
             builder.put(
@@ -145,6 +157,18 @@ public class MetricsSchema extends HashMap<String, Metric> {
         return builder.build();
     }
 
+    private static Proto.Event parseEventTemplate(final JsonNode eventTemplate) throws TextFormat.ParseException {
+        if (eventTemplate == null) {
+            return Proto.Event.getDefaultInstance();
+        }
+        final Proto.Event.Builder eventTemplateBuilder = Proto.Event.newBuilder();
+        TextFormat.getParser().merge(
+                eventTemplate.asText(),
+                eventTemplateBuilder
+        );
+        return eventTemplateBuilder.build();
+    }
+
     public static class Builder {
 
         private final MetricsSchema schema;
@@ -159,6 +183,11 @@ public class MetricsSchema extends HashMap<String, Metric> {
                     binding.getPath(),
                     binding
             );
+            return this;
+        }
+
+        public Builder withEventTemplate(final Proto.Event eventTemplate) {
+            this.schema.eventTemplate = eventTemplate;
             return this;
         }
 

@@ -12,6 +12,7 @@
         "json_provider": "JACKSON",
         "mapping_provider": "JACKSON"
     },
+    "event_template": "description: \"Some Metric Description\"\nmetric_d: 123.44",
     "metrics": [
         {
             "namespace": "/service/plugin/test_metric",

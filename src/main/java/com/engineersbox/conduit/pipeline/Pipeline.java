@@ -37,28 +37,23 @@ public class Pipeline {
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
     private final MetricsSchema schema;
-    private final Proto.Event eventTemplate;
     private final IngestSource ingestSource;
     private final BatchingConfiguration batchConfig;
     private IngestionContext ingestionContext;
 
     public Pipeline(final MetricsSchema schema,
-                    final Proto.Event eventTemplate,
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
         this.schema = schema;
-        this.eventTemplate = eventTemplate;
         this.ingestSource = ingestSource;
         this.batchConfig = batchConfig;
         this.ingestionContext = IngestionContext.defaultContext();
     }
 
     public Pipeline(final MetricsSchema schema,
-                    final Proto.Event eventTemplate,
                     final IngestSource ingestSource) {
         this(
                 schema,
-                eventTemplate,
                 ingestSource,
                 new BatchingConfiguration(1, 1)
         );
@@ -234,8 +229,9 @@ public class Pipeline {
                                                   final MetricValueType type,
                                                   final String metricNamespace,
                                                   final String suffix) {
-        final Proto.Event.Builder builder = this.eventTemplate.toBuilder()
+        final Proto.Event.Builder builder = this.schema.getEventTemplate().toBuilder()
                 .setService(metricNamespace + suffix);
+        System.out.println("Event: " + this.schema.getEventTemplate().toString());
         switch (type) {
             case DOUBLE -> builder.setMetricD((double) value);
             case FLOAT -> builder.setMetricF((float) value);
