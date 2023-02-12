@@ -17,8 +17,8 @@
             "namespace": "/service/plugin/test_metric",
             "path": "$..book[?(@.price <= $['expensive'])].price",
             "type": {
-                "container": "list",
-                "type": "double",
+                "container": "LIST",
+                "type": "DOUBLE",
                 "suffix_format": [
                     {
                         "template": "/book_{index}",
@@ -28,13 +28,14 @@
                         "template": "/other_book_{index}",
                         "from": 2
                     }
-                ]
+                ],
+                "wtf": 23
             }
         },
         {
             "namespace": "/service/core/books_count",
             "path": "$..book.length()",
-            "type": "int"
+            "type": "INT"
         }
     ]
 }

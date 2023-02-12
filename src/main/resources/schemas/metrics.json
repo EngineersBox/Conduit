@@ -5,32 +5,42 @@
     "type": "object",
     "properties": {
         "configuration": {
+            "$ref": "#/$defs/configuration"
+        },
+        "source": {
+            "$ref": "#/$defs/source"
+        },
+        "metrics": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "$ref": "#/$defs/metric"
+                }
+            ]
+        }
+    },
+    "$defs": {
+        "providers": {
+            "type": "string",
+            "enum": [
+                "GSON",
+                "JACKSON",
+                "JAKARTA",
+                "JSON_ORG",
+                "JSON_SMART",
+                "TAPESTRY"
+            ]
+        },
+        "configuration": {
             "type": "object",
             "properties": {
                 "mapping_provider": {
-                    "type": "string",
-                    "enum": [
-                        "GSON",
-                        "JACKSON",
-                        "JAKARTA",
-                        "JSON_ORG",
-                        "JSON_SMART",
-                        "TAPESTRY"
-                    ]
+                    "$ref": "#/$defs/providers"
                 },
                 "json_provider": {
-                    "type": "string",
-                    "enum": [
-                        "GSON",
-                        "JACKSON",
-                        "JAKARTA",
-                        "JSON_ORG",
-                        "JSON_SMART",
-                        "TAPESTRY"
-                    ]
+                    "$ref": "#/$defs/providers"
                 }
-            }
-        },
+            }        },
         "source": {
             "type": "object",
             "properties": {
@@ -71,85 +81,90 @@
                 }
             }
         },
-        "metrics": {
+        "metric": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/$defs/metric_type"
+                }
+            }
+        },
+        "metric_type": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/primitive_metric"
+                },
+                {
+                    "$ref": "#/$defs/container_metric"
+                }
+            ]
+        },
+        "primitive_metric": {
+            "properties": {
+                "type": "string",
+                "enum": [
+                    "STRING",
+                    "FLOAT",
+                    "DOUBLE",
+                    "INT",
+                    "BOOLEAN"
+                ]
+            }
+        },
+        "container_metric": {
+            "properties": {
+                "container": {
+                    "type": "string",
+                    "enum": [
+                        "LIST",
+                        "MAP"
+                    ]
+                },
+                "type": {
+                    "$ref": "#/$defs/metric_type"
+                },
+                "suffix_format": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/range_suffix_format"
+                        },
+                        {
+                            "$ref": "#/$defs/literal_suffix_format"
+                        }
+                    ]
+                }
+            }
+        },
+        "range_suffix_format": {
             "type": "array",
             "prefixItems": [
                 {
                     "type": "object",
                     "properties": {
-                        "namespace": {
+                        "template": {
                             "type": "string"
                         },
-                        "path": {
-                            "type": "string"
+                        "from": {
+                            "type": "int",
+                            "default": -1
                         },
-                        "type": {
-                            "$ref": "#/$defs/metric_type"
+                        "to": {
+                            "type": "int",
+                            "default": -1
                         }
                     }
                 }
             ]
-        }
-    },
-    "$defs": {
-        "metric_type": {
-            "type": "object",
-            "oneOf": [
-                {
-                    "properties": {
-                        "type": "string",
-                        "enum": [
-                            "STRING",
-                            "FLOAT",
-                            "DOUBLE",
-                            "INT",
-                            "BOOLEAN"
-                        ]
-                    }
-                },
-                {
-                    "properties": {
-                        "container": {
-                            "type": "string",
-                            "enum": [
-                                "list",
-                                "map"
-                            ]
-                        },
-                        "type": {
-                            "$ref": "#/$defs/metric_type"
-                        },
-                        "suffix_format": {
-                            "oneOf": [
-                                {
-                                    "type": "array",
-                                    "prefixItems": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "template": {
-                                                    "type": "string"
-                                                },
-                                                "from": {
-                                                    "type": "int",
-                                                    "default": -1
-                                                },
-                                                "to": {
-                                                    "type": "int",
-                                                    "default": -1
-                                                }
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "string"
-                                }
-                            ]
-                        }
-                    }
-                }
-            ]
+        },
+        "literal_suffix_format": {
+            "type": "string"
         }
     }
 }
