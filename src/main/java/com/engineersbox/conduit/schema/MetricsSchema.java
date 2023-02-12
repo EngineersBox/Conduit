@@ -58,8 +58,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
     private static MetricsSchema parse(final JsonNode definition) {
         final Builder builder = new MetricsSchema.Builder();
-        final JsonNode configuration = definition.get("configuration");
-        builder.withJsonPathConfig(parseJsonPathConfiguration(configuration));
+        builder.withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
         // TODO: Parse and handle the 'source' node here
         final JsonNode metrics = definition.get("metrics");
         for (final JsonNode metric : metrics) {
@@ -92,7 +91,9 @@ public class MetricsSchema extends HashMap<String, Metric> {
         }
         builder.withContainerType(containerType);
         final JsonNode suffixFormatNode = typeNode.get("suffix_format");
-        if (suffixFormatNode.isArray()) {
+        if (suffixFormatNode == null) {
+            builder.addSuffixFormat(Range.all(), "/{index}");
+        } else if (suffixFormatNode.isArray()) {
             for (final JsonNode formatNode : suffixFormatNode) {
                 final JsonNode fromJsonNode = formatNode.get("from");
                 final JsonNode toJsonNode = formatNode.get("to");
@@ -123,10 +124,25 @@ public class MetricsSchema extends HashMap<String, Metric> {
     }
 
     private static Configuration parseJsonPathConfiguration(final JsonNode configuration) {
-        return Configuration.builder()
-                .jsonProvider(JsonProvider.valueOf(configuration.get("json_provider").asText().toUpperCase()).getNewProvider())
-                .mappingProvider(MappingProvider.valueOf(configuration.get("mapping_provider").asText().toUpperCase()).getNewProvider())
-                .build();
+        if (configuration == null) {
+            return Configuration.defaultConfiguration();
+        }
+        final Configuration.ConfigurationBuilder builder = Configuration.builder();
+        if (configuration.has("json_provider")) {
+            builder.jsonProvider(JsonProvider.valueOf(
+                    configuration.get("json_provider")
+                            .asText()
+                            .toUpperCase()
+            ).getNewProvider());
+        }
+        if (configuration.has("mapping_provider")) {
+            builder.mappingProvider(MappingProvider.valueOf(
+                    configuration.get("mapping_provider")
+                            .asText()
+                            .toUpperCase()
+            ).getNewProvider());
+        }
+        return builder.build();
     }
 
     public static class Builder {

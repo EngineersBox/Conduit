@@ -17,11 +17,15 @@
                     "$ref": "#/$defs/metric"
                 }
             ]
-        }
+        },
+        "required": [
+            "source",
+            "metrics"
+        ]
     },
+    "additionalProperties": false,
     "$defs": {
         "providers": {
-            "type": "string",
             "enum": [
                 "GSON",
                 "JACKSON",
@@ -40,20 +44,29 @@
                 "json_provider": {
                     "$ref": "#/$defs/providers"
                 }
-            }        },
+            },
+            "additionalProperties": false
+        },
+        "auth_type": {
+            "enum": [
+                "basic",
+                "truststore",
+                "certificate"
+            ]
+        },
         "source": {
             "type": "object",
             "properties": {
                 "auth": {
                     "type": "object",
                     "properties": {
-                        "type": "string",
-                        "enum": [
-                            "basic",
-                            "truststore",
-                            "certificate"
-                        ]
+                        "type": {
+                            "$ref": "#/$defs/auth_type"
+                        }
                     },
+                    "required": [
+                        "type"
+                    ],
                     "if": { "properties": { "type": { "const": "basic" } } },
                     "then": {
                         "properties": {
@@ -63,14 +76,21 @@
                             "password": {
                                 "type": "string"
                             }
-                        }
+                        },
+                        "required": [
+                            "username",
+                            "password"
+                        ]
                     },
                     "else": {
                         "properties": {
                             "location": {
                                 "type": "string"
                             }
-                        }
+                        },
+                        "required": [
+                            "location"
+                        ]
                     }
                 },
                 "type": {
@@ -79,7 +99,13 @@
                 "uri": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "auth",
+                "type",
+                "uri"
+            ],
+            "unevaluatedProperties": false
         },
         "metric": {
             "type": "object",
@@ -91,80 +117,92 @@
                     "type": "string"
                 },
                 "type": {
-                    "$ref": "#/$defs/metric_type"
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/primitive_metric"
+                        },
+                        {
+                            "$ref": "#/$defs/container_metric"
+                        }
+                    ]
                 }
-            }
-        },
-        "metric_type": {
-            "type": "object",
-            "oneOf": [
-                {
-                    "$ref": "#/$defs/primitive_metric"
-                },
-                {
-                    "$ref": "#/$defs/container_metric"
-                }
-            ]
+            },
+            "required": [
+                "namespace",
+                "path",
+                "type"
+            ],
+            "additionalProperties": false
         },
         "primitive_metric": {
-            "properties": {
-                "type": "string",
-                "enum": [
-                    "STRING",
-                    "FLOAT",
-                    "DOUBLE",
-                    "INT",
-                    "BOOLEAN"
-                ]
-            }
+            "enum": [
+                "STRING",
+                "FLOAT",
+                "DOUBLE",
+                "INT",
+                "BOOLEAN"
+            ]
         },
         "container_metric": {
+            "type": "object",
             "properties": {
                 "container": {
-                    "type": "string",
                     "enum": [
                         "LIST",
                         "MAP"
                     ]
                 },
                 "type": {
-                    "$ref": "#/$defs/metric_type"
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/primitive_metric"
+                        },
+                        {
+                            "$ref": "#/$defs/container_metric"
+                        }
+                    ]
                 },
                 "suffix_format": {
                     "oneOf": [
                         {
-                            "$ref": "#/$defs/range_suffix_format"
+                            "type": "array",
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/$defs/range_suffix_format"
+                                }
+                            ]
                         },
                         {
-                            "$ref": "#/$defs/literal_suffix_format"
+                            "type": "string"
                         }
                     ]
                 }
-            }
+            },
+            "required": [
+                "container",
+                "type"
+            ],
+            "additionalProperties": false
         },
         "range_suffix_format": {
-            "type": "array",
-            "prefixItems": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "template": {
-                            "type": "string"
-                        },
-                        "from": {
-                            "type": "int",
-                            "default": -1
-                        },
-                        "to": {
-                            "type": "int",
-                            "default": -1
-                        }
-                    }
+            "type": "object",
+            "properties": {
+                "template": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "to": {
+                    "type": "integer",
+                    "default": -1
                 }
-            ]
-        },
-        "literal_suffix_format": {
-            "type": "string"
+            },
+            "required": [
+                "template"
+            ],
+            "additionalProperties": false
         }
     }
 }
