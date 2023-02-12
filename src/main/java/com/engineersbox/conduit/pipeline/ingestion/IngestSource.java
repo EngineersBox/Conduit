@@ -1,8 +1,10 @@
 package com.engineersbox.conduit.pipeline.ingestion;
 
-@FunctionalInterface
-public interface IngestSource {
+import java.util.function.Function;
 
-    Object ingest(final IngestionContext ctx);
+public interface IngestSource extends Function<IngestionContext, String> {
+
+    @Override
+    String apply(final IngestionContext ctx);
 
 }

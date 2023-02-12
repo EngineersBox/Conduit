@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String TEST_JSON_BLOB = """
 			{
 			    "store": {
@@ -30,31 +31,27 @@ public class Main {
 			                "category": "reference",
 			                "author": "Nigel Rees",
 			                "title": "Sayings of the Century",
-			                "price": 8.95,
-			                "test_values": [ 153.0, -0.324 ]
+			                "price": 8.95
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "Evelyn Waugh",
 			                "title": "Sword of Honour",
-			                "price": 12.99,
-			                "test_values": [ 35.182, -22.59, 303.744 ]
+			                "price": 12.99
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "Herman Melville",
 			                "title": "Moby Dick",
 			                "isbn": "0-553-21311-3",
-			                "price": 8.99,
-			                "test_values": [ -5326.3385, 73.025 ]
+			                "price": 8.99
 			            },
 			            {
 			                "category": "fiction",
 			                "author": "J. R. R. Tolkien",
 			                "title": "The Lord of the Rings",
 			                "isbn": "0-395-19395-8",
-			                "price": 22.99,
-			                "test_values": [ 1.003, -0.983, -2.2603 ]
+			                "price": 22.99
 			            }
 			        ],
 			        "bicycle": {
@@ -64,12 +61,11 @@ public class Main {
 			    },
 			    "expensive": 10
 			}""";
-
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	public static void main (final String[] args) throws IOException {
 		CacheProvider.setCache(new LRUCache(10));
-		final JsonNode definition = new ObjectMapper().readTree(new File("./example/test.json"));
+		final JsonNode definition = OBJECT_MAPPER.readTree(new File("./example/test.json"));
 		if (definition == null) {
 			System.err.println("Cannot load file");
 			return;
@@ -84,7 +80,7 @@ public class Main {
 		try (final RiemannClient client = RiemannClient.tcp("127.0.0.1", 5555)) {
 			client.connect();
 			pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
-				System.out.println("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
+				LOGGER.info("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
 						" - [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
 						event.getService(),
 						event.getState(),

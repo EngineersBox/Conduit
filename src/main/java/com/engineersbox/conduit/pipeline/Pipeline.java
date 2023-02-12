@@ -72,7 +72,7 @@ public class Pipeline {
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
-                .parse(this.ingestSource.ingest(this.ingestionContext));
+                .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
                 .map((final List<Metric> batch) -> CompletableFuture.runAsync(
                         () -> handleBatch(
@@ -115,7 +115,6 @@ public class Pipeline {
                                           final Metric metric) throws ClassNotFoundException {
         LOGGER.debug("Concrete type: " + TypeUtils.toString(metric.getType().intoConcrete().getType()));
         return parseCoerceMetricEvents(
-                // TODO: Why doesn't this read work, but it does work when I replicate it anywhere else?
                 context.read(
                         metric.getPath(),
                         metric.getType().intoConcrete()
