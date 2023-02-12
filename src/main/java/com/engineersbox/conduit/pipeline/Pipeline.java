@@ -242,7 +242,7 @@ public class Pipeline {
             case INT -> builder.setMetricSint64((long) value);
             case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
             case STRING -> builder.setState((String) value);
-            default -> throw new ClassCastException("Unsupported leaf type: " + type.name());
+            default -> throw new ClassCastException("Unsupported primitive type: " + type.name());
         }
         return builder.build();
     }
