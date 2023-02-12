@@ -6,19 +6,19 @@ import java.util.function.Function;
 
 public class Functional {
 
-    interface ThrowsFunction<T, R> {
+    public interface ThrowsFunction<T, R> {
         R apply(final T t) throws Exception;
     }
 
-    interface ThrowsConsumer<T> {
+    public interface ThrowsConsumer<T> {
         void accept(final T t) throws Exception;
     }
 
-    interface ThrowsBiConsumer<T, U> {
+    public interface ThrowsBiConsumer<T, U> {
         void accept(final T t, final U u) throws Exception;
     }
 
-    static <T, R> Function<T, R> uncheckedFunction(final ThrowsFunction<T, R> function) {
+    public static <T, R> Function<T, R> uncheckedFunction(final ThrowsFunction<T, R> function) {
         return (final T t) -> {
             try {
                 return function.apply(t);
@@ -28,7 +28,7 @@ public class Functional {
         };
     }
 
-    static <T> Consumer<T> uncheckedConsumer(final ThrowsConsumer<T> consumer) {
+    public static <T> Consumer<T> uncheckedConsumer(final ThrowsConsumer<T> consumer) {
         return (final T t) -> {
             try {
                 consumer.accept(t);
