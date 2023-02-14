@@ -71,9 +71,6 @@
                             "$ref": "#/$defs/http_auth_type"
                         }
                     },
-                    "required": [
-                        "type"
-                    ],
                     "if": { "properties": { "type": { "const": "BASIC" } } },
                     "then": {
                         "properties": {
@@ -87,8 +84,7 @@
                         "required": [
                             "username",
                             "password"
-                        ],
-                        "additionalProperties": false
+                        ]
                     },
                     "else": {
                         "properties": {
@@ -98,19 +94,22 @@
                         },
                         "required": [
                             "location"
-                        ],
-                        "additionalProperties": false
-                    }
+                        ]
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "unevaluatedProperties": false
                 },
                 "uri": {
                     "type": "string"
-                },
-                "required": [
-                    "auth",
-                    "uri"
-                ],
-                "unevaluatedProperties": false
-            }
+                }
+            },
+            "required": [
+                "auth",
+                "uri"
+            ],
+            "unevaluatedProperties": false
         },
         "custom_source": {
             "additionalProperties": true
@@ -131,7 +130,8 @@
             },
             "required": [
                 "type"
-            ]
+            ],
+            "unevaluatedProperties": false
         },
         "metric": {
             "type": "object",

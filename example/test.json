@@ -1,7 +1,6 @@
 {
     "source": {
         "type": "HTTP",
-        "uri": "localhost:9200",
         "auth": {
             "type": "BASIC",
             "username": "some_test_user",
