@@ -1,9 +1,9 @@
 {
     "source": {
+        "type": "HTTP",
         "uri": "localhost:9200",
-        "type": "REST",
         "auth": {
-            "type": "basic",
+            "type": "BASIC",
             "username": "some_test_user",
             "password": "P4ss-w0rd1!2@3#4$"
         }

@@ -50,27 +50,31 @@
             },
             "additionalProperties": false
         },
-        "auth_type": {
+        "source_type": {
             "enum": [
-                "basic",
-                "truststore",
-                "certificate"
+                "HTTP",
+                "CUSTOM"
             ]
         },
-        "source": {
-            "type": "object",
+        "http_auth_type": {
+            "enum": [
+                "BASIC",
+                "CERTIFICATE"
+            ]
+        },
+        "http_source": {
             "properties": {
                 "auth": {
                     "type": "object",
                     "properties": {
                         "type": {
-                            "$ref": "#/$defs/auth_type"
+                            "$ref": "#/$defs/http_auth_type"
                         }
                     },
                     "required": [
                         "type"
                     ],
-                    "if": { "properties": { "type": { "const": "basic" } } },
+                    "if": { "properties": { "type": { "const": "BASIC" } } },
                     "then": {
                         "properties": {
                             "username": {
@@ -83,7 +87,8 @@
                         "required": [
                             "username",
                             "password"
-                        ]
+                        ],
+                        "additionalProperties": false
                     },
                     "else": {
                         "properties": {
@@ -93,22 +98,40 @@
                         },
                         "required": [
                             "location"
-                        ]
+                        ],
+                        "additionalProperties": false
                     }
-                },
-                "type": {
-                    "type": "string"
                 },
                 "uri": {
                     "type": "string"
+                },
+                "required": [
+                    "auth",
+                    "uri"
+                ],
+                "unevaluatedProperties": false
+            }
+        },
+        "custom_source": {
+            "additionalProperties": true
+        },
+        "source": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "$ref": "#/$defs/source_type"
+                },
+                "if": { "properties": { "type": { "const":  "HTTP" } } },
+                "then": {
+                    "$ref": "#/$defs/http_source"
+                },
+                "else": {
+                    "$ref": "#/$defs/custom_source"
                 }
             },
             "required": [
-                "auth",
-                "type",
-                "uri"
-            ],
-            "unevaluatedProperties": false
+                "type"
+            ]
         },
         "metric": {
             "type": "object",

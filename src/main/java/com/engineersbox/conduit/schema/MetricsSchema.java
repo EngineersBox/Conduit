@@ -64,8 +64,8 @@ public class MetricsSchema extends HashMap<String, Metric> {
     }
 
     private static MetricsSchema parse(final JsonNode definition) {
-        final MetricsSchema.Builder builder = MetricsSchema.builder();
-        builder.withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
+        final MetricsSchema.Builder builder = MetricsSchema.builder()
+                .withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
         // TODO: Parse and handle the 'source' node here
         try {
             builder.withEventTemplate(parseEventTemplate(definition.get("event_template")));
