@@ -109,7 +109,6 @@
                 "auth",
                 "uri"
             ],
-            "unevaluatedProperties": false
         },
         "custom_source": {
             "additionalProperties": true
@@ -120,7 +119,7 @@
                 "type": {
                     "$ref": "#/$defs/source_type"
                 },
-                "if": { "properties": { "type": { "const":  "HTTP" } } },
+                "if": { "properties": { "type": { "const": "HTTP" } } },
                 "then": {
                     "$ref": "#/$defs/http_source"
                 },
@@ -131,7 +130,7 @@
             "required": [
                 "type"
             ],
-            "unevaluatedProperties": false
+            "additionalProperties": false
         },
         "metric": {
             "type": "object",
