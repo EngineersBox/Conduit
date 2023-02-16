@@ -8,6 +8,9 @@ import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
@@ -16,17 +19,26 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Pipeline {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final MetricsSchema schema;
+    private final Supplier<MetricsSchema> schemaSupplier;
+    private MetricsSchema schema;
+    private long schemaHash;
     private final IngestSource ingestSource;
     private final BatchingConfiguration batchConfig;
     private IngestionContext ingestionContext;
@@ -34,10 +46,42 @@ public class Pipeline {
     public Pipeline(final MetricsSchema schema,
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
-        this.schema = schema;
+        this.schemaSupplier = () -> schema;
+        this.schemaHash = 0L;
         this.ingestSource = ingestSource;
         this.batchConfig = batchConfig;
         this.ingestionContext = IngestionContext.defaultContext();
+    }
+
+    public Pipeline(final String schemaPath,
+                    final IngestSource ingestSource,
+                    final BatchingConfiguration batchConfig) {
+        if (!Path.of(schemaPath).toFile().exists()) {
+            throw new IllegalArgumentException("Could not load schema from file path: " + schemaPath);
+        }
+        this.schemaSupplier = () -> {
+            final File schemaFile = Path.of(schemaPath).toFile();
+            if (this.schemaHash == computeHash(schemaFile)) {
+                return this.schema;
+            }
+            try {
+                return MetricsSchema.from(OBJECT_MAPPER.readTree(schemaFile));
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to read schema from path " + schemaPath, e);
+            }
+        };
+        this.schemaHash = -1;
+        this.ingestSource = ingestSource;
+        this.batchConfig = batchConfig;
+        this.ingestionContext = IngestionContext.defaultContext();
+    }
+
+    private static long computeHash(final File file) {
+        try {
+            return Files.asByteSource(file).hash(Hashing.adler32()).padToLong();
+        } catch (final IOException e) {
+            throw new IllegalStateException("Unable to compute Adler32 hash for file " + file.getName());
+        }
     }
 
     public Pipeline(final MetricsSchema schema,
@@ -54,6 +98,7 @@ public class Pipeline {
     }
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
+        this.schema = this.schemaSupplier.get();
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())

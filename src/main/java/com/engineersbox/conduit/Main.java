@@ -65,14 +65,8 @@ public class Main {
 
 	public static void main (final String[] args) throws IOException {
 		CacheProvider.setCache(new LRUCache(10));
-		final JsonNode definition = OBJECT_MAPPER.readTree(new File("./example/test.json"));
-		if (definition == null) {
-			System.err.println("Cannot load file");
-			return;
-		}
-		final MetricsSchema schema = MetricsSchema.from(definition);
 		final Pipeline pipeline = new Pipeline(
-				schema,
+				"./example/test.json",
 				(final IngestionContext ctx) -> TEST_JSON_BLOB,
 				new BatchingConfiguration(1, 3)
 		);
