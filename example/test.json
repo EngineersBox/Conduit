@@ -5,7 +5,8 @@
             "type": "BASIC",
             "username": "some_test_user",
             "password": "P4ss-w0rd1!2@3#4$"
-        }
+        },
+        "uri": "test.service.com"
     },
     "configuration": {
         "json_provider": "JACKSON",

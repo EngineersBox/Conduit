@@ -98,8 +98,7 @@
                     },
                     "required": [
                         "type"
-                    ],
-                    "unevaluatedProperties": false
+                    ]
                 },
                 "uri": {
                     "type": "string"
@@ -108,7 +107,7 @@
             "required": [
                 "auth",
                 "uri"
-            ],
+            ]
         },
         "custom_source": {
             "additionalProperties": true
@@ -118,19 +117,24 @@
             "properties": {
                 "type": {
                     "$ref": "#/$defs/source_type"
-                },
-                "if": { "properties": { "type": { "const": "HTTP" } } },
-                "then": {
-                    "$ref": "#/$defs/http_source"
-                },
-                "else": {
-                    "$ref": "#/$defs/custom_source"
                 }
+            },
+            "if": { "properties": { "type": { "const": "HTTP" } } },
+            "then": {
+                "$ref": "#/$defs/http_source",
+                "properties": {
+                    "type": {
+                        "$ref": "#/$defs/source_type"
+                    }
+                },
+                "unevaluatedProperties": false
+            },
+            "else": {
+                "$ref": "#/$defs/custom_source"
             },
             "required": [
                 "type"
-            ],
-            "additionalProperties": false
+            ]
         },
         "metric": {
             "type": "object",
