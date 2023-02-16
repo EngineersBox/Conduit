@@ -29,9 +29,11 @@ public interface MetricsSchemaProvider {
             @Override
             public MetricsSchema provide() {
                 final File schemaFile = Path.of(schemaPath).toFile();
-                if (this.schemaHash == computeHash(schemaFile)) {
+                final long newSchemaHash = computeHash(schemaFile);
+                if (this.schemaHash == newSchemaHash) {
                     return this.schema;
                 }
+                this.schemaHash = newSchemaHash;
                 try {
                     this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(schemaFile));
                     return this.schema;
