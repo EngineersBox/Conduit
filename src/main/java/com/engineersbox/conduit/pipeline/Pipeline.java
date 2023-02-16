@@ -10,8 +10,6 @@ import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
@@ -20,16 +18,12 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Pipeline {
