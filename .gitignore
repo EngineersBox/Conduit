@@ -175,5 +175,5 @@ Temporary Items
 
 # Other
 /target/
-/.lsp/
-/.clj-kondo/
+**/.lsp/
+**/.clj-kondo/
