@@ -74,7 +74,8 @@ public class Main {
 			client.connect();
 			pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
 				LOGGER.info("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
-						" - [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
+						" - [Host: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
+						event.getHost(),
 						event.getService(),
 						event.getState(),
 						event.getMetricF(),
