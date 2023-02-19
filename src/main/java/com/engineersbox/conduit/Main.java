@@ -70,7 +70,7 @@ public class Main {
 				(final IngestionContext ctx) -> TEST_JSON_BLOB,
 				new BatchingConfiguration(1, 3)
 		);
-		try (final RiemannClient client = RiemannClient.tcp("127.0.0.1", 5555)) {
+		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
 			pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
 				LOGGER.info("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(

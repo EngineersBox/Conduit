@@ -1,8 +1,10 @@
 package com.engineersbox.conduit.schema;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import org.apache.commons.collections4.MapUtils;
 
 import java.util.NoSuchElementException;
 
@@ -27,7 +29,11 @@ public class DimensionallyIndexedRangeMap {
 
     public void put(final DimensionIndex dimensionIndex,
                     final String suffixFormat) {
-        final RangeMap<Integer, String> indexMap = TreeRangeMap.create();
+        final RangeMap<Integer, String> indexMap = MapUtils.getObject(
+                this.dimensionMap.asMapOfRanges(),
+                dimensionIndex.getDimension(),
+                TreeRangeMap.create()
+        );
         indexMap.put(dimensionIndex.getIndex(), suffixFormat);
         this.dimensionMap.put(dimensionIndex.getDimension(), indexMap);
     }

@@ -12,7 +12,7 @@
         "json_provider": "JACKSON",
         "mapping_provider": "JACKSON"
     },
-    "event_template": "description: \"Some Metric Description\"\nmetric_d: 123.44",
+    "event_template": "host:\"Test Service\"\ndescription: \"Some Metric Description\"\nmetric_d: 123.44",
     "metrics": [
         {
             "namespace": "/service/plugin/test_metric",
@@ -23,11 +23,11 @@
                 "suffix_format": [
                     {
                         "template": "/book_{index}",
-                        "to": 2
+                        "to": 1
                     },
                     {
                         "template": "/other_book_{index}",
-                        "from": 2
+                        "from": 1
                     }
                 ]
             }

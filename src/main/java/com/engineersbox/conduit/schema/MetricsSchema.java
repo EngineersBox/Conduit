@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MetricsSchema extends HashMap<String, Metric> {
 
@@ -50,17 +51,16 @@ public class MetricsSchema extends HashMap<String, Metric> {
         if (messages.isEmpty()) {
             return parse(definition);
         }
-        final StringBuilder builder = new StringBuilder("Invalid schema definition: \n");
-        int index = 0;
-        for (final ValidationMessage msg : messages) {
-            builder.append(" - [")
-                    .append(index + 1)
-                    .append("]: ")
-                    .append(msg.getMessage())
-                    .append("\n");
-            index++;
-        }
-        throw new IllegalArgumentException(builder.toString());
+        final var anon = new Object(){
+            int index = 0;
+        };
+        final String formattedMessages = messages.stream()
+                .map((final ValidationMessage msg) -> String.format(
+                            " - [%d]: %s",
+                            anon.index++,
+                            msg.getMessage()
+                )).collect(Collectors.joining("\n"));
+        throw new IllegalArgumentException("Invalid schema definition:\n" + formattedMessages);
     }
 
     private static MetricsSchema parse(final JsonNode definition) {
