@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.source;
+package com.engineersbox.conduit.source.http;
 
 public enum HTTPAuthType {
     BASIC,

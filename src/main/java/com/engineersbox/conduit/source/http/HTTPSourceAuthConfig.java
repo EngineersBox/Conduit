@@ -1,7 +1,14 @@
-package com.engineersbox.conduit.source;
+package com.engineersbox.conduit.source.http;
 
-public interface HTTPSourceAuthConfig {
+public class HTTPSourceAuthConfig {
 
-    public static record Basic() {}
+    private final HTTPAuthType authType;
 
+    public HTTPSourceAuthConfig(final HTTPAuthType authType) {
+        this.authType = authType;
+    }
+
+    public HTTPAuthType getAuthType() {
+        return authType;
+    }
 }

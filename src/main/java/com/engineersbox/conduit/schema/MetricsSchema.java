@@ -6,6 +6,12 @@ import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
+import com.engineersbox.conduit.source.Source;
+import com.engineersbox.conduit.source.SourceType;
+import com.engineersbox.conduit.source.custom.CustomSource;
+import com.engineersbox.conduit.source.http.*;
+import com.engineersbox.conduit.util.ObjectMapperModule;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Range;
 import com.google.protobuf.TextFormat;
@@ -14,15 +20,14 @@ import com.jayway.jsonpath.internal.filter.ValueNodes;
 import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
+import java.net.URI;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MetricsSchema extends HashMap<String, Metric> {
 
     private Configuration jsonPathConfiguration;
+    private Source source;
     private Proto.Event eventTemplate;
 
     private MetricsSchema() {
@@ -30,6 +35,10 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
     public Configuration getJsonPathConfiguration() {
         return this.jsonPathConfiguration;
+    }
+
+    public Source getSource() {
+        return this.source;
     }
 
     public Proto.Event getEventTemplate() {
@@ -65,7 +74,8 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
     private static MetricsSchema parse(final JsonNode definition) {
         final MetricsSchema.Builder builder = MetricsSchema.builder()
-                .withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")));
+                .withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")))
+                .withSource(parseSource(definition.get("source")));
         // TODO: Parse and handle the 'source' node here
         try {
             builder.withEventTemplate(parseEventTemplate(definition.get("event_template")));
@@ -84,6 +94,48 @@ public class MetricsSchema extends HashMap<String, Metric> {
             );
         }
         return builder.build();
+    }
+
+    private static Source parseSource(final JsonNode sourceNode) {
+        if (sourceNode == null
+            || sourceNode.isMissingNode()
+            || sourceNode.isNull()
+            || sourceNode.isEmpty()) {
+            throw new IllegalArgumentException("Missing required \"source\" node in schema definition");
+        }
+        final SourceType sourceType = SourceType.valueOf(sourceNode.get("type").asText());
+        return switch (sourceType) {
+            case HTTP -> parseHTTPSource(sourceNode);
+            case CUSTOM -> parseCustomSource(sourceNode);
+        };
+    }
+
+    private static HTTPSource parseHTTPSource(final JsonNode sourceNode) {
+        final URI uri = URI.create(sourceNode.get("uri").asText());
+        final JsonNode authNode = sourceNode.get("auth");
+        final HTTPAuthType authType = HTTPAuthType.valueOf(authNode.get("type").asText());
+        return new HTTPSource(
+                SourceType.HTTP,
+                switch (authType) {
+                    case BASIC -> new HTTPSourceBasicAuthConfig(
+                            authNode.get("username").asText(),
+                            authNode.get("password").asText()
+                    );
+                    case CERTIFICATE -> new HTTPSourceCertificateAuthConfig(
+                            authNode.get("location").asText()
+                    );
+                },
+                uri
+        );
+    }
+
+    private static CustomSource parseCustomSource(final JsonNode sourceNode) {
+        final Map<String, Object> properties = ObjectMapperModule.OBJECT_MAPPER.convertValue(
+                sourceNode,
+                new TypeReference<Map<String, Object>>() {}
+        );
+        properties.remove("type");
+        return new CustomSource(properties);
     }
 
     private static MetricType parseMetricType(final MetricType.Builder builder,
@@ -136,7 +188,10 @@ public class MetricsSchema extends HashMap<String, Metric> {
     }
 
     private static Configuration parseJsonPathConfiguration(final JsonNode configuration) {
-        if (configuration == null) {
+        if (configuration == null
+            || configuration.isMissingNode()
+            || configuration.isNull()
+            || configuration.isEmpty()) {
             return Configuration.defaultConfiguration();
         }
         final Configuration.ConfigurationBuilder builder = Configuration.builder();
@@ -188,6 +243,11 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
         public Builder withEventTemplate(final Proto.Event eventTemplate) {
             this.schema.eventTemplate = eventTemplate;
+            return this;
+        }
+
+        public Builder withSource(final Source source) {
+            this.schema.source = source;
             return this;
         }
 
