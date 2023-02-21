@@ -9,6 +9,7 @@ import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit.source.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -83,6 +84,8 @@ public class Pipeline {
         this.schema = this.metricsSchemaProvider.provide();
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
+        // TODO: Use source here to ingest stuff
+        final Source source = this.schema.getSource();
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
@@ -248,15 +251,14 @@ public class Pipeline {
                                                   final String suffix) {
         final Proto.Event.Builder builder = this.schema.getEventTemplate().toBuilder()
                 .setService(metricNamespace + suffix);
-        switch (type) {
+        return (switch (type) {
             case DOUBLE -> builder.setMetricD((double) value);
             case FLOAT -> builder.setMetricF((float) value);
             case INTEGER -> builder.setMetricSint64((long) value);
             case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
             case STRING -> builder.setState((String) value);
             default -> throw new ClassCastException("Unsupported primitive type: " + type.name());
-        }
-        return builder.build();
+        }).build();
     }
 
 }
