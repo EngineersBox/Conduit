@@ -13,6 +13,9 @@
         "event_template": {
             "type": "string"
         },
+        "handler": {
+            "type": "string"
+        },
         "metrics": {
             "type": "array",
             "prefixItems": [
@@ -143,6 +146,9 @@
                     "type": "string"
                 },
                 "path": {
+                    "type": "string"
+                },
+                "handler_method": {
                     "type": "string"
                 },
                 "type": {
