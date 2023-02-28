@@ -12,6 +12,10 @@
 
     <repositories>
         <repository>
+            <id>maven-central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
             <id>clojars.org</id>
             <url>https://repo.clojars.org</url>
         </repository>
@@ -33,6 +37,7 @@
 		<riemann-client.version>0.5.3</riemann-client.version>
         <guava.version>31.1-jre</guava.version>
         <json-schema-validator.version>1.0.76</json-schema-validator.version>
+        <luaj.version>3.0.1</luaj.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -142,6 +147,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+        <!-- LuaJ -->
+        <dependency>
+            <groupId>org.luaj</groupId>
+            <artifactId>luaj-jse</artifactId>
+            <version>${luaj.version}</version>
         </dependency>
         <!-- Maven Shade -->
         <dependency>
