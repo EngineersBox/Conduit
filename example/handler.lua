@@ -6,8 +6,9 @@ test_handler = {};
 -- Determine if the service is of an appropriate version to collect from
 function test_handler.shouldCollectTestMetric(ctx)
     local serviceVersion = ctx["service_version"];
-    if not (type(serviceVersion) == "int") then
-        error("Service version is not of type 'int', got", type(serviceVersion));
+    local serviceVersionType = type(serviceVersion);
+    if not (serviceVersionType == "number") then
+        error("Service version is not of type 'number', got", serviceVersionType);
     end
     ctx.shouldRun = serviceVersion > 2;
     return ctx;

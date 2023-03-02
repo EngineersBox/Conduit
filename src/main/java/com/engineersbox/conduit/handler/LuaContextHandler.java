@@ -16,19 +16,14 @@ public class LuaContextHandler {
     }
 
     public Object invoke(final String target,
-                         final Object context) {
+                         final LuaTable context) {
         final Globals globals = JsePlatform.standardGlobals();
         this.chunk = globals.loadfile(this.scriptPath);
         final Varargs result = this.chunk.invokemethod(
                 target,
-                constructContextTable(context)
+                context
         );
         return parseContextFromVarargs(result);
-    }
-
-    private LuaTable constructContextTable(final Object context) {
-        // TODO: Implement this
-        return LuaValue.tableOf();
     }
 
     private Object parseContextFromVarargs(final Varargs args) {
