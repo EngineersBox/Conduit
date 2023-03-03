@@ -86,6 +86,8 @@ public class Pipeline {
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         // TODO: Use source here to ingest stuff
         final Source source = this.schema.getSource();
+        // TODO: Create Lua JseGlobals instance to use for all metrics retrieval if we
+        //       have one or more metrics that have handlers
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
