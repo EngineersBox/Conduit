@@ -27,7 +27,7 @@ public class ContextTransformer {
         return new ContextTransformer();
     }
 
-    // Use default serialiser
+    // Use default serializer
     public ContextTransformer withReadOnly(final Object ...objects) {
         for (final Object obj : objects) {
             final Class<?> objClass = obj.getClass();
@@ -38,6 +38,7 @@ public class ContextTransformer {
         return this;
     }
 
+    // Provide explicit serializer
     public ContextTransformer withReadOnly(final Object object,
                                            final Class<? extends StdSerializer<?>> serializer) {
         if (object == null) {

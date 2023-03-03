@@ -10,6 +10,7 @@ public class Metric {
 
     private String path;
     private String metricNamespace;
+    private String handlerMethod;
     private ParameterizedMetricType type;
     private final DimensionallyIndexedRangeMap suffixes;
     private boolean isComplete;
@@ -30,6 +31,14 @@ public class Metric {
             throw new IllegalStateException("Path binding is already complete");
         }
         this.metricNamespace = namespace;
+        return this;
+    }
+
+    public Metric handlerMethod(final String handlerMethod) {
+        if (this.isComplete) {
+            throw new IllegalStateException("Path binding is already complete");
+        }
+        this.handlerMethod = handlerMethod;
         return this;
     }
 
@@ -87,6 +96,10 @@ public class Metric {
 
     public String getNamespace() {
         return this.metricNamespace;
+    }
+
+    public String getHandlerMethod() {
+        return this.handlerMethod;
     }
 
     public String getSuffix(final DimensionIndex query) {

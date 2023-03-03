@@ -21,6 +21,7 @@ import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
     private Configuration jsonPathConfiguration;
     private Source source;
     private Proto.Event eventTemplate;
+    private Path handler;
 
     private MetricsSchema() {
     }
@@ -75,7 +77,8 @@ public class MetricsSchema extends HashMap<String, Metric> {
     private static MetricsSchema parse(final JsonNode definition) {
         final MetricsSchema.Builder builder = MetricsSchema.builder()
                 .withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")))
-                .withSource(parseSource(definition.get("source")));
+                .withSource(parseSource(definition.get("source")))
+                .withHandler(parseHandlerPath(definition.get("handler")));
         try {
             builder.withEventTemplate(parseEventTemplate(definition.get("event_template")));
         } catch (final TextFormat.ParseException e) {
@@ -83,9 +86,11 @@ public class MetricsSchema extends HashMap<String, Metric> {
         }
         final JsonNode metrics = definition.get("metrics");
         for (final JsonNode metric : metrics) {
+            final JsonNode handlerMethodNode = metric.get("handler_method");
             builder.put(
                     Metric.path(metric.get("path").asText())
                             .namespace(metric.get("namespace").asText())
+                            .handlerMethod(handlerMethodNode != null ? handlerMethodNode.asText() : null)
                             .type(parseMetricType(
                                     MetricType.builder(),
                                     metric.get("type")
@@ -93,6 +98,13 @@ public class MetricsSchema extends HashMap<String, Metric> {
             );
         }
         return builder.build();
+    }
+
+    private static Path parseHandlerPath(final JsonNode handlerNode) {
+        if (handlerNode == null) {
+            return null;
+        }
+        return Path.of(handlerNode.asText());
     }
 
     private static Source parseSource(final JsonNode sourceNode) {
@@ -252,6 +264,11 @@ public class MetricsSchema extends HashMap<String, Metric> {
 
         public Builder withJsonPathConfig(final Configuration jsonPathConfig) {
             this.schema.jsonPathConfiguration = jsonPathConfig;
+            return this;
+        }
+
+        public Builder withHandler(final Path handler) {
+            this.schema.handler = handler;
             return this;
         }
 
