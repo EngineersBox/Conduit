@@ -31,6 +31,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
     private Source source;
     private Proto.Event eventTemplate;
     private Path handler;
+    private boolean requiresJseGlobals;
 
     private MetricsSchema() {
     }
@@ -87,6 +88,12 @@ public class MetricsSchema extends HashMap<String, Metric> {
         final JsonNode metrics = definition.get("metrics");
         for (final JsonNode metric : metrics) {
             final JsonNode handlerMethodNode = metric.get("handler_method");
+            if (handlerMethodNode != null) {
+                if (builder.schema.handler == null) {
+                    throw new IllegalArgumentException("Missing \"handler\" path to reference handler method from");
+                }
+                builder.schema.requiresJseGlobals = true;
+            }
             builder.put(
                     Metric.path(metric.get("path").asText())
                             .namespace(metric.get("namespace").asText())
