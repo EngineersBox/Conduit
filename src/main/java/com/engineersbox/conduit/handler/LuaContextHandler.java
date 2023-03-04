@@ -14,6 +14,9 @@ public class LuaContextHandler {
 
     private static final Map<Class<?>, Function<LuaValue, ?>> CONVERTERS = Map.of(
             String.class, LuaValue::toString,
+            char.class, LuaValue::tochar,
+            boolean.class, LuaValue::toboolean,
+            byte.class, LuaValue::tobyte,
             short.class, LuaValue::toshort,
             int.class, LuaValue::toint,
             long.class, LuaValue::tolong,
