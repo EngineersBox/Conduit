@@ -17,9 +17,11 @@ import java.util.*;
 
 public class ContextTransformer {
 
+    private final Map<String, LuaTable> directTables;
     private final Map<String, Pair<Object, Class<? extends StdSerializer<?>>>> readOnlyAttributes;
 
     private ContextTransformer() {
+        this.directTables = new HashMap<>();
         this.readOnlyAttributes = new HashMap<>();
     }
 
@@ -57,10 +59,27 @@ public class ContextTransformer {
         return this;
     }
 
+    public ContextTransformer withTable(final String name,
+                                        final LuaTable table) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        } else if (table == null) {
+            throw new IllegalArgumentException("Table cannot be null");
+        }
+        this.directTables.put(name, table);
+        return this;
+    }
+
     @SuppressWarnings("unchecked")
     public LuaTable transform() {
         final List<LuaValue> keys = new ArrayList<>();
         final List<LuaValue> values = new ArrayList<>();
+        // Regular tables
+        for (final Map.Entry<String, LuaTable> table : this.directTables.entrySet()) {
+            keys.add(LuaString.valueOf(table.getKey()));
+            values.add(table.getValue());
+        }
+        // Read only attributes
         for (final Map.Entry<String, Pair<Object, Class<? extends StdSerializer<?>>>> entry : this.readOnlyAttributes.entrySet()) {
             keys.add(LuaString.valueOf(entry.getKey()));
             final Pair<Object, Class<? extends StdSerializer<?>>> pair = entry.getValue();

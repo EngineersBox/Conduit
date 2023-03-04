@@ -10,7 +10,7 @@ function test_handler.shouldCollectTestMetric(ctx)
     if not (serviceVersionType == "number") then
         error("Service version is not of type 'number', got", serviceVersionType);
     end
-    ctx.shouldRun = serviceVersion > 2;
+    ctx.executionContext.shouldRun = serviceVersion > 2;
     return ctx;
 end
 
