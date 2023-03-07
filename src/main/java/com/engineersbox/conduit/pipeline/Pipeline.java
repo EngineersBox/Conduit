@@ -130,7 +130,7 @@ public class Pipeline {
                         }
                         handler.invoke(
                                 method,
-                                ContextTransformer.builder()
+                                ContextTransformer.builder() // TODO: Create context default values
                                         .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
                                         .withReadOnly("service_version", 1)
                                         .transform()
