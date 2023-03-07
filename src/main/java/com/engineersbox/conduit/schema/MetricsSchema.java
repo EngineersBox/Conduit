@@ -48,6 +48,10 @@ public class MetricsSchema extends HashMap<String, Metric> {
         return this.eventTemplate;
     }
 
+    public Path getHandler() {
+        return this.handler;
+    }
+
     public static MetricsSchema.Builder builder() {
         return new Builder();
     }

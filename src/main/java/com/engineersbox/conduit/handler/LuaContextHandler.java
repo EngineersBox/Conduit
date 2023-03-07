@@ -38,11 +38,12 @@ public class LuaContextHandler {
                        final LuaTable context) {
 //        final Globals globals = JsePlatform.standardGlobals();
         final LuaValue chunk = this.globals.loadfile(this.scriptPath);
-        final Varargs result = chunk.invokemethod(
+        final LuaTable table = (LuaTable) chunk.call();
+        final Varargs result = table.invokemethod(
                 target,
-                context
+                LuaValue.varargsOf(new LuaValue[]{context})
         );
-        final LuaValue arg0 = result.arg(0);
+        final LuaValue arg0 = result.arg1();
         if (!arg0.istable()) {
             throw new IllegalStateException(String.format(
                     "Expected \"%s\" handler method to return a table, got %s",
@@ -54,7 +55,7 @@ public class LuaContextHandler {
     }
 
     private <T> T getFromResult0(final String[] target,
-                                    final Function<LuaValue, T> converter) {
+                                 final Function<LuaValue, T> converter) {
         if (ArrayUtils.isEmpty(target)) {
             throw new IllegalArgumentException("Target cannot be null or empty");
         }

@@ -18,7 +18,7 @@ import java.util.*;
 public class ContextTransformer {
 
     private final Map<String, LuaTable> directTables;
-    private final Map<String, Pair<Object, Class<? extends StdSerializer<?>>>> readOnlyAttributes;
+    private final Map<String, Pair<Object, Class<? extends JsonSerializer<?>>>> readOnlyAttributes;
 
     private ContextTransformer() {
         this.directTables = new HashMap<>();
@@ -30,25 +30,48 @@ public class ContextTransformer {
     }
 
     // Use default serializer
-    public ContextTransformer withReadOnly(final Object ...objects) {
-        for (final Object obj : objects) {
-            final Class<?> objClass = obj.getClass();
-            final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
-            final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
-            withReadOnly(obj, StdSerializer.None.class);
-        }
-        return this;
+//    public ContextTransformer withReadOnly(final Object ...objects) {
+//        for (final Object obj : objects) {
+//            final Class<?> objClass = obj.getClass();
+//            final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
+//            final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
+//            withReadOnly(name, obj, StdSerializer.None.class);
+//        }
+//        return this;
+//    }
+
+    public ContextTransformer withReadOnly(final String name,
+                                           final Object object) {
+        return withReadOnly(name, object, null);
     }
 
     // Provide explicit serializer
     public ContextTransformer withReadOnly(final Object object,
-                                           final Class<? extends StdSerializer<?>> serializer) {
+                                           final Class<? extends JsonSerializer<?>> serializer) {
         if (object == null) {
             throw new IllegalArgumentException("Object cannot be null");
         }
         final Class<?> objClass = object.getClass();
         final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
         final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
+        this.readOnlyAttributes.put(
+                name,
+                ImmutablePair.of(
+                        object,
+                        serializer
+                )
+        );
+        return this;
+    }
+
+    public ContextTransformer withReadOnly(final String name,
+                                           final Object object,
+                                           final Class<? extends JsonSerializer<?>> serializer) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        } else if (object == null) {
+            throw new IllegalArgumentException("Object cannot be null");
+        }
         this.readOnlyAttributes.put(
                 name,
                 ImmutablePair.of(
@@ -72,17 +95,16 @@ public class ContextTransformer {
 
     @SuppressWarnings("unchecked")
     public LuaTable transform() {
-        final List<LuaValue> keys = new ArrayList<>();
-        final List<LuaValue> values = new ArrayList<>();
+        final List<LuaValue> keysAndValues = new ArrayList<>();
         // Regular tables
         for (final Map.Entry<String, LuaTable> table : this.directTables.entrySet()) {
-            keys.add(LuaString.valueOf(table.getKey()));
-            values.add(table.getValue());
+            keysAndValues.add(LuaString.valueOf(table.getKey()));
+            keysAndValues.add(table.getValue());
         }
         // Read only attributes
-        for (final Map.Entry<String, Pair<Object, Class<? extends StdSerializer<?>>>> entry : this.readOnlyAttributes.entrySet()) {
-            keys.add(LuaString.valueOf(entry.getKey()));
-            final Pair<Object, Class<? extends StdSerializer<?>>> pair = entry.getValue();
+        for (final Map.Entry<String, Pair<Object, Class<? extends JsonSerializer<?>>>> entry : this.readOnlyAttributes.entrySet()) {
+            keysAndValues.add(LuaString.valueOf(entry.getKey()));
+            final Pair<Object, Class<? extends JsonSerializer<?>>> pair = entry.getValue();
             if (pair.getRight() != null) {
                 final SimpleModule module = new SimpleModule();
                 try {
@@ -99,25 +121,22 @@ public class ContextTransformer {
                 ObjectMapperModule.OBJECT_MAPPER.registerModule(module);
             }
             final JsonNode node = ObjectMapperModule.OBJECT_MAPPER.valueToTree(pair.getLeft());
-            values.add(constructTable(node));
+            keysAndValues.add(node.isValueNode() ? parseValue(node) : constructTable(node));
         }
         return LuaTable.tableOf(
-                keys.toArray(LuaValue[]::new),
-                values.toArray(LuaValue[]::new)
+                keysAndValues.toArray(LuaValue[]::new)
         );
     }
 
     private LuaTable constructTable(final JsonNode node) {
-        final List<LuaValue> keys = new ArrayList<>();
-        final List<LuaValue> values = new ArrayList<>();
+        final List<LuaValue> keysAndValues = new ArrayList<>();
         for (final Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
             final Map.Entry<String, JsonNode> element = it.next();
-            keys.add(LuaString.valueOf(element.getKey()));
-            values.add(parseValue(element.getValue()));
+            keysAndValues.add(LuaString.valueOf(element.getKey()));
+            keysAndValues.add(parseValue(element.getValue()));
         }
         return LuaTable.tableOf(
-                keys.toArray(LuaValue[]::new),
-                values.toArray(LuaValue[]::new)
+                keysAndValues.toArray(LuaValue[]::new)
         );
     }
 
@@ -131,8 +150,10 @@ public class ContextTransformer {
                 values[index++] = parseValue(arrayNode);
             }
             return LuaTable.listOf(values);
-        } else if (node.isNumber()) {
-            return LuaNumber.valueOf(node.asText());
+        } else if (node.isFloatingPointNumber()) {
+            return LuaDouble.valueOf(node.asDouble());
+        } else if (node.isIntegralNumber()) {
+            return LuaInteger.valueOf(node.asInt());
         } else if (node.isBoolean()) {
             return LuaBoolean.valueOf(node.asBoolean());
         } else if (node.isNull()) {

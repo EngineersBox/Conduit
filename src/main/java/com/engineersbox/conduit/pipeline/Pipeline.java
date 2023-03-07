@@ -1,5 +1,8 @@
 package com.engineersbox.conduit.pipeline;
 
+import com.engineersbox.conduit.handler.ContextBuiltins;
+import com.engineersbox.conduit.handler.ContextTransformer;
+import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
@@ -16,6 +19,8 @@ import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +99,10 @@ public class Pipeline {
                 .map((final List<Metric> batch) -> CompletableFuture.runAsync(
                         () -> handleBatch(
                                 batch,
+                                new LuaContextHandler(
+                                        this.schema.getHandler().toAbsolutePath().toString(),
+                                        JsePlatform.standardGlobals()
+                                ),
                                 context,
                                 batchedEventsConsumer
                         ),
@@ -102,6 +111,7 @@ public class Pipeline {
     }
 
     private void handleBatch(final List<Metric> batch,
+                             final LuaContextHandler handler,
                              final ReadContext context,
                              final Consumer<List<Proto.Event>> batchedEventsConsumer) {
         final List<List<Metric>> partitionedBatch = ListUtils.partition(
@@ -113,7 +123,26 @@ public class Pipeline {
         );
         for (final List<Metric> bindings : partitionedBatch) {
             final List<Proto.Event> events = bindings.stream()
-                    .flatMap((final Metric metric) -> {
+                    .filter((final Metric metric) -> {
+                        final String method = metric.getHandlerMethod();
+                        if (method == null) {
+                            return true;
+                        }
+                        handler.invoke(
+                                method,
+                                ContextTransformer.builder()
+                                        .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
+                                        .withReadOnly("service_version", 1)
+                                        .transform()
+                        );
+                        return handler.getFromResult(
+                                new String[]{
+                                        "executionContext",
+                                        "shouldRun"
+                                },
+                                boolean.class
+                        );
+                    }).flatMap((final Metric metric) -> {
                         try {
                             return parseEvents(
                                     context,

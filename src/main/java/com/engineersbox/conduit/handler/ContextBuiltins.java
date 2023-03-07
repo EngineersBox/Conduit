@@ -7,39 +7,21 @@ public final class ContextBuiltins {
     private ContextBuiltins() {
         throw new IllegalStateException("Static only class");
     }
-    public static final LuaTable EXECUTION_CONTEXT = LuaTable.tableOf(
-            new LuaValue[]{
-                    LuaString.valueOf("shouldRun")
-            },
-            new LuaValue[]{
-                    LuaValue.TRUE
-            }
-    );
+    public static final LuaTable EXECUTION_CONTEXT = LuaTable.tableOf(new LuaValue[]{
+            LuaString.valueOf("shouldRun"), LuaValue.TRUE
+    });
 
     // These entries are saturated in a pipeline
-    public static final LuaTable METRIC_INFO = LuaTable.tableOf(
-            new LuaValue[]{
-                    LuaString.valueOf("namespace"),
-                    LuaString.valueOf("path"),
-                    LuaString.valueOf("type")
-            },
-            new LuaValue[]{
-                    LuaValue.NIL,
-                    LuaValue.NIL,
-                    LuaValue.NIL
-            }
-    );
+    public static final LuaTable METRIC_INFO = LuaTable.tableOf(new LuaValue[]{
+            LuaString.valueOf("namespace"), LuaValue.NIL,
+            LuaString.valueOf("path"), LuaValue.NIL,
+            LuaString.valueOf("type"), LuaValue.NIL
+    });
 
-    public static final LuaTable HANDLER_CONTEXT = LuaTable.tableOf(
-            new LuaValue[]{
-                    LuaString.valueOf("executionContext"),
-                    LuaString.valueOf("metric")
-            },
-            new LuaValue[]{
-                    EXECUTION_CONTEXT,
-                    METRIC_INFO
-            }
-    );
+    public static final LuaTable HANDLER_CONTEXT = LuaTable.tableOf(new LuaValue[]{
+            LuaString.valueOf("executionContext"), EXECUTION_CONTEXT,
+            LuaString.valueOf("metric"), METRIC_INFO
+    });
 
 
 }
