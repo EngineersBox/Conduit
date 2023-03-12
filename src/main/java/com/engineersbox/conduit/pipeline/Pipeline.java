@@ -123,26 +123,8 @@ public class Pipeline {
         );
         for (final List<Metric> bindings : partitionedBatch) {
             final List<Proto.Event> events = bindings.stream()
-                    .filter((final Metric metric) -> {
-                        final String method = metric.getHandlerMethod();
-                        if (method == null) {
-                            return true;
-                        }
-                        handler.invoke(
-                                method,
-                                ContextTransformer.builder() // TODO: Create context default values
-                                        .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
-                                        .withReadOnly("service_version", 1)
-                                        .transform()
-                        );
-                        return handler.getFromResult(
-                                new String[]{
-                                        "executionContext",
-                                        "shouldRun"
-                                },
-                                boolean.class
-                        );
-                    }).flatMap((final Metric metric) -> {
+                    .filter((final Metric metric) -> invokeLuaHandler(metric, handler))
+                    .flatMap((final Metric metric) -> {
                         try {
                             return parseEvents(
                                     context,
@@ -155,6 +137,29 @@ public class Pipeline {
                     }).toList();
             batchedEventsConsumer.accept(events);
         }
+    }
+
+    private boolean invokeLuaHandler(final Metric metric,
+                                     final LuaContextHandler handler) {
+        final String method = metric.getHandlerMethod();
+        if (method == null) {
+            return true;
+        }
+        handler.invoke(
+                method,
+                ContextTransformer.builder()
+                        .withTable("metric", metric.constructContextAttributes())
+                        .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
+                        .withReadOnly("service_version", 1)
+                        .transform()
+        );
+        return handler.getFromResult(
+                new String[]{
+                        "executionContext",
+                        "shouldRun"
+                },
+                boolean.class
+        );
     }
 
     private List<Proto.Event> parseEvents(final ReadContext context,

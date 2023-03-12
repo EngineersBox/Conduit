@@ -18,10 +18,4 @@ public final class ContextBuiltins {
             LuaString.valueOf("type"), LuaValue.NIL
     });
 
-    public static final LuaTable HANDLER_CONTEXT = LuaTable.tableOf(new LuaValue[]{
-            LuaString.valueOf("executionContext"), EXECUTION_CONTEXT,
-            LuaString.valueOf("metric"), METRIC_INFO
-    });
-
-
 }

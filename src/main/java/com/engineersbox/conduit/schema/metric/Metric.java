@@ -1,10 +1,13 @@
 package com.engineersbox.conduit.schema.metric;
 
+import com.engineersbox.conduit.handler.ContextBuiltins;
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.luaj.vm2.LuaTable;
 
 public class Metric {
 
@@ -108,6 +111,14 @@ public class Metric {
 
     public ParameterizedMetricType getType() {
         return this.type;
+    }
+
+    public LuaTable constructContextAttributes() {
+        final LuaTable ctx = ContextBuiltins.METRIC_INFO;
+        ctx.set("namespace", getNamespace());
+        ctx.set("path", getPath());
+        ctx.set("type", TypeUtils.toString(getType().intoConcrete().getType()));
+        return ctx;
     }
 
 }
