@@ -38,6 +38,7 @@
         <guava.version>31.1-jre</guava.version>
         <json-schema-validator.version>1.0.76</json-schema-validator.version>
         <luaj.version>3.0.1</luaj.version>
+        <bcel.version>6.7.0</bcel.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -153,6 +154,12 @@
             <groupId>org.luaj</groupId>
             <artifactId>luaj-jse</artifactId>
             <version>${luaj.version}</version>
+        </dependency>
+        <!-- Apache BCEL -->
+        <dependency>
+            <groupId>org.apache.bcel</groupId>
+            <artifactId>bcel</artifactId>
+            <version>${bcel.version}</version>
         </dependency>
         <!-- Maven Shade -->
         <dependency>

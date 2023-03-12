@@ -3,8 +3,6 @@
 
 test_handler = {};
 
-test_handler.other = "value";
-
 -- Determine if the service is of an appropriate version to collect from
 function test_handler.shouldCollectTestMetric(self, ctx)
     for k,v in pairs(ctx) do
