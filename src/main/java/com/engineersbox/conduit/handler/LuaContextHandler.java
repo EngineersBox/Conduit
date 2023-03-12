@@ -37,7 +37,6 @@ public class LuaContextHandler {
 
     public void invoke(final String target,
                        final LuaTable context) {
-//        final Globals globals = JsePlatform.standardGlobals();
         final LuaValue chunk = this.globalsProvider.getGlobals().loadfile(this.scriptPath);
         final LuaTable table = (LuaTable) chunk.call();
         final Varargs result = table.invokemethod(
