@@ -51,7 +51,6 @@ public class LuaStdoutSink extends PrintStream {
     public static class LoggerOutputStream extends OutputStream {
         private final Consumer<String> loggerMethod;
 
-        /** The internal memory for the written bytes. */
         private StringBuffer mem;
 
         public LoggerOutputStream(final Logger logger,
