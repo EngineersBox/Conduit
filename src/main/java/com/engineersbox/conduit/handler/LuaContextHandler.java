@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.handler;
 
+import com.engineersbox.conduit.handler.globals.GlobalsProvider;
 import org.apache.commons.lang3.ArrayUtils;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
@@ -24,20 +25,20 @@ public class LuaContextHandler {
             double.class, LuaValue::todouble
     );
 
-    private final Globals globals;
+    private final GlobalsProvider globalsProvider;
     private final String scriptPath;
     private LuaTable result;
 
     public LuaContextHandler(final String path,
-                             final Globals globals) {
-        this.globals = globals;
+                             final GlobalsProvider globalsProvider) {
+        this.globalsProvider = globalsProvider;
         this.scriptPath = path;
     }
 
     public void invoke(final String target,
                        final LuaTable context) {
 //        final Globals globals = JsePlatform.standardGlobals();
-        final LuaValue chunk = this.globals.loadfile(this.scriptPath);
+        final LuaValue chunk = this.globalsProvider.getGlobals().loadfile(this.scriptPath);
         final LuaTable table = (LuaTable) chunk.call();
         final Varargs result = table.invokemethod(
                 target,

@@ -4,6 +4,7 @@ import com.engineersbox.conduit.handler.ContextBuiltins;
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.handler.LuaStdoutSink;
+import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
@@ -14,7 +15,6 @@ import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.source.Source;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
@@ -37,13 +37,13 @@ import java.util.stream.Stream;
 public class Pipeline {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final MetricsSchemaProvider metricsSchemaProvider;
     private MetricsSchema schema;
     private final IngestSource ingestSource;
     private final BatchingConfiguration batchConfig;
     private IngestionContext ingestionContext;
+    private final LazyLoadedGlobalsProvider globalsProvider;
 
     public Pipeline(final MetricsSchemaProvider provider,
                     final IngestSource ingestSource,
@@ -52,6 +52,10 @@ public class Pipeline {
         this.ingestSource = ingestSource;
         this.batchConfig = batchConfig;
         this.ingestionContext = IngestionContext.defaultContext();
+        this.globalsProvider = new LazyLoadedGlobalsProvider(
+                this::configureGlobals,
+                false
+        );
     }
 
     public Pipeline(final MetricsSchema schema,
@@ -93,8 +97,6 @@ public class Pipeline {
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         // TODO: Use source here to ingest stuff
         final Source source = this.schema.getSource();
-        // TODO: Create Lua JseGlobals instance to use for all metrics retrieval if we
-        //       have one or more metrics that have handlers
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
@@ -103,7 +105,7 @@ public class Pipeline {
                                 batch,
                                 new LuaContextHandler(
                                         this.schema.getHandler().toAbsolutePath().toString(),
-                                        instantiateGlobals()
+                                        this.globalsProvider
                                 ),
                                 context,
                                 batchedEventsConsumer
@@ -112,8 +114,7 @@ public class Pipeline {
                 )).forEach(CompletableFuture::join);
     }
 
-    private Globals instantiateGlobals() {
-        final Globals standard = JsePlatform.standardGlobals();
+    private Globals configureGlobals(final Globals standard) {
         standard.STDOUT = LuaStdoutSink.createSlf4j(
                 "Lua Handler",
                 Level.INFO
@@ -161,7 +162,7 @@ public class Pipeline {
                 ContextTransformer.builder()
                         .withTable("metric", metric.constructContextAttributes())
                         .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
-                        .withReadOnly("service_version", 1)
+                        .withReadOnly("service_version", 3)
                         .transform()
         );
         return handler.getFromResult(
