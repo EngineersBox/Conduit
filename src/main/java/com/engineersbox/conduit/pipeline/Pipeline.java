@@ -3,6 +3,7 @@ package com.engineersbox.conduit.pipeline;
 import com.engineersbox.conduit.handler.ContextBuiltins;
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
+import com.engineersbox.conduit.handler.LuaStdoutSink;
 import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.schema.DimensionIndex;
@@ -23,6 +24,7 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,13 +103,22 @@ public class Pipeline {
                                 batch,
                                 new LuaContextHandler(
                                         this.schema.getHandler().toAbsolutePath().toString(),
-                                        JsePlatform.standardGlobals()
+                                        instantiateGlobals()
                                 ),
                                 context,
                                 batchedEventsConsumer
                         ),
                         executor
                 )).forEach(CompletableFuture::join);
+    }
+
+    private Globals instantiateGlobals() {
+        final Globals standard = JsePlatform.standardGlobals();
+        standard.STDOUT = LuaStdoutSink.createSlf4j(
+                "Lua Handler",
+                Level.INFO
+        );
+        return standard;
     }
 
     private void handleBatch(final List<Metric> batch,
