@@ -28,15 +28,13 @@ public interface MetricsSchemaProvider {
 
             @Override
             public MetricsSchema provide() {
-                /* Improve the diff check between files by doing the following:
-
-                 * Check file sizes are equal
-                 * Break the files into chunks of size N bytes
-                 * Compute checksum on each pair of matching blocks and compare.
-                 * Any differences prove files are not the same.
-                 *
-                 * Look into lazy stream of file with n chunks (store previous file chunk hashes)
-                 * and compare each chunk progressively for a fail-early approach
+                /*  TODO: Improve the diff check between files by doing the following:
+                 *        Check file sizes are equal
+                 *        Break the files into chunks of size N bytes
+                 *        Compute checksum on each pair of matching blocks and compare.
+                 *        Any differences prove files are not the same.
+                 *        Look into lazy stream of file with n chunks (store previous file chunk hashes)
+                 *        and compare each chunk progressively for a fail-early approach
                  */
                 final File schemaFile = Path.of(schemaPath).toFile();
                 final long newSchemaHash = computeHash(schemaFile);
