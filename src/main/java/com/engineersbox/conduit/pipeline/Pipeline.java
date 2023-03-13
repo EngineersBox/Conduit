@@ -162,7 +162,7 @@ public class Pipeline {
                 ContextTransformer.builder()
                         .withTable("metric", metric.constructContextAttributes())
                         .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
-                        .withReadOnly("service_version", 3)
+                        .withReadOnly("service_version", 1)
                         .transform()
         );
         return handler.getFromResult(

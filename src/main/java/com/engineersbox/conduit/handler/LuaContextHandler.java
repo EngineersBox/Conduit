@@ -1,12 +1,11 @@
 package com.engineersbox.conduit.handler;
 
 import com.engineersbox.conduit.handler.globals.GlobalsProvider;
+import com.engineersbox.conduit.handler.loader.IsolatedLoader;
 import org.apache.commons.lang3.ArrayUtils;
-import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
-import org.luaj.vm2.luajc.LuaJC;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -26,20 +25,18 @@ public class LuaContextHandler {
             double.class, LuaValue::todouble
     );
 
-    private final GlobalsProvider globalsProvider;
-    private final String scriptPath;
+    private final IsolatedLoader loader;
     private LuaTable result;
 
     public LuaContextHandler(final String path,
                              final GlobalsProvider globalsProvider) {
-        this.globalsProvider = globalsProvider;
-        this.scriptPath = path;
+        this.loader = new IsolatedLoader(path);
+        this.loader.load(globalsProvider);
     }
 
     public void invoke(final String target,
                        final LuaTable context) {
-        final LuaValue chunk = this.globalsProvider.getGlobals().loadfile(this.scriptPath);
-        final LuaTable table = (LuaTable) chunk.call();
+        final LuaTable table = this.loader.getLib();
         final Varargs result = table.invokemethod(
                 target,
                 LuaValue.varargsOf(new LuaValue[]{context})

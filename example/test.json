@@ -13,7 +13,7 @@
         "mapping_provider": "JACKSON"
     },
     "event_template": "host:\"Test Service\"\ndescription: \"Some Metric Description\"\nmetric_d: 123.44",
-    "handler": "example/handler.lua",
+    "handler": "example/compiled/handler.class",
     "metrics": [
         {
             "namespace": "/service/plugin/test_metric",
