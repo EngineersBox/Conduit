@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 public interface MetricsSchemaProvider {
 
-    int CHUNK_SIZE_DEFAULT = 4096;
+    int CHUNK_SIZE_BYTES_DEFAULT = 4096;
 
     MetricsSchema provide();
     void refresh();
@@ -33,12 +33,12 @@ public interface MetricsSchemaProvider {
     static MetricsSchemaProvider checksumRefreshed(final String schemaPath) {
         return MetricsSchemaProvider.checksumRefreshed(
                 schemaPath,
-                CHUNK_SIZE_DEFAULT
+                CHUNK_SIZE_BYTES_DEFAULT
         );
     }
 
     static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
-                                                   final int chunkSize) {
+                                                   final int chunkSizeBytes) {
         if (!Path.of(schemaPath).toFile().exists()) {
             throw new IllegalArgumentException("Schema could not be found at path " + schemaPath);
         }
@@ -50,11 +50,10 @@ public interface MetricsSchemaProvider {
             private boolean updateHashes;
             private int lastComputedChunkHashIndex;
             private final long[] chunkHashes;
-            private long schemaHash;
 
             {
                 this.fileSize = Path.of(schemaPath).toFile().length();
-                this.chunkCount = (int) (this.fileSize / chunkSize);
+                this.chunkCount = (int) (this.fileSize / chunkSizeBytes);
                 this.chunkHashes = new long[this.chunkCount];
                 this.updateHashes = false;
             }
@@ -80,7 +79,7 @@ public interface MetricsSchemaProvider {
                 final ByteSource fileByteSource = Files.asByteSource(Path.of(schemaPath).toFile());
                 for (int i = 0; i < this.chunkCount; i++) {
                     final long currentChunkHash = this.chunkHashes[i];
-                    this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSize, chunkSize));
+                    this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSizeBytes, chunkSizeBytes));
                     if (currentChunkHash != this.chunkHashes[i]) {
                         this.lastComputedChunkHashIndex = i;
                         return false;
@@ -105,7 +104,7 @@ public interface MetricsSchemaProvider {
                 }
                 final ByteSource fileByteSource = Files.asByteSource(Path.of(schemaPath).toFile());
                 for (int i = this.lastComputedChunkHashIndex; i < this.chunkCount; i++) {
-                    this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSize, chunkSize));
+                    this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSizeBytes, chunkSizeBytes));
                 }
                 this.lastComputedChunkHashIndex = 0;
                 this.updateHashes = false;
