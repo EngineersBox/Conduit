@@ -47,22 +47,26 @@ public interface MetricsSchemaProvider {
             private MetricsSchema schema = provide();
             private long fileSize;
             private final int chunkCount;
+            private boolean updateHashes;
             private int lastComputedChunkHashIndex;
-            private long[] chunkHashes;
+            private final long[] chunkHashes;
             private long schemaHash;
 
             {
                 this.fileSize = Path.of(schemaPath).toFile().length();
                 this.chunkCount = (int) (this.fileSize / chunkSize);
                 this.chunkHashes = new long[this.chunkCount];
+                this.updateHashes = false;
             }
 
             @Override
             public MetricsSchema provide() {
-                final File schemaFile = Path.of(schemaPath).toFile();
-                if (schemaFile.length() == this.fileSize && compareChunkHashes()) {
+                final long updatedFileSize = Path.of(schemaPath).toFile().length();
+                if (updatedFileSize == this.fileSize && compareChunkHashes()) {
                     return this.schema;
                 }
+                this.fileSize = updatedFileSize;
+                this.updateHashes = true;
                 try {
                     this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(schemaFile));
                     return this.schema;
@@ -81,7 +85,6 @@ public interface MetricsSchemaProvider {
                         return false;
                     }
                 }
-                this.lastComputedChunkHashIndex = -1;
                 return true;
             }
 
@@ -95,16 +98,16 @@ public interface MetricsSchemaProvider {
 
             @Override
             public void refresh() {
-                if (this.lastComputedChunkHashIndex == -1
-                    || this.lastComputedChunkHashIndex >= this.chunkCount - 1) {
-                    this.lastComputedChunkHashIndex = -1;
+                if (!this.updateHashes) {
+                    this.lastComputedChunkHashIndex = 0;
                     return;
                 }
                 final ByteSource fileByteSource = Files.asByteSource(Path.of(schemaPath).toFile());
                 for (int i = this.lastComputedChunkHashIndex; i < this.chunkCount; i++) {
                     this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSize, chunkSize));
                 }
-                this.lastComputedChunkHashIndex = -1;
+                this.lastComputedChunkHashIndex = 0;
+                this.updateHashes = false;
             }
         };
     }
