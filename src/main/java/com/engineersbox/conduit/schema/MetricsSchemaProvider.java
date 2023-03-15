@@ -61,7 +61,8 @@ public interface MetricsSchemaProvider {
 
             @Override
             public MetricsSchema provide() {
-                final long updatedFileSize = Path.of(schemaPath).toFile().length();
+                final File schemaFile = Path.of(schemaPath).toFile();
+                final long updatedFileSize = schemaFile.length();
                 if (updatedFileSize == this.fileSize && compareChunkHashes()) {
                     return this.schema;
                 }
