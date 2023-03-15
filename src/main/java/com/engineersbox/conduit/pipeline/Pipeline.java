@@ -112,6 +112,7 @@ public class Pipeline {
                         ),
                         executor
                 )).forEach(CompletableFuture::join);
+        this.metricsSchemaProvider.refresh();
     }
 
     private Globals configureGlobals(final Globals standard) {
