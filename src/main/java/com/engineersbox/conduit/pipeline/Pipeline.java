@@ -112,6 +112,7 @@ public class Pipeline {
                         ),
                         executor
                 )).forEach(CompletableFuture::join);
+        LOGGER.info("Refreshing schema provider");
         this.metricsSchemaProvider.refresh();
     }
 
