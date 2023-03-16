@@ -27,14 +27,14 @@ public class IsolatedLoader {
     }
 
     private void validateFsLocation() {
-        if (!this.fsLocation.isFile()) {
-            throw new IllegalStateException(String.format(
-                    "Source location is not a file: %s",
-                    this.fsLocation.getPath()
-            ));
-        } else if (!this.fsLocation.exists()) {
+        if (!this.fsLocation.exists()) {
             throw new IllegalStateException(String.format(
                     "Unable to find file at path: %s",
+                    this.fsLocation.getPath()
+            ));
+        } else if (!this.fsLocation.isFile()) {
+            throw new IllegalStateException(String.format(
+                    "Source location is not a file: %s",
                     this.fsLocation.getPath()
             ));
         }
