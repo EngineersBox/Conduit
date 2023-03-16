@@ -69,8 +69,12 @@ public class IsolatedLoader {
                     "Loaded class \"%s\" does not inherit from LuaFunction",
                     handlerClass.getName()
             ));
-        } catch (final IOException | ClassNotFoundException | InstantiationException | IllegalAccessException |
-                       InvocationTargetException | NoSuchMethodException e) {
+        } catch (final IOException
+                | ClassNotFoundException
+                | InstantiationException
+                | IllegalAccessException
+                | InvocationTargetException
+                | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }

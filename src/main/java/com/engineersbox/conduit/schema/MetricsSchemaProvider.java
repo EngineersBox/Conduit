@@ -45,18 +45,11 @@ public interface MetricsSchemaProvider {
         return new MetricsSchemaProvider() {
 
             private MetricsSchema schema = provide();
-            private long fileSize;
-            private final int chunkCount;
-            private boolean updateHashes;
+            private long fileSize = Path.of(schemaPath).toFile().length();
+            private final int chunkCount = (int) (this.fileSize / chunkSizeBytes);
+            private boolean updateHashes = false;
             private int lastComputedChunkHashIndex;
-            private final long[] chunkHashes;
-
-            {
-                this.fileSize = Path.of(schemaPath).toFile().length();
-                this.chunkCount = (int) (this.fileSize / chunkSizeBytes);
-                this.chunkHashes = new long[this.chunkCount];
-                this.updateHashes = false;
-            }
+            private final long[] chunkHashes = new long[this.chunkCount];
 
             @Override
             public MetricsSchema provide() {
