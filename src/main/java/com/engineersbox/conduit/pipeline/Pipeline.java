@@ -21,7 +21,6 @@ import io.riemann.riemann.Proto;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.luaj.vm2.Globals;
-import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -299,16 +298,10 @@ public class Pipeline {
                                                   final MetricValueType type,
                                                   final String metricNamespace,
                                                   final String suffix) {
-        final Proto.Event.Builder builder = this.schema.getEventTemplate().toBuilder()
+        final Proto.Event.Builder builder = this.schema.getEventTemplate()
+                .toBuilder()
                 .setService(metricNamespace + suffix);
-        return (switch (type) {
-            case DOUBLE -> builder.setMetricD((double) value);
-            case FLOAT -> builder.setMetricF((float) value);
-            case INTEGER -> builder.setMetricSint64((long) value);
-            case BOOLEAN -> builder.setMetricSint64((boolean) value ? 1 : 0);
-            case STRING -> builder.setState((String) value);
-            default -> throw new ClassCastException("Unsupported primitive type: " + type.name());
-        }).build();
+        return type.buildMetric(builder, value).build();
     }
 
 }
