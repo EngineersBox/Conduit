@@ -1,6 +1,6 @@
 package com.engineersbox.conduit.source;
 
-public class Source {
+public abstract class Source {
 
     private final SourceType type;
 
@@ -11,5 +11,7 @@ public class Source {
     public SourceType getType() {
         return this.type;
     }
+
+    abstract public String invoke();
 
 }
