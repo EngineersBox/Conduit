@@ -1,5 +1,7 @@
 package com.engineersbox.conduit.source;
 
+import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
+
 public abstract class Source {
 
     private final SourceType type;
@@ -12,6 +14,6 @@ public abstract class Source {
         return this.type;
     }
 
-    abstract public String invoke();
+    abstract public String invoke(final IngestionContext ctx);
 
 }

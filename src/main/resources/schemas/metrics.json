@@ -65,6 +65,11 @@
                 "CERTIFICATE"
             ]
         },
+        "http_certificate_type": {
+            "enum": [
+                "JKS"
+            ]
+        },
         "http_source": {
             "properties": {
                 "auth": {
@@ -93,10 +98,17 @@
                         "properties": {
                             "location": {
                                 "type": "string"
+                            },
+                            "certificate_type": {
+                                "type": "http_certificate_type"
+                            },
+                            "password": {
+                                "type": "string"
                             }
                         },
                         "required": [
-                            "location"
+                            "location",
+                            "http_certificate_type"
                         ]
                     },
                     "required": [

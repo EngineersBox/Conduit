@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.source.custom;
 
+import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit.source.Source;
 import com.engineersbox.conduit.source.SourceType;
 
@@ -20,6 +21,11 @@ public class CustomSource extends Source {
 
     public Object getProperty(final String key) {
         return this.properties.get(key);
+    }
+
+    @Override
+    public String invoke(final IngestionContext ctx) {
+        return null; // TODO
     }
 
 }

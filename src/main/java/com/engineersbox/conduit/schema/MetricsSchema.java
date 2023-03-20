@@ -144,6 +144,10 @@ public class MetricsSchema extends HashMap<String, Metric> {
                             authNode.get("password").asText()
                     );
                     case CERTIFICATE -> new HTTPSourceCertificateAuthConfig(
+                            HTTPCertType.valueOf(authNode.get("certificate_type").asText()),
+                            authNode.has("password")
+                                    ? authNode.get("password").asText()
+                                    : null,
                             authNode.get("location").asText()
                     );
                 },

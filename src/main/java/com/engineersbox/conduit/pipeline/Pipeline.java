@@ -97,7 +97,8 @@ public class Pipeline {
         // TODO: Use source here to ingest stuff
         final Source source = this.schema.getSource();
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
-                .parse(this.ingestSource.apply(this.ingestionContext));
+                .parse(source.invoke(this.ingestionContext));
+//                .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
                 .map((final List<Metric> batch) -> CompletableFuture.runAsync(
                         () -> handleBatch(
