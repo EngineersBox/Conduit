@@ -66,7 +66,7 @@ public class HTTPSource extends Source {
             case CERTIFICATE -> {
                 final HTTPSourceCertificateAuthConfig certAuth = (HTTPSourceCertificateAuthConfig) this.authConfig;
                 try {
-                    final SSLContext sslContext = SSLContext.getDefault();
+                    final SSLContext sslContext = SSLContext.getInstance("TLS");
                     final TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                     final KeyStore cert = KeyStore.getInstance(certAuth.getCertType().name());
                     final InputStream certStream = new FileInputStream(certAuth.getCertificatePath().toAbsolutePath().toString());

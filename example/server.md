@@ -12,6 +12,6 @@ Start server:
 
 `twistd -no web --https=<port> -c <certificate path [default: server.pem]> -k <private key, [default: server.pem]`
 
-Generate a key:
+Generate a PKCS12 cert:
 
-`openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365`
+`openssl pkcs12 -export -in cert.pem -inkey key.pem -out certificate.p12 -name "certificate"`

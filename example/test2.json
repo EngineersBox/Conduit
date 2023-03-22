@@ -3,11 +3,11 @@
         "type": "HTTP",
         "auth": {
             "type": "CERTIFICATE",
-            "location": "cert.pem",
-            "certificate_type": "JKS",
+            "location": "example/certificate.p12",
+            "certificate_type": "PKCS12",
             "password": "test"
         },
-        "uri": "http://localhost:8000/source.json"
+        "uri": "https://localhost:8000/source.json"
     },
     "configuration": {
         "json_provider": "JACKSON",

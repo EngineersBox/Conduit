@@ -66,7 +66,7 @@ public class Main {
 	public static void main (final String[] args) throws IOException {
 		CacheProvider.setCache(new LRUCache(10));
 		final Pipeline pipeline = new Pipeline(
-				"./example/test.json",
+				"./example/test2.json",
 				(final IngestionContext ctx) -> TEST_JSON_BLOB,
 				new BatchingConfiguration(1, 3)
 		);

@@ -67,7 +67,8 @@
         },
         "http_certificate_type": {
             "enum": [
-                "JKS"
+                "JKS",
+                "PKCS12"
             ]
         },
         "http_source": {
@@ -100,7 +101,7 @@
                                 "type": "string"
                             },
                             "certificate_type": {
-                                "type": "http_certificate_type"
+                                "$ref": "#/$defs/http_certificate_type"
                             },
                             "password": {
                                 "type": "string"
@@ -108,7 +109,7 @@
                         },
                         "required": [
                             "location",
-                            "http_certificate_type"
+                            "certificate_type"
                         ]
                     },
                     "required": [
