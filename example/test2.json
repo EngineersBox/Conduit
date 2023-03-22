@@ -1,0 +1,44 @@
+{
+    "source": {
+        "type": "HTTP",
+        "auth": {
+            "type": "CERTIFICATE",
+            "location": "cert.pem",
+            "certificate_type": "JKS",
+            "password": "test"
+        },
+        "uri": "http://localhost:8000/source.json"
+    },
+    "configuration": {
+        "json_provider": "JACKSON",
+        "mapping_provider": "JACKSON"
+    },
+    "event_template": "host:\"Test Service\"\ndescription: \"Some Metric Description\"\nmetric_d: 123.44",
+    "handler": "example/compiled/handler.class",
+    "metrics": [
+        {
+            "namespace": "/service/plugin/test_metric",
+            "path": "$..book[?(@.price <= $['expensive'])].price",
+            "handler_method": "shouldCollectTestMetric",
+            "type": {
+                "container": "LIST",
+                "type": "DOUBLE",
+                "suffix_format": [
+                    {
+                        "template": "/book_{index}",
+                        "to": 1
+                    },
+                    {
+                        "template": "/other_book_{index}",
+                        "from": 1
+                    }
+                ]
+            }
+        },
+        {
+            "namespace": "/service/core/books_count",
+            "path": "$..book.length()",
+            "type": "INTEGER"
+        }
+    ]
+}
