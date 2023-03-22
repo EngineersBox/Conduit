@@ -15,7 +15,14 @@ public abstract class IngestionContext implements Closeable {
     }
 
     public IngestionContext(final long timeout) {
-        this.attributes = new HashMap<>();
+        this(
+                timeout,
+                new HashMap<>()
+        );
+    }
+
+    public IngestionContext(final long timeout, final Map<String, Object> attributes) {
+        this.attributes = attributes;
         this.timeout = timeout;
     }
 
@@ -26,6 +33,10 @@ public abstract class IngestionContext implements Closeable {
 
     public Object getAttribute(final String key) {
         return this.attributes.get(key);
+    }
+
+    public Map<String, Object> getAttributes() {
+        return this.attributes;
     }
 
     public void setTimeout(final long timeout) {

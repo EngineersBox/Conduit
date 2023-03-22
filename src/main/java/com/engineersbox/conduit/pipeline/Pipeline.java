@@ -15,6 +15,8 @@ import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.source.Source;
+import com.engineersbox.conduit.source.SourceType;
+import com.engineersbox.conduit.source.custom.CustomSource;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.riemann.riemann.Proto;
@@ -96,6 +98,10 @@ public class Pipeline {
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         // TODO: Use source here to ingest stuff
         final Source source = this.schema.getSource();
+        if (source.getType().equals(SourceType.CUSTOM)
+            && source instanceof CustomSource customSource) {
+            customSource.setSource(this.ingestSource);
+        }
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(source.invoke(this.ingestionContext));
 //                .parse(this.ingestSource.apply(this.ingestionContext));
