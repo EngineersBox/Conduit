@@ -1,6 +1,6 @@
 {
     "source": {
-        "type": "HTTP",
+        "type": "CUSTOM",
         "auth": {
             "type": "BASIC",
             "username": "some_test_user",
