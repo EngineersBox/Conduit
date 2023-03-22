@@ -96,7 +96,6 @@ public class Pipeline {
         this.schema = this.metricsSchemaProvider.provide();
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
-        // TODO: Use source here to ingest stuff
         final Source source = this.schema.getSource();
         if (source.getType().equals(SourceType.CUSTOM)
             && source instanceof CustomSource customSource) {
@@ -104,7 +103,6 @@ public class Pipeline {
         }
         final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
                 .parse(source.invoke(this.ingestionContext));
-//                .parse(this.ingestSource.apply(this.ingestionContext));
         workload.stream()
                 .map((final List<Metric> batch) -> CompletableFuture.runAsync(
                         () -> handleBatch(
