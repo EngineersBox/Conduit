@@ -1,12 +1,12 @@
 {
     "source": {
-        "type": "CUSTOM",
+        "type": "HTTP",
         "auth": {
             "type": "BASIC",
             "username": "some_test_user",
             "password": "P4ss-w0rd1!2@3#4$"
         },
-        "uri": "test.service.com"
+        "uri": "http://localhost:8000/source.json"
     },
     "configuration": {
         "json_provider": "JACKSON",
