@@ -38,7 +38,8 @@
                 "JAKARTA",
                 "JSON_ORG",
                 "JSON_SMART",
-                "TAPESTRY"
+                "TAPESTRY",
+                "CUSTOM"
             ]
         },
         "configuration": {

@@ -5,6 +5,7 @@ import com.jayway.jsonpath.spi.mapper.*;
 import java.util.function.Supplier;
 
 public enum MappingProvider {
+    CUSTOM(() -> null),
     GSON(GsonMappingProvider::new),
     JACKSON(JacksonMappingProvider::new);
 //    JAKARTA(JakartaMappingProvider::new),
