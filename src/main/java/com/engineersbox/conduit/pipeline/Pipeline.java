@@ -233,7 +233,9 @@ public class Pipeline {
                                                     final Metric metric,
                                                     final int currentDimension,
                                                     final String suffix) {
-        final List<?> list = (List<?>) value;
+        if (!(value instanceof List<?> list)) {
+            return List.of();
+        }
         final List<Proto.Event> events = new ArrayList<>();
         int index = 0;
         for (final Object component : list) {
@@ -255,12 +257,16 @@ public class Pipeline {
         return events;
     }
 
+    @SuppressWarnings("unchecked")
     private List<Proto.Event> parseMapMetricEvents(final Object value,
                                                    final MetricType type,
                                                    final Metric metric,
                                                    final int currentDimension,
                                                    final String suffix) {
-        final Map<String, ?> map = (Map<String, ?>) value;
+        if (!(value instanceof Map<?, ?> mapValue)) {
+            return List.of();
+        }
+        final Map<String, ?> map = (Map<String, ?>) mapValue;
         final List<Proto.Event> events = new ArrayList<>();
         int index = 0;
         for (final Map.Entry<String, ?> entry : map.entrySet()) {
