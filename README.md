@@ -204,3 +204,19 @@ struct BatchingConfiguration {
 	splitWorkload(List<?>): List<List<?>>;
 }
 ```
+
+### Notes
+
+Currently can do all of the following in less than 500 ms:
+* Start up conduit
+* Pull the schema
+* Parse schema into internal format
+* Create a pipeline with the schema and configs
+* Auth to the remote server providing the raw metrics JSON
+* Connect to Riemann instance
+* Pull the raw metrics json
+* Parse the metrics json into invidual metrics
+* Create reimann event objects for metrics
+* Send metrics to riemann
+* Stop pipeline
+* Stop conduit
