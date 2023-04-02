@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.source.http;
+package com.engineersbox.conduit.schema.source.http;
 
 public class HTTPSourceBasicAuthConfig extends HTTPSourceAuthConfig {
 

@@ -1,6 +1,6 @@
 package com.engineersbox.conduit.schema.metric;
 
-import com.engineersbox.conduit.type.ParametrizedTypeConstructor;
+import com.engineersbox.conduit.schema.type.ParametrizedTypeConstructor;
 import com.google.common.collect.Range;
 import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.tuple.Pair;

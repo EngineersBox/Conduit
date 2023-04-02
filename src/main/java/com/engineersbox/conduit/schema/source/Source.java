@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.source;
+package com.engineersbox.conduit.schema.source;
 
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 

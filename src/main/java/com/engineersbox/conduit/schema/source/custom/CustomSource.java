@@ -1,9 +1,9 @@
-package com.engineersbox.conduit.source.custom;
+package com.engineersbox.conduit.schema.source.custom;
 
 import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
-import com.engineersbox.conduit.source.Source;
-import com.engineersbox.conduit.source.SourceType;
+import com.engineersbox.conduit.schema.source.Source;
+import com.engineersbox.conduit.schema.source.SourceType;
 
 import java.io.IOException;
 import java.util.HashMap;

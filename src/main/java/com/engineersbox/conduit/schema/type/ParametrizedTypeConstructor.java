@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.type;
+package com.engineersbox.conduit.schema.type;
 
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;

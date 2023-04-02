@@ -1,14 +1,12 @@
-package com.engineersbox.conduit.source.http;
+package com.engineersbox.conduit.schema.source.http;
 
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
-import com.engineersbox.conduit.source.Source;
-import com.engineersbox.conduit.source.SourceType;
+import com.engineersbox.conduit.schema.source.Source;
+import com.engineersbox.conduit.schema.source.SourceType;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;

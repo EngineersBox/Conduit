@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.type;
+package com.engineersbox.conduit.schema.type;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
