@@ -4,6 +4,7 @@ import com.engineersbox.conduit.util.ObjectMapperModule;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,13 @@ public interface MetricsSchemaProvider {
         return new MetricsSchemaProvider() {
 
             private MetricsSchema schema = provide();
-            private long fileSize = Path.of(schemaPath).toFile().length();
+            private long fileSize;
+            private long fileLastModifiedTime;
+            {
+                final File initialFile = Path.of(schemaPath).toFile();
+                this.fileSize = initialFile.length();
+                this.fileLastModifiedTime = FileUtils.lastModifiedUnchecked(initialFile);
+            }
             private final int chunkCount = (int) (this.fileSize / chunkSizeBytes);
             private boolean updateHashes = false;
             private int lastComputedChunkHashIndex;
@@ -55,10 +62,14 @@ public interface MetricsSchemaProvider {
             public MetricsSchema provide() {
                 final File schemaFile = Path.of(schemaPath).toFile();
                 final long updatedFileSize = schemaFile.length();
-                if (updatedFileSize == this.fileSize && compareChunkHashes()) {
+                final long updatedLastModifiedTime = FileUtils.lastModifiedUnchecked(schemaFile);
+                if (updatedFileSize == this.fileSize && updatedLastModifiedTime == this.fileLastModifiedTime) {
+                    return this.schema;
+                } else if (compareChunkHashes()) {
                     return this.schema;
                 }
                 this.fileSize = updatedFileSize;
+                this.fileLastModifiedTime = updatedLastModifiedTime;
                 this.updateHashes = true;
                 try {
                     this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(schemaFile));
