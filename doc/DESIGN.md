@@ -20,6 +20,13 @@ TODO
 
 TODO
 
+##### Connectors
+
+Depending on how the raw metrics should be retrieved, a connector will be provided to determine this behaviour. In particular
+connectors handle network connections and an action wrapper to invoke a retrieval request. This includes authentication
+that may be required. It is up to the discretion of the implementation to handle the connection itself including any behaviour
+for re-using connections, closing them, retries, etc.
+
 #### Provider
 
 The JsonPath library provides and set of SPI abstractions for each of the core elements of data handling:
@@ -40,6 +47,18 @@ TODO
 ### Schema
 
 TODO
+
+#### Provider
+
+Depending on how a schema should be handled for updates and retrieving a new instance, this provider will determine that
+behaviour. Implementations of this provider are only required to supply an instance of MetricsSchema upon invocation.
+There are two standard options provided that can be used:
+
+* Singleton, a new instance on every invocation
+* Checksum refreshed, maintains a cached version of the schema which is returned when invoked. The cached entry is checked
+against the file on disk to determine if there are any updates. If there are, the entry is updated on next invocation.
+
+
 
 ### Pipeline
 
