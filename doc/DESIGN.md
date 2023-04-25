@@ -18,7 +18,10 @@ TODO
 
 #### Source
 
-TODO
+In order to retrieve the raw metrics, sources define where they come from and the connector type used for retrieval. This
+structure includes any necessary destructuring, decompression, de-mangling, etc. Depending on the kind of data being handled
+a different provider SPI will need to be used that matches it. Within the schema structure this is defined, so the user is
+expected to match the data provided by a source.
 
 ##### Connectors
 
@@ -27,7 +30,7 @@ connectors handle network connections and an action wrapper to invoke a retrieva
 that may be required. It is up to the discretion of the implementation to handle the connection itself including any behaviour
 for re-using connections, closing them, retries, etc.
 
-#### Provider
+#### Provider SPI
 
 The JsonPath library provides and set of SPI abstractions for each of the core elements of data handling:
 
