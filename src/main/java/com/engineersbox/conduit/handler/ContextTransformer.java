@@ -97,14 +97,13 @@ public class ContextTransformer {
     public LuaTable transform() {
         final List<LuaValue> keysAndValues = new ArrayList<>();
         // Regular tables
-        for (final Map.Entry<String, LuaTable> table : this.directTables.entrySet()) {
-            keysAndValues.add(LuaString.valueOf(table.getKey()));
-            keysAndValues.add(table.getValue());
-        }
+        this.directTables.forEach((final String key, final LuaTable value) -> {
+            keysAndValues.add(LuaString.valueOf(key));
+            keysAndValues.add(value);
+        });
         // Read only attributes
-        for (final Map.Entry<String, Pair<Object, Class<? extends JsonSerializer<?>>>> entry : this.readOnlyAttributes.entrySet()) {
-            keysAndValues.add(LuaString.valueOf(entry.getKey()));
-            final Pair<Object, Class<? extends JsonSerializer<?>>> pair = entry.getValue();
+        this.readOnlyAttributes.forEach((final String key, final Pair<Object, Class<? extends JsonSerializer<?>>> pair) -> {
+            keysAndValues.add(LuaString.valueOf(key));
             if (pair.getRight() != null) {
                 final SimpleModule module = new SimpleModule();
                 try {
@@ -122,7 +121,7 @@ public class ContextTransformer {
             }
             final JsonNode node = ObjectMapperModule.OBJECT_MAPPER.valueToTree(pair.getLeft());
             keysAndValues.add(node.isValueNode() ? parseValue(node) : constructTable(node));
-        }
+        });
         return LuaTable.tableOf(
                 keysAndValues.toArray(LuaValue[]::new)
         );
