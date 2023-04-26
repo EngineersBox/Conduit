@@ -135,7 +135,7 @@ public class Pipeline {
         final List<List<Metric>> partitionedBatch = ListUtils.partition(
                 batch,
                 Math.min(
-                        batchConfig.getBulkSize(),
+                        batchConfig.bulkSize(),
                         batch.size()
                 )
         );
