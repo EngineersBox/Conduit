@@ -30,6 +30,10 @@ connectors handle network connections and an action wrapper to invoke a retrieva
 that may be required. It is up to the discretion of the implementation to handle the connection itself including any behaviour
 for re-using connections, closing them, retries, etc.
 
+Authentication models are defined by a schema, specifically the required details in order to perform the authentication itself
+over a connection. The details can be dynamically resolved by the connector as needed or provided inline in the schema. This
+extends to the notion of keys/certs/etc. that may be filesystem locations.
+
 #### Provider SPI
 
 The JsonPath library provides and set of SPI abstractions for each of the core elements of data handling:
