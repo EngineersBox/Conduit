@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.ingest;
+package com.engineersbox.conduit_v2.retrieval.ingest;
 
 import com.engineersbox.conduit.schema.source.SourceType;
 
