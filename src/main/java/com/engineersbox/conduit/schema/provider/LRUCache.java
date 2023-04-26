@@ -3,6 +3,7 @@ package com.engineersbox.conduit.schema.provider;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.cache.Cache;
 
+import java.io.Serial;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class LRUCache implements Cache {
         int capacity = (int) Math.ceil(size / DEFAULT_LOAD_FACTOR) + 1;
         this.entries = new LinkedHashMap<>(capacity, DEFAULT_LOAD_FACTOR, true) {
             // (an anonymous inner class)
+            @Serial
             private static final long serialVersionUID = 1;
 
             @Override
@@ -34,12 +36,6 @@ public class LRUCache implements Cache {
     }
 
     public JsonPath get(final String key) {
-        synchronized (this) {
-            return this.entries.get(key);
-        }
-    }
-
-    public JsonPath getSilent(final String key) {
         synchronized (this) {
             return this.entries.get(key);
         }
