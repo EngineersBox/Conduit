@@ -10,7 +10,7 @@ TODO
 
 ## Architecture
 
-TODO
+![Architecture](./architecture.png)
 
 ## Structure
 
