@@ -2,7 +2,7 @@ package com.engineersbox.conduit_v2.retrieval.ingest;
 
 import com.engineersbox.conduit.schema.source.SourceType;
 
-public abstract class Source<T, C extends Connector<T>> {
+public abstract class Source<T> {
 
     private final SourceType type;
 
@@ -14,6 +14,6 @@ public abstract class Source<T, C extends Connector<T>> {
         return this.type;
     }
 
-    abstract public T invoke(final C connector, final IngestionContext ctx);
+    abstract public <C extends Connector<T>> T invoke(final C connector, final IngestionContext ctx);
 
 }
