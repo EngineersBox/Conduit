@@ -65,11 +65,29 @@ There are two standard options provided that can be used:
 * Checksum refreshed, maintains a cached version of the schema which is returned when invoked. The cached entry is checked
 against the file on disk to determine if there are any updates. If there are, the entry is updated on next invocation.
 
-
-
 ### Pipeline
 
-TODO
+A task execution pool is created to process the metrics defined in the metrics schema. This pool is configured to be of
+size matching the supplied configurations. For each of the metrics, they are round-robin submitted to the queues of each
+of the task executor threads to process them.
+
+#### Task Executors
+
+A task executor pool manages threads that run metric collection tasks. Each executor has a queue that they consume tasks
+from, perform the necessary actions and publish the results to Riemann.
+
+The actions to perform are as follows:
+1. Call pre-fetch Lua handler if it exists to filter task
+2. Retrieve metric value
+3. Invoke event transformer
+4. Call post-fetch Lua handler if it exists to modify events
+5. Publish events to Riemann
+
+A single content manager instance is shared between all task executors (NOTE: Is it better to allow using multiple content
+managers with configurable membership of one or more caches? This would allow for a degree of locality optimisation relative
+to resource consumption).
+
+Queues have a configurable size and are thread safe in terms of parallel push and pop
 
 ### Lua Handlers
 
