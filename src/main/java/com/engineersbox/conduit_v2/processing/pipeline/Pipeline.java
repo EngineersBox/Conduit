@@ -20,7 +20,6 @@ public class Pipeline {
         this.executor = new TaskExecutorPool(() -> null);
     }
 
-
     private List<Proto.Event> handleMetric(final Metric metric) {
         final Object value = this.contentManager.retrieveMetricValue(metric);
         return this.transformer.transform(metric, value);

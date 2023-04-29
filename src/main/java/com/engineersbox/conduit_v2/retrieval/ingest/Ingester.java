@@ -1,5 +1,7 @@
 package com.engineersbox.conduit_v2.retrieval.ingest;
 
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+
 public class Ingester<R> {
 
     private final Source<R> source = null;

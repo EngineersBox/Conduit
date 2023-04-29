@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.retrieval.ingest;
+package com.engineersbox.conduit_v2.retrieval.ingest.connection;
 
 /**
  * This is implemented according to the structure of the configuration
