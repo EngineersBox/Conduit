@@ -1,4 +1,6 @@
-package com.engineersbox.conduit_v2.processing.task;
+package com.engineersbox.conduit_v2.processing.task.worker;
+
+import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
