@@ -7,8 +7,6 @@ import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit_v2.retrieval.path.PathTraversalHandler;
 
-import java.util.function.Function;
-
 public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
 
     private final Ingester<T, R, E, C> ingester;
