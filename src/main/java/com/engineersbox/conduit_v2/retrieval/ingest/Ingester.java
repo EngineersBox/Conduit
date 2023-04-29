@@ -3,26 +3,36 @@ package com.engineersbox.conduit_v2.retrieval.ingest;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 
-public class Ingester<R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
+import java.util.function.Function;
 
-    private final Source<R> source = null;
-    private final C connector = null;
+public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
 
-    private R rawData = null;
+    private final Source<R> source;
+    private final C connector;
+    private final Function<R, T> rawConverter;
+    private T data = null;
+
+    public Ingester(final Source<R> source,
+                    final C connector,
+                    final Function<R, T> rawConverter) {
+        this.source = source;
+        this.connector = connector;
+        this.rawConverter = rawConverter;
+    }
 
     public void clear() {
-        this.rawData = null;
+        this.data = null;
     }
 
     public void consumeSource(final IngestionContext context) {
-        this.rawData = this.source.invoke(
+        this.data = this.rawConverter.apply(this.source.invoke(
                 this.connector,
                 context
-        );
+        ));
     }
 
-    public R getCurrent() {
-        return this.rawData;
+    public T getCurrent() {
+        return this.data;
     }
 
 }

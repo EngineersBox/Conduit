@@ -7,11 +7,21 @@ import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit_v2.retrieval.path.PathTraversalHandler;
 
-public class ContentManager<R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
+import java.util.function.Function;
 
-    private final Ingester<R, E, C> ingester = null;
-    private final IngestionContext context = null;
-    private final PathTraversalHandler<R> pathTraversalHandler = null;
+public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
+
+    private final Ingester<T, R, E, C> ingester;
+    private final IngestionContext context;
+    private final PathTraversalHandler<T> pathTraversalHandler;
+
+    public ContentManager(final Ingester<T, R, E, C> ingester,
+                          final IngestionContext context,
+                          final PathTraversalHandler<T> pathTraversalHandler) {
+        this.ingester = ingester;
+        this.context = context;
+        this.pathTraversalHandler = pathTraversalHandler;
+    }
 
     public void poll() {
         // TODO: Implement this
