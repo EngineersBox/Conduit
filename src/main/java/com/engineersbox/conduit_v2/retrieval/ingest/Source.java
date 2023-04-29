@@ -1,16 +1,14 @@
 package com.engineersbox.conduit_v2.retrieval.ingest;
 
-import com.engineersbox.conduit.schema.source.SourceType;
-
 public abstract class Source<T> {
 
-    private final SourceType type;
+    private final ConnectorType type;
 
-    protected Source(final SourceType type) {
+    protected Source(final ConnectorType type) {
         this.type = type;
     }
 
-    public SourceType getType() {
+    public ConnectorType getType() {
         return this.type;
     }
 

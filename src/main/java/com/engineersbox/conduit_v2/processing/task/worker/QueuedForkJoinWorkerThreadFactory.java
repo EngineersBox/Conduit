@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.task;
+package com.engineersbox.conduit_v2.processing.task.worker;
 
 import com.google.common.collect.Queues;
 import io.riemann.riemann.client.RiemannClient;
