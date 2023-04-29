@@ -1,11 +1,12 @@
 package com.engineersbox.conduit_v2.retrieval.ingest;
 
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 
-public class Ingester<R> {
+public class Ingester<R, E extends ConnectorConfiguration, C extends Connector<R, E>> {
 
     private final Source<R> source = null;
-    private final Connector<R> connector = null;
+    private final C connector = null;
 
     private R rawData = null;
 
