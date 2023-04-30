@@ -1,6 +1,7 @@
 package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundForkJoinPool;
+import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.QueuedForkJoinWorkerThreadFactory;
 import io.riemann.riemann.client.RiemannClient;
 
@@ -30,7 +31,7 @@ public class TaskExecutorPool {
         );
     }
 
-    public ForkJoinTask<?> submit(final MetricProcessingTask task) {
+    public ForkJoinTask<?> submit(final ClientBoundWorkerTask task) {
         return this.executorService.submit(task);
     }
 

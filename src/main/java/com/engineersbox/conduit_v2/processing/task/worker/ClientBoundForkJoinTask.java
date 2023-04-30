@@ -1,7 +1,5 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
-import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
-
 import java.io.Serial;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RunnableFuture;
@@ -12,9 +10,9 @@ public class ClientBoundForkJoinTask extends ForkJoinTask<Void> implements Runna
     private static final long serialVersionUID = 2988328017776527845L;
 
     @SuppressWarnings("serial") // Conditionally serializable
-    private final MetricProcessingTask runnable;
+    private final ClientBoundWorkerTask runnable;
 
-    public ClientBoundForkJoinTask(final MetricProcessingTask runnable) {
+    public ClientBoundForkJoinTask(final ClientBoundWorkerTask runnable) {
         if (runnable == null) throw new NullPointerException();
         this.runnable = runnable;
     }

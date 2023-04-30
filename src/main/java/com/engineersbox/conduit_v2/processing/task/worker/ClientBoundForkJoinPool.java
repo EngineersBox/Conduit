@@ -1,7 +1,5 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
-import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
-
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +33,7 @@ public class ClientBoundForkJoinPool extends ForkJoinPool {
         super(parallelism, factory, handler, asyncMode, corePoolSize, maximumPoolSize, minimumRunnable, saturate, keepAliveTime, unit);
     }
 
-    public ForkJoinTask<?> submit(final MetricProcessingTask runnable) {
+    public ForkJoinTask<?> submit(final ClientBoundWorkerTask runnable) {
         return super.submit((ForkJoinTask<Void>) new ClientBoundForkJoinTask(runnable));
     }
 
