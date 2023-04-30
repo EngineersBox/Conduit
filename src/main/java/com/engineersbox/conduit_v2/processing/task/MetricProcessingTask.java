@@ -60,6 +60,20 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                                 ""
                         ).toArray(Proto.Event[]::new)
                 ),
+                new ProcessPipelineStage<>(
+                        "Post-process Lua handlers",
+                        (final Proto.Event[] events) -> {
+                            // TODO: Invoke post-process Lua handlers for modifying events
+                            return events;
+                        }
+                ),
+                new FilterPipelineStage<>(
+                        "Post-process Lua filter",
+                        (final Proto.Event[] events) -> {
+                            // TODO: Invoke post-process Lua handler and return inclusion state
+                            return true;
+                        }
+                ),
                 new TerminatingPipelineStage<>(
                         "Send Riemann events",
                         Functional.uncheckedConsumer((final Proto.Event[] events) ->
