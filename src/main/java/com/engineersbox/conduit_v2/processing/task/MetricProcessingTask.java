@@ -27,6 +27,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final List<Metric> initialMetrics; // Received from pipeline
     private final Proto.Event eventTemplate;
     private final AtomicReference<RetrievalHandler<Metric>> retreiver;
+    private final Pipeline<List<Metric>> pipeline;
+    private RiemannClient riemannClient;
 
     public MetricProcessingTask(final List<Metric> metrics,
                                 final Proto.Event eventTemplate,
@@ -34,9 +36,11 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.initialMetrics = metrics;
         this.eventTemplate = eventTemplate;
         this.retreiver = retriever;
+        this.riemannClient = null;
+        this.pipeline = createPipeline();
     }
 
-    private Pipeline<List<Metric>> createPipeline(final RiemannClient riemannClient) {
+    private Pipeline<List<Metric>> createPipeline() {
         final Pipeline<List<Metric>> newPipeline = new Pipeline<>();
         newPipeline.addStages(
                 new FilterPipelineStage<>(
@@ -59,7 +63,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 new TerminatingPipelineStage<>(
                         "Send Riemann events",
                         Functional.uncheckedConsumer((final Proto.Event[] events) ->
-                                riemannClient.sendEvents(events)
+                                this.riemannClient.sendEvents(events)
                                         .deref(1, TimeUnit.SECONDS)
                         )
                 )
@@ -69,7 +73,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     @Override
     public void accept(final RiemannClient riemannClient) {
-        final Pipeline<List<Metric>> pipeline = createPipeline(riemannClient);
+        this.riemannClient = riemannClient;
         pipeline.accept(this.initialMetrics);
     }
 
