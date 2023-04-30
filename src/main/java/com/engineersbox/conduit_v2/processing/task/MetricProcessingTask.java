@@ -4,7 +4,11 @@ import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit.schema.type.Functional;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
+import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
@@ -20,34 +24,53 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask {
 
-    private final Metric initialMetric; // Received from pipeline
+    private final List<Metric> initialMetrics; // Received from pipeline
     private final Proto.Event eventTemplate;
     private final AtomicReference<RetrievalHandler<Metric>> retreiver;
-    private final Pipeline pipeline;
 
-    public MetricProcessingTask(final Metric metric,
+    public MetricProcessingTask(final List<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final AtomicReference<RetrievalHandler<Metric>> retriever) {
-        this.initialMetric = metric;
+        this.initialMetrics = metrics;
         this.eventTemplate = eventTemplate;
         this.retreiver = retriever;
-        this.pipeline = null; // Initialise this
+    }
+
+    private Pipeline<List<Metric>> createPipeline(final RiemannClient riemannClient) {
+        final Pipeline<List<Metric>> newPipeline = new Pipeline<>();
+        newPipeline.addStages(
+                new FilterPipelineStage<>(
+                        "Pre-process Lua filter",
+                        (final Metric metric) -> {
+                            // TODO: Invoke pre-process Lua handler and return inclusion state
+                            return true;
+                        }
+                ),
+                new ProcessPipelineStage<>(
+                        "Parse metrics events",
+                        (final Metric metric) -> parseCoerceMetricEvents(
+                                this.retreiver.get().lookup(metric),
+                                metric.getType(),
+                                metric,
+                                0,
+                                ""
+                        ).toArray(Proto.Event[]::new)
+                ),
+                new TerminatingPipelineStage<>(
+                        "Send Riemann events",
+                        Functional.uncheckedConsumer((final Proto.Event[] events) ->
+                                riemannClient.sendEvents(events)
+                                        .deref(1, TimeUnit.SECONDS)
+                        )
+                )
+        );
+        return newPipeline;
     }
 
     @Override
     public void accept(final RiemannClient riemannClient) {
-        final Proto.Event[] events = parseCoerceMetricEvents(
-                this.retreiver.get().lookup(this.initialMetric),
-                this.initialMetric.getType(),
-                this.initialMetric,
-                0,
-                ""
-        ).toArray(Proto.Event[]::new);
-        try {
-            riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
+        final Pipeline<List<Metric>> pipeline = createPipeline(riemannClient);
+        pipeline.accept(this.initialMetrics);
     }
 
     private List<Proto.Event> parseCoerceMetricEvents(final Object value,

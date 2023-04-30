@@ -3,8 +3,9 @@ package com.engineersbox.conduit_v2.processing.pipeline;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class Pipeline implements Runnable {
+public class Pipeline<T> implements Consumer<T> {
 
     private final LinkedList<PipelineStage<?, ?>> stageQueue;
 
@@ -25,8 +26,8 @@ public class Pipeline implements Runnable {
     }
 
     @Override
-    public void run() {
-        Object previousResult = null;
+    public void accept(final T initialValue) {
+        Object previousResult = initialValue;
         for (final PipelineStage<?, ?> stage : this.stageQueue) {
             stage.resetState();
             stage.nextState(StageState.EXECUTING);

@@ -7,24 +7,19 @@ import java.util.function.Function;
 public abstract class PipelineStage<T, R> implements Function<T, R> {
 
     private final String name;
-    private final StageType type;
     private StageState state;
-    private final Class<T> previousType;
+    protected final Class<T> previousType;
+    protected final Class<R> nextType;
 
-    protected PipelineStage(final String name,
-                            final StageType type) {
+    protected PipelineStage(final String name) {
         this.name = name;
-        this.type = type;
         this.state = StageState.PENDING;
         this.previousType = (Class<T>) new TypeLiteral<T>(){}.getType();
+        this.nextType = (Class<R>) new TypeLiteral<R>(){}.getType();
     }
 
     public String getName() {
         return this.name;
-    }
-
-    public StageType getType() {
-        return this.type;
     }
 
     public StageState getState() {
