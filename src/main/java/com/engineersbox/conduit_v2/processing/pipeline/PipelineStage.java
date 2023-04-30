@@ -1,6 +1,5 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
-import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.reflect.TypeLiteral;
 
 import java.util.function.Function;
@@ -11,7 +10,6 @@ public abstract class PipelineStage<T, R> implements Function<T, R> {
     private final StageType type;
     private StageState state;
     private final Class<T> previousType;
-    private final Class<R> nextType;
 
     protected PipelineStage(final String name,
                             final StageType type) {
@@ -19,7 +17,6 @@ public abstract class PipelineStage<T, R> implements Function<T, R> {
         this.type = type;
         this.state = StageState.PENDING;
         this.previousType = (Class<T>) new TypeLiteral<T>(){}.getType();
-        this.nextType = (Class<R>) new TypeLiteral<R>(){}.getType();
     }
 
     public String getName() {
