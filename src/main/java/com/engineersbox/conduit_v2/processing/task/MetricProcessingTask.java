@@ -15,7 +15,6 @@ import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     private final List<Metric> initialMetrics; // Received from pipeline
     private final Proto.Event eventTemplate;
-    private final AtomicReference<RetrievalHandler<Metric>> retreiver;
+    private final AtomicReference<RetrievalHandler<Metric>> retriever;
     private final Pipeline<List<Metric>> pipeline;
     private RiemannClient riemannClient;
 
@@ -35,7 +34,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                                 final AtomicReference<RetrievalHandler<Metric>> retriever) {
         this.initialMetrics = metrics;
         this.eventTemplate = eventTemplate;
-        this.retreiver = retriever;
+        this.retriever = retriever;
         this.riemannClient = null;
         this.pipeline = createPipeline();
     }
@@ -53,7 +52,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 new ProcessPipelineStage<>(
                         "Parse metrics events",
                         (final Metric metric) -> parseCoerceMetricEvents(
-                                this.retreiver.get().lookup(metric),
+                                this.retriever.get().lookup(metric),
                                 metric.getType(),
                                 metric,
                                 0,
