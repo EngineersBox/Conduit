@@ -4,6 +4,7 @@ import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
@@ -22,6 +23,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final Metric initialMetric; // Received from pipeline
     private final Proto.Event eventTemplate;
     private final AtomicReference<RetrievalHandler<Metric>> retreiver;
+    private final Pipeline pipeline;
 
     public MetricProcessingTask(final Metric metric,
                                 final Proto.Event eventTemplate,
@@ -29,6 +31,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.initialMetric = metric;
         this.eventTemplate = eventTemplate;
         this.retreiver = retriever;
+        this.pipeline = null; // Initialise this
     }
 
     @Override
