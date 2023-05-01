@@ -1,6 +1,7 @@
 package com.engineersbox.conduit_v2.processing;
 
 import com.engineersbox.conduit.pipeline.BatchingConfiguration;
+import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
@@ -34,23 +35,27 @@ public class Conduit {
         final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
         final List<List<Metric>> batchedMetricWorkloads = List.of();
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
-        /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(this.schemaProvider.provide().values()));
+        final MetricsSchema schema = this.schemaProvider.provide();
+        /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(schema.values()));
         batchedMetricWorkloads.forEach((final List<Metric> metrics) -> {
             handleMetric(
                     metrics,
-                    retrieverReference
+                    retrieverReference,
+                    schema.getHandler() != null
             );
         });
         this.schemaProvider.refresh();
     }
 
     private void handleMetric(final List<Metric> metrics,
-                              final AtomicReference<RetrievalHandler<Metric>> retriever) {
+                              final AtomicReference<RetrievalHandler<Metric>> retriever,
+                              final boolean hasLuaHandlers) {
         final Proto.Event eventTemplate = null; // Get from schema
         this.executor.submit(new MetricProcessingTask(
                 metrics,
                 eventTemplate,
-                retriever
+                retriever,
+                hasLuaHandlers
         ));
     }
 

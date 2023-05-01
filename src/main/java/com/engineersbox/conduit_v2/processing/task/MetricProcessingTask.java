@@ -32,55 +32,63 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     public MetricProcessingTask(final List<Metric> metrics,
                                 final Proto.Event eventTemplate,
-                                final AtomicReference<RetrievalHandler<Metric>> retriever) {
+                                final AtomicReference<RetrievalHandler<Metric>> retriever,
+                                final boolean hasLuaHandlers) {
         this.initialMetrics = metrics;
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
-        this.pipeline = createPipeline();
+        this.pipeline = createPipeline(hasLuaHandlers);
     }
 
-    private Pipeline.Builder<List<Metric>> createPipeline() {
-        return new Pipeline.Builder<List<Metric>>()
-                .withStage(new FilterPipelineStage<Metric>("Pre-process Lua filter") {
-                    @Override
-                    public boolean test(final Metric metric) {
-                        // TODO: Invoke pre-process Lua handler and return inclusion state
-                        return true;
-                    }
-                }).withStage(new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
-                    @Override
-                    public Proto.Event[] apply(final Metric metric) {
-                        return parseCoerceMetricEvents(
-                                MetricProcessingTask.this.retriever.get().lookup(metric),
-                                metric.getType(),
-                                metric,
-                                0,
-                                ""
-                        ).toArray(Proto.Event[]::new);
-                    }
-                }).withStage(new ProcessPipelineStage<Proto.Event[], Proto.Event[]>("Post-process Lua handlers") {
-                    @Override
-                    public Proto.Event[] apply(final Proto.Event[] events) {
-                        // TODO: Invoke post-process Lua handlers for modifying events
-                        return events;
-                    }
-                }).withStage(new FilterPipelineStage<Proto.Event[]>("Post-process Lua filter") {
-                    @Override
-                    public boolean test(final Proto.Event[] element) {
-                        // TODO: Invoke post-process Lua handler and return inclusion state
-                        return false;
-                    }
-                }).withStage(new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
-                    @Override
-                    public void accept(final Proto.Event[] events) {
-                        final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
-                        try {
-                            riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
+    private Pipeline.Builder<List<Metric>> createPipeline(final boolean hasLuaHandlers) {
+        final Pipeline.Builder<List<Metric>> pipelineBuilder = new Pipeline.Builder<List<Metric>>();
+        if (hasLuaHandlers) {
+            pipelineBuilder.withStage(new FilterPipelineStage<Metric>("Pre-process Lua filter") {
+                @Override
+                public boolean test(final Metric metric) {
+                    // TODO: Invoke pre-process Lua handler and return inclusion state
+                    return true;
+                }
+            });
+        }
+        pipelineBuilder.withStage(new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
+                @Override
+                public Proto.Event[] apply(final Metric metric) {
+                    return parseCoerceMetricEvents(
+                            MetricProcessingTask.this.retriever.get().lookup(metric),
+                            metric.getType(),
+                            metric,
+                            0,
+                            ""
+                    ).toArray(Proto.Event[]::new);
+                }
+            }).withStage(new ProcessPipelineStage<Proto.Event[], Proto.Event[]>("Post-process Lua handlers") {
+                @Override
+                public Proto.Event[] apply(final Proto.Event[] events) {
+                    // TODO: Invoke post-process Lua handlers for modifying events
+                    return events;
+                }
+            });
+        if (hasLuaHandlers) {
+            pipelineBuilder.withStage(new FilterPipelineStage<Proto.Event[]>("Post-process Lua filter") {
+                @Override
+                public boolean test(final Proto.Event[] element) {
+                    // TODO: Invoke post-process Lua handler and return inclusion state
+                    return false;
+                }
+            });
+        }
+        return pipelineBuilder.withStage(new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
+            @Override
+            public void accept(final Proto.Event[] events) {
+                final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
+                try {
+                    riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     @Override
