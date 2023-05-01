@@ -1,26 +1,25 @@
 package com.engineersbox.conduit_v2.processing.pipeline.core;
 
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
-import com.engineersbox.conduit_v2.processing.pipeline.StageType;
 
 import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class FilterPipelineStage<T> extends PipelineStage<Collection<T>, Collection<T>> {
+public abstract class FilterPipelineStage<T> extends PipelineStage<Collection<T>, Collection<T>> implements Predicate<T> {
 
-    private final Predicate<T> filterPredicate;
 
-    public FilterPipelineStage(final String name,
-                               final Predicate<T> filterPredicate) {
+    public FilterPipelineStage(final String name) {
         super(name);
-        this.filterPredicate = filterPredicate;
     }
 
     @Override
-    public Collection<T> apply(final Collection<T> previousResult) {
+    public abstract boolean test(final T element);
+
+    @Override
+    public Collection<T> invoke(final Collection<T> previousResult) {
         return previousResult.stream()
-                .filter(this.filterPredicate)
+                .filter(this)
                 .collect(Collectors.toList());
     }
 }

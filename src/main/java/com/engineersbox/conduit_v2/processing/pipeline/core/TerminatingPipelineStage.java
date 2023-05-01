@@ -4,19 +4,19 @@ import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 
 import java.util.function.Consumer;
 
-public class TerminatingPipelineStage<T> extends PipelineStage<T, Void> {
+public abstract class TerminatingPipelineStage<T> extends PipelineStage<T, Void> implements Consumer<T> {
 
-    private final Consumer<T> consumer;
 
-    public TerminatingPipelineStage(final String name,
-                                    final Consumer<T> consumer) {
+    public TerminatingPipelineStage(final String name) {
         super(name);
-        this.consumer = consumer;
     }
 
     @Override
-    public Void apply(final T previousResult) {
-        this.consumer.accept(previousResult);
+    public abstract void accept(T t);
+
+    @Override
+    public Void invoke(final T previousResult) {
+        this.accept(previousResult);
         return null;
     }
 }

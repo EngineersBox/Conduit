@@ -1,25 +1,24 @@
 package com.engineersbox.conduit_v2.processing.pipeline.core;
 
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
-import com.engineersbox.conduit_v2.processing.pipeline.StageType;
 
 import java.util.Collection;
 import java.util.function.Function;
 
-public class ProcessPipelineStage<T, R> extends PipelineStage<Collection<T>, Collection<R>> {
+public abstract class ProcessPipelineStage<T, R> extends PipelineStage<Collection<T>, Collection<R>> implements Function<T, R> {
 
-    private final Function<T, R> processFunction;
 
-    public ProcessPipelineStage(final String name,
-                                final Function<T, R> processFunction) {
+    public ProcessPipelineStage(final String name) {
         super(name);
-        this.processFunction = processFunction;
     }
 
     @Override
-    public Collection<R> apply(final Collection<T> previousResult) {
+    public abstract R apply(final T element);
+
+    @Override
+    public Collection<R> invoke(final Collection<T> previousResult) {
         return previousResult.stream()
-                .map(this.processFunction)
+                .map(this)
                 .toList();
     }
 }
