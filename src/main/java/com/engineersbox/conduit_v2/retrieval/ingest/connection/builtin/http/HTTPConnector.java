@@ -1,7 +1,5 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
-import com.engineersbox.conduit.schema.source.http.HTTPSourceBasicAuthConfig;
-import com.engineersbox.conduit.schema.source.http.HTTPSourceCertificateAuthConfig;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 
 import javax.net.ssl.SSLContext;

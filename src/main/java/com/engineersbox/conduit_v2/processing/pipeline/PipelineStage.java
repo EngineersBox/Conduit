@@ -8,44 +8,18 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
 
     private Map<String, Object> context;
     private final String name;
-    private StageState state;
     protected final Class<T> previousType;
     protected final Class<R> nextType;
 
     protected PipelineStage(final String name) {
         this.context = null;
         this.name = name;
-        this.state = StageState.PENDING;
         this.previousType = (Class<T>) new TypeLiteral<T>(){}.getType();
         this.nextType = (Class<R>) new TypeLiteral<R>(){}.getType();
     }
 
     public String getName() {
         return this.name;
-    }
-
-    public StageState getState() {
-        return this.state;
-    }
-
-    public void nextState(final StageState newState) {
-        final StageState next = this.state.next();
-        if (next != null && next != newState) {
-            throw new IllegalStateException(String.format(
-                    "Pipeline stage %s was moved to an invalid state %s, it was expected to be %s",
-                    this.name,
-                    newState.name(),
-                    next.name()
-            ));
-        }
-        this.state = next;
-    }
-
-    public void resetState() {
-        if (!this.state.isLast() || this.state.equals(StageState.EVICTED)) {
-            throw new IllegalStateException("Cannot reset stage in non-final state: " + this.state.name());
-        }
-        this.state = StageState.PENDING;
     }
 
     void injectContext(final Map<String, Object> context) {

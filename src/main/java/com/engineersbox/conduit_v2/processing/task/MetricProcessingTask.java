@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask {
 
+    private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
+
     private final List<Metric> initialMetrics; // Received from pipeline
     private final Proto.Event eventTemplate;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
@@ -71,7 +73,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 }).withStage(new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
                     @Override
                     public void accept(final Proto.Event[] events) {
-                        final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute("Riemann Client");
+                        final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
                         try {
                             riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
                         } catch (IOException e) {
@@ -83,7 +85,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     @Override
     public void accept(final RiemannClient riemannClient) {
-        this.pipeline.withContext("Riemann Client", riemannClient)
+        this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
                 .build()
                 .accept(this.initialMetrics);
     }

@@ -18,10 +18,7 @@ public class Pipeline<T> implements Consumer<T> {
         Object previousResult = initialValue;
         for (final PipelineStage<?, ?> stage : this.stageQueue) {
             stage.injectContext(this.context);
-            stage.resetState();
-            stage.nextState(StageState.EXECUTING);
             previousResult = stage.invoke0(previousResult);
-            stage.nextState(StageState.FINISHED);
         }
     }
 
