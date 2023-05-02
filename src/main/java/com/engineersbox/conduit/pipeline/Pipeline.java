@@ -73,7 +73,7 @@ public class Pipeline {
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
         this(
-                MetricsSchemaProvider.checksumRefreshed(schemaPath),
+                MetricsSchemaProvider.checksumRefreshed(schemaPath, false),
                 ingestSource,
                 batchConfig
         );

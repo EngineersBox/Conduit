@@ -10,6 +10,7 @@ import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
+import io.riemann.riemann.client.RiemannClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,19 +18,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Conduit {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Conduit.class);
 
-    private final MetricsSchemaProvider schemaProvider = null;
+    private final MetricsSchemaProvider schemaProvider;
     private final TaskExecutorPool executor;
     private final BatchingConfiguration batchingConfiguration;
 
-    public Conduit() {
+    public Conduit(final MetricsSchemaProvider schemaProvider,
+                   final Supplier<RiemannClient> clientProvider,
+                   final BatchingConfiguration batchingConfiguration) {
+        this.schemaProvider = schemaProvider;
         // TODO: Implement the client provider
-        this.executor = new TaskExecutorPool(() -> null);
-        this.batchingConfiguration = null; // TODO: Get this from somewhere
+        this.executor = new TaskExecutorPool(clientProvider);
+        this.batchingConfiguration = batchingConfiguration; // TODO: Get this from somewhere
     }
 
     public void execute() {

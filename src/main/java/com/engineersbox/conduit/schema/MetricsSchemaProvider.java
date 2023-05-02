@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class MetricsSchemaProvider extends ReentrantLock {
 
     private static final int CHUNK_SIZE_BYTES_DEFAULT = 4096;
+    private static final int CHUNK_COUNT_DEFAULT = -1;
 
     public abstract MetricsSchema provide();
     public abstract void refresh();
@@ -33,15 +34,20 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
         };
     }
 
-    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath) {
+    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
+                                                          final boolean compareHashes) {
         return MetricsSchemaProvider.checksumRefreshed(
                 schemaPath,
-                CHUNK_SIZE_BYTES_DEFAULT
+                CHUNK_SIZE_BYTES_DEFAULT,
+                CHUNK_COUNT_DEFAULT,
+                compareHashes
         );
     }
 
     public static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
-                                                          final int chunkSizeBytes) {
+                                                          final long chunkSizeBytes,
+                                                          final int maxChunkCount,
+                                                          final boolean compareHashes) {
         if (!Path.of(schemaPath).toFile().exists()) {
             throw new IllegalArgumentException("Schema could not be found at path " + schemaPath);
         }
@@ -55,7 +61,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 this.fileSize = initialFile.length();
                 this.fileLastModifiedTime = FileUtils.lastModifiedUnchecked(initialFile);
             }
-            private final int chunkCount = (int) (this.fileSize / chunkSizeBytes);
+            private final int chunkCount = Math.max(maxChunkCount, (int) (this.fileSize / chunkSizeBytes));
             private boolean updateHashes = false;
             private int lastComputedChunkHashIndex;
             private final long[] chunkHashes = new long[this.chunkCount];
@@ -70,7 +76,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 final long updatedLastModifiedTime = FileUtils.lastModifiedUnchecked(schemaFile);
                 if (updatedFileSize == this.fileSize && updatedLastModifiedTime == this.fileLastModifiedTime) {
                     return this.schema;
-                } else if (compareChunkHashes()) {
+                } else if (compareHashes && compareChunkHashes()) {
                     return this.schema;
                 }
                 this.fileSize = updatedFileSize;
@@ -113,7 +119,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 }
                 final ByteSource fileByteSource = Files.asByteSource(Path.of(schemaPath).toFile());
                 for (int i = this.lastComputedChunkHashIndex; i < this.chunkCount; i++) {
-                    this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSizeBytes, chunkSizeBytes));
+                    this.chunkHashes[i] = computeHash(fileByteSource.slice(i * chunkSizeBytes, chunkSizeBytes));
                 }
                 this.lastComputedChunkHashIndex = 0;
                 this.updateHashes = false;
