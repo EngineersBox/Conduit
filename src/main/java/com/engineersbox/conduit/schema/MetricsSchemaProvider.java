@@ -113,7 +113,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
 
             @Override
             public void refresh() {
-                if (!this.updateHashes) {
+                if (!compareHashes || !this.updateHashes) {
                     this.lastComputedChunkHashIndex = 0;
                     return;
                 }
