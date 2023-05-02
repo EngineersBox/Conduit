@@ -50,21 +50,20 @@ public class Conduit {
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
         /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(schema.values()));
         contentManager.poll();
-        batchedMetricWorkloads.forEach((final List<Metric> metrics) -> {
-            handleMetric(
-                    metrics,
-                    retrieverReference,
-                    schema.getHandler() != null
-            );
-        });
+        batchedMetricWorkloads.forEach((final List<Metric> metrics) -> handleMetric(
+                metrics,
+                retrieverReference,
+                schema.getHandler() != null,
+                schema.getEventTemplate()
+        ));
         this.schemaProvider.refresh();
         this.schemaProvider.unlock();
     }
 
     private void handleMetric(final List<Metric> metrics,
                               final AtomicReference<RetrievalHandler<Metric>> retriever,
-                              final boolean hasLuaHandlers) {
-        final Proto.Event eventTemplate = null; // Get from schema
+                              final boolean hasLuaHandlers,
+                              final Proto.Event eventTemplate) {
         this.executor.submit(new MetricProcessingTask(
                 metrics,
                 eventTemplate,
