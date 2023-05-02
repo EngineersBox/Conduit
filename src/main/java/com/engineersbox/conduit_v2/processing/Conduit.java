@@ -33,7 +33,8 @@ public class Conduit {
     private final BatchingConfiguration batchingConfiguration;
     private boolean executing = false;
     private final List<? super ForkJoinTask<?>> tasks;
-    private final boolean async = false;
+    private final boolean async;
+    private final boolean schemaProviderLocking;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
@@ -43,12 +44,17 @@ public class Conduit {
         this.executor = new TaskExecutorPool(clientProvider);
         this.batchingConfiguration = batchingConfiguration; // TODO: Get this from somewhere
         this.tasks = new ArrayList<>();
+        // TODO: These flags need to come from config
+        this.async = false;
+        this.schemaProviderLocking = true;
     }
 
     public void execute() {
         this.executing = true;
         final MetricsSchema schema = this.schemaProvider.provide();
-        this.schemaProvider.lock();
+        if (this.schemaProviderLocking) {
+            this.schemaProvider.lock();
+        }
         final ContentManager<?,?,?,?> contentManager = ContentManagerFactory.construct(
                 schema,
                 null,
@@ -68,13 +74,16 @@ public class Conduit {
                 )).toArray(MetricProcessingTask[]::new));
 
         this.schemaProvider.refresh();
-        this.schemaProvider.unlock();
+        if (this.schemaProviderLocking) {
+            this.schemaProvider.unlock();
+        }
         this.executing = false;
         this.tasks.clear();
     }
 
     private void submitTasks(final MetricProcessingTask ...tasks) {
         if (this.async) {
+            // NOTE: For complete async behaviour need async = true and schemaProviderLocking = false
             this.executor.invokeAll(
                     this.tasks::add,
                     tasks
