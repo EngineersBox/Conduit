@@ -94,6 +94,7 @@ public class Pipeline {
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
         this.schema = this.metricsSchemaProvider.provide();
+        this.metricsSchemaProvider.lock();
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
         final Source source = this.schema.getSource();
@@ -118,6 +119,7 @@ public class Pipeline {
                 )).forEach(CompletableFuture::join);
         LOGGER.info("Refreshing schema provider");
         this.metricsSchemaProvider.refresh();
+        this.metricsSchemaProvider.unlock();
     }
 
     private Globals configureGlobals(final Globals standard) {

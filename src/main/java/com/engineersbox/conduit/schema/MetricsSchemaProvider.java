@@ -9,15 +9,17 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public interface MetricsSchemaProvider {
+public abstract class MetricsSchemaProvider extends ReentrantLock {
 
-    int CHUNK_SIZE_BYTES_DEFAULT = 4096;
+    private static final int CHUNK_SIZE_BYTES_DEFAULT = 4096;
 
-    MetricsSchema provide();
-    void refresh();
+    public abstract MetricsSchema provide();
+    public abstract void refresh();
 
-    static MetricsSchemaProvider singleton(final MetricsSchema schema) {
+    public static MetricsSchemaProvider singleton(final MetricsSchema schema) {
         return new MetricsSchemaProvider() {
             @Override
             public MetricsSchema provide() {
@@ -31,15 +33,15 @@ public interface MetricsSchemaProvider {
         };
     }
 
-    static MetricsSchemaProvider checksumRefreshed(final String schemaPath) {
+    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath) {
         return MetricsSchemaProvider.checksumRefreshed(
                 schemaPath,
                 CHUNK_SIZE_BYTES_DEFAULT
         );
     }
 
-    static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
-                                                   final int chunkSizeBytes) {
+    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
+                                                          final int chunkSizeBytes) {
         if (!Path.of(schemaPath).toFile().exists()) {
             throw new IllegalArgumentException("Schema could not be found at path " + schemaPath);
         }
@@ -60,6 +62,9 @@ public interface MetricsSchemaProvider {
 
             @Override
             public MetricsSchema provide() {
+                if (super.isLocked()) {
+                    return this.schema;
+                }
                 final File schemaFile = Path.of(schemaPath).toFile();
                 final long updatedFileSize = schemaFile.length();
                 final long updatedLastModifiedTime = FileUtils.lastModifiedUnchecked(schemaFile);

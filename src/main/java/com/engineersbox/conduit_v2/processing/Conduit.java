@@ -34,6 +34,7 @@ public class Conduit {
 
     public void execute() {
         final MetricsSchema schema = this.schemaProvider.provide();
+        this.schemaProvider.lock();
         final ContentManager<?,?,?,?> contentManager = ContentManagerFactory.construct(
                 schema,
                 null,
@@ -52,6 +53,7 @@ public class Conduit {
             );
         });
         this.schemaProvider.refresh();
+        this.schemaProvider.unlock();
     }
 
     private void handleMetric(final List<Metric> metrics,
