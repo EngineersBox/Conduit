@@ -22,7 +22,6 @@ public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Co
     }
 
     public void poll() {
-        // TODO: Implement this
         this.ingester.clear();
         this.ingester.consumeSource(this.context);
         this.pathTraversalHandler.saturate(this.ingester.getCurrent());
@@ -30,7 +29,6 @@ public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Co
 
     @Override
     public Object lookup(final Metric metric) {
-        // TODO: Implement usage of this to create event from raw value based on metric definition. Should this be done in pipeline?
         return this.pathTraversalHandler.read(
                 metric.getPath(),
                 metric.getType().intoConcrete()

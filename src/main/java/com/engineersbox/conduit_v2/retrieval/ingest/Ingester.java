@@ -9,6 +9,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
 
     private final Source<R> source;
     private final C connector;
+    // NOTE: This can be provided programmatically as a config, otherwise should be Function.identity()
     private final Function<R, T> rawConverter;
     private T data = null;
 

@@ -7,6 +7,7 @@ import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import com.engineersbox.conduit_v2.processing.task.TaskExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
+import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import org.slf4j.Logger;
@@ -15,13 +16,13 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class Conduit {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Conduit.class);
 
     private final MetricsSchemaProvider schemaProvider = null;
-    private final ContentManager<?, ?, ?, ?> contentManager = null;
     private final TaskExecutorPool executor;
     private final BatchingConfiguration batchingConfiguration;
 
@@ -32,11 +33,17 @@ public class Conduit {
     }
 
     public void execute() {
-        final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
-        final List<List<Metric>> batchedMetricWorkloads = List.of();
         final MetricsSchema schema = this.schemaProvider.provide();
+        final ContentManager<?,?,?,?> contentManager = ContentManagerFactory.construct(
+                schema,
+                null,
+                Function.identity() // TODO: allow customisation via config
+        );
+        final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(contentManager);
+        final List<List<Metric>> batchedMetricWorkloads = List.of();
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
         /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(schema.values()));
+        contentManager.poll();
         batchedMetricWorkloads.forEach((final List<Metric> metrics) -> {
             handleMetric(
                     metrics,
