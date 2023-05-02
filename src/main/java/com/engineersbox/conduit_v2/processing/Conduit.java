@@ -14,9 +14,13 @@ import io.riemann.riemann.client.RiemannClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -27,6 +31,9 @@ public class Conduit {
     private final MetricsSchemaProvider schemaProvider;
     private final TaskExecutorPool executor;
     private final BatchingConfiguration batchingConfiguration;
+    private boolean executing = false;
+    private final List<? super ForkJoinTask<?>> tasks;
+    private final boolean async = false;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
@@ -35,9 +42,11 @@ public class Conduit {
         // TODO: Implement the client provider
         this.executor = new TaskExecutorPool(clientProvider);
         this.batchingConfiguration = batchingConfiguration; // TODO: Get this from somewhere
+        this.tasks = new ArrayList<>();
     }
 
     public void execute() {
+        this.executing = true;
         final MetricsSchema schema = this.schemaProvider.provide();
         this.schemaProvider.lock();
         final ContentManager<?,?,?,?> contentManager = ContentManagerFactory.construct(
@@ -50,26 +59,36 @@ public class Conduit {
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
         /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(schema.values()));
         contentManager.poll();
-        batchedMetricWorkloads.forEach((final List<Metric> metrics) -> handleMetric(
-                metrics,
-                retrieverReference,
-                schema.getHandler() != null,
-                schema.getEventTemplate()
-        ));
+        submitTasks(batchedMetricWorkloads.stream()
+                .map((final List<Metric> metrics) -> new MetricProcessingTask(
+                        metrics,
+                        schema.getEventTemplate(),
+                        retrieverReference,
+                        schema.getHandler() != null
+                )).toArray(MetricProcessingTask[]::new));
+
         this.schemaProvider.refresh();
         this.schemaProvider.unlock();
+        this.executing = false;
+        this.tasks.clear();
     }
 
-    private void handleMetric(final List<Metric> metrics,
-                              final AtomicReference<RetrievalHandler<Metric>> retriever,
-                              final boolean hasLuaHandlers,
-                              final Proto.Event eventTemplate) {
-        this.executor.submit(new MetricProcessingTask(
-                metrics,
-                eventTemplate,
-                retriever,
-                hasLuaHandlers
-        ));
+    private void submitTasks(final MetricProcessingTask ...tasks) {
+        if (this.async) {
+            this.executor.invokeAll(
+                    this.tasks::add,
+                    tasks
+            );
+        }
+        this.executor.waitAll(tasks);
+    }
+
+    public boolean isExecuting() {
+        return this.executing;
+    }
+
+    public List<? super ForkJoinTask<?>> getTasks() {
+        return this.async ? this.tasks : null;
     }
 
 }

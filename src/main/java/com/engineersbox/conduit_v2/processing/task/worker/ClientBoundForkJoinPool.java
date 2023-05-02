@@ -1,9 +1,11 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class ClientBoundForkJoinPool extends ForkJoinPool {
 
@@ -33,8 +35,26 @@ public class ClientBoundForkJoinPool extends ForkJoinPool {
         super(parallelism, factory, handler, asyncMode, corePoolSize, maximumPoolSize, minimumRunnable, saturate, keepAliveTime, unit);
     }
 
-    public ForkJoinTask<?> submit(final ClientBoundWorkerTask runnable) {
-        return super.submit((ForkJoinTask<Void>) new ClientBoundForkJoinTask(runnable));
+    public ForkJoinTask<?> submit(final ClientBoundWorkerTask task) {
+        return super.submit((ForkJoinTask<Void>) new ClientBoundForkJoinTask(task));
+    }
+
+    public List<? extends ForkJoinTask<?>> invokeAll(final ClientBoundWorkerTask ...tasks) {
+        return Stream.of(tasks)
+                .map(this::submit)
+                .toList();
+    }
+
+    public void invokeAll(final Consumer<? super ForkJoinTask<?>> appender,
+                          final ClientBoundWorkerTask ...tasks) {
+        Stream.of(tasks)
+                .map(this::submit)
+                .forEach(appender);
+    }
+
+    public void waitAll(final ClientBoundWorkerTask ...tasks) {
+        final List<? extends ForkJoinTask<?>> submittedTasks = invokeAll(tasks);
+        submittedTasks.forEach(ForkJoinTask::quietlyJoin);
     }
 
 }
