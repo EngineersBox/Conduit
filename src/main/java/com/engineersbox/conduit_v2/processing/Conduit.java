@@ -34,8 +34,8 @@ public class Conduit {
     public void execute() {
         final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
         final List<List<Metric>> batchedMetricWorkloads = List.of();
-        // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
         final MetricsSchema schema = this.schemaProvider.provide();
+        // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
         /* final List<List<Metric>> batchedMetricWorkloads = */ this.batchingConfiguration.splitWorkload(Collections.singleton(schema.values()));
         batchedMetricWorkloads.forEach((final List<Metric> metrics) -> {
             handleMetric(
