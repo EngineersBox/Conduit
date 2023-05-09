@@ -10,7 +10,11 @@ import com.jayway.jsonpath.Configuration;
 
 import java.util.function.Function;
 
-public class ContentManagerFactory {
+public abstract class ContentManagerFactory {
+
+    private ContentManagerFactory() {
+        throw new IllegalStateException("Factory class");
+    }
 
     public static <
             T,
@@ -20,7 +24,7 @@ public class ContentManagerFactory {
         > ContentManager<T, R, E, C> construct(final MetricsSchema schema,
                                                final IngestionContext context,
                                                final Function<R, T> converter) {
-        final Configuration jsonPathConfig = null; // TODO: Get from schema
+        final Configuration jsonPathConfig = schema.getJsonPathConfiguration();
         return new ContentManager<>(
                 IngesterFactory.construct(schema, converter),
                 context,
@@ -28,13 +32,12 @@ public class ContentManagerFactory {
         );
     }
 
-    @SuppressWarnings("unchecked")
     public static <
             T,
             E extends ConnectorConfiguration,
             C extends Connector<T, E>
         > ContentManager<T, T, E, C> construct(final MetricsSchema schema,
-                                                   final IngestionContext context) {
+                                               final IngestionContext context) {
         return ContentManagerFactory.construct(
                 schema,
                 context,

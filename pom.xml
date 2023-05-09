@@ -39,6 +39,8 @@
         <json-schema-validator.version>1.0.76</json-schema-validator.version>
         <luaj.version>3.0.1</luaj.version>
         <bcel.version>6.7.0</bcel.version>
+        <typesafe-config.version>1.4.2</typesafe-config.version>
+        <typesafe.version>1.0.0</typesafe.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -186,6 +188,12 @@
             <version>${maven-plugin-annotations.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- HOCON Typesafe -->
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>${typesafe-config.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -218,6 +226,28 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.timvlaer</groupId>
+                <artifactId>tscfg-maven-plugin</artifactId>
+                <version>${typesafe.version}</version>
+                <configuration>
+                    <templateFile>src/main/resources/templates/conduit_config_template.conf</templateFile>
+                    <packageName>com.engineersbox.conduit_v2.config</packageName>
+                    <outputDirectory>src/main/java</outputDirectory>
+                    <className>ConduitConfig</className>
+                    <generateGetters>false</generateGetters>
+                    <useOptionals>true</useOptionals>
+                    <useDurations>true</useDurations>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>tscfg-sources</id>
+                        <goals>
+                            <goal>generate-config-class</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
