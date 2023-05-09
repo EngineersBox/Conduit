@@ -14,7 +14,7 @@ public class IngesterFactory {
             E extends ConnectorConfiguration,
             C extends Connector<R, E>
         > Ingester<T, R, E, C> construct(final MetricsSchema schema,
-                                     final Function<R, T> converter) {
+                                         final Function<R, T> converter) {
         final Source<R> source = null; // TODO: Get from schema
         final C connector = null; // TODO: Get from schema
         return new Ingester<>(

@@ -1,6 +1,5 @@
 package com.engineersbox.conduit_v2.processing;
 
-import com.engineersbox.conduit.pipeline.BatchingConfiguration;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
@@ -12,18 +11,14 @@ import com.engineersbox.conduit_v2.processing.task.TaskExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
-import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -37,6 +32,7 @@ public class Conduit {
     private final ConduitConfig config;
     private boolean executing = false;
     private final List<? super ForkJoinTask<?>> tasks;
+    private ContentManager<?, ?, ? ,?> contentManager;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
@@ -64,11 +60,13 @@ public class Conduit {
         if (this.config.ingest.schema_provider_locking) {
             this.schemaProvider.lock();
         }
-        final ContentManager<?,?,?,?> contentManager = ContentManagerFactory.construct(
-                schema,
-                null,
-                Function.identity() // TODO: allow customisation via config
-        );
+        if (this.schemaProvider.instanceRefreshed()) {
+            this.contentManager = ContentManagerFactory.construct(
+                    schema,
+                    null,
+                    Function.identity() // TODO: allow customisation via config
+            );
+        }
         final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(contentManager);
         final Stream<List<Metric>> batchedMetricWorkloads = Stream.of();
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
@@ -77,7 +75,7 @@ public class Conduit {
                 this.config.executor.batch_size,
                 this.config.executor.parallel_batching
         );
-        contentManager.poll();
+        this.contentManager.poll();
         submitTasks(
                 batchedMetricWorkloads.map((final List<Metric> metrics) -> new MetricProcessingTask(
                         metrics,

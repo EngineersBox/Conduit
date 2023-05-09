@@ -9,7 +9,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class MetricsSchemaProvider extends ReentrantLock {
@@ -19,6 +18,10 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
 
     public abstract MetricsSchema provide();
     public abstract void refresh();
+
+    public boolean instanceRefreshed() {
+        return true;
+    }
 
     public static MetricsSchemaProvider singleton(final MetricsSchema schema) {
         return new MetricsSchemaProvider() {
@@ -123,6 +126,11 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 }
                 this.lastComputedChunkHashIndex = 0;
                 this.updateHashes = false;
+            }
+
+            @Override
+            public boolean instanceRefreshed() {
+                return this.updateHashes;
             }
         };
     }
