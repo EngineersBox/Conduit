@@ -20,7 +20,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
 
-    private final List<Metric> initialMetrics; // Received from pipeline
+    private final List<Metric> initialMetrics; // Received from conduit
     private final EventTransformer transformer;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
     private final Pipeline.Builder<List<Metric>> pipeline;
@@ -46,24 +46,27 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 }
             });
         }
-        pipelineBuilder.withStage(new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
-                @Override
-                public Proto.Event[] apply(final Metric metric) {
-                    return MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
-                            MetricProcessingTask.this.retriever.get().lookup(metric),
-                            metric.getType(),
-                            metric,
-                            0,
-                            ""
-                    ).toArray(Proto.Event[]::new);
+        pipelineBuilder.withStages(
+                new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
+                    @Override
+                    public Proto.Event[] apply(final Metric metric) {
+                        return MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
+                                MetricProcessingTask.this.retriever.get().lookup(metric),
+                                metric.getType(),
+                                metric,
+                                0,
+                                ""
+                        ).toArray(Proto.Event[]::new);
+                    }
+                },
+                new ProcessPipelineStage<Proto.Event[], Proto.Event[]>("Post-process Lua handlers") {
+                    @Override
+                    public Proto.Event[] apply(final Proto.Event[] events) {
+                        // TODO: Invoke post-process Lua handlers for modifying events
+                        return events;
+                    }
                 }
-            }).withStage(new ProcessPipelineStage<Proto.Event[], Proto.Event[]>("Post-process Lua handlers") {
-                @Override
-                public Proto.Event[] apply(final Proto.Event[] events) {
-                    // TODO: Invoke post-process Lua handlers for modifying events
-                    return events;
-                }
-            });
+        );
         if (hasLuaHandlers) {
             pipelineBuilder.withStage(new FilterPipelineStage<Proto.Event[]>("Post-process Lua filter") {
                 @Override
