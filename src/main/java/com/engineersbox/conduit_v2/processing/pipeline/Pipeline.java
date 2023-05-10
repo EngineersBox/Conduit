@@ -1,27 +1,33 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
-import org.apache.commons.lang3.mutable.Mutable;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.MutableList;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class Pipeline<T> implements Consumer<T> {
 
     private final Map<String, Object> context;
-    private final LinkedList<PipelineStage<?, ?>> stageQueue;
+    private final MutableList<PipelineStage<?, ?>> stageQueue;
 
     private Pipeline() {
-        this.stageQueue = new LinkedList<>();
+        this.stageQueue = Lists.mutable.empty();
         this.context = new HashMap<>();
     }
 
     @Override
     public void accept(final T initialValue) {
-        Object previousResult = initialValue;
-        for (final PipelineStage<?, ?> stage : this.stageQueue) {
-            stage.injectContext(this.context);
-            previousResult = stage.invoke0(previousResult);
-        }
+        this.stageQueue.injectInto(
+                initialValue,
+                (final Object previousResult, final PipelineStage<?,?> stage) -> {
+                    stage.injectContext(this.context);
+                    return stage.invoke0(previousResult);
+                }
+        );
     }
 
     public static class Builder<T> {
