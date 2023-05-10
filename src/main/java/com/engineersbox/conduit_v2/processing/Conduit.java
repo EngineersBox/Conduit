@@ -1,5 +1,9 @@
 package com.engineersbox.conduit_v2.processing;
 
+import com.engineersbox.conduit.handler.ContextTransformer;
+import com.engineersbox.conduit.handler.LuaContextHandler;
+import com.engineersbox.conduit.handler.LuaStdoutSink;
+import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
@@ -16,11 +20,15 @@ import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.luaj.vm2.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
+import java.nio.file.Path;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,19 +41,23 @@ public class Conduit {
     private final ConduitConfig config;
     private boolean executing = false;
     private ContentManager<?, ?, ? ,?> contentManager;
+    private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
+                   final Consumer<ContextTransformer.Builder> contextInjector,
                    final String configPath) {
         this(
                 schemaProvider,
                 clientProvider,
+                contextInjector,
                 ConfigFactory.create(configPath)
         );
     }
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
+                   final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;
         // TODO: Implement the client provider
@@ -55,6 +67,7 @@ public class Conduit {
                 parallelism
         );
         this.config = config;
+        this.contextInjector = contextInjector;
     }
 
     public void execute() {
@@ -79,12 +92,13 @@ public class Conduit {
         this.contentManager.poll();
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
-        final boolean hasLuaHandlers = schema.getHandler() != null;
+        final Path handler = schema.getHandler();
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> new MetricProcessingTask(
                         metrics.asLazy(),
                         eventTemplate,
                         retrieverReference,
-                        hasLuaHandlers
+                        getHandler(handler),
+                        this.contextInjector
                 )).forEach(this.executor::submit);
         if (!this.config.ingest.async) {
             this.executor.resettingBarrier();
@@ -94,6 +108,28 @@ public class Conduit {
             this.schemaProvider.unlock();
         }
         this.executing = false;
+    }
+
+    private LuaContextHandler getHandler(final Path handlerLocation) {
+        if (handlerLocation == null) {
+            return null;
+        }
+        final LazyLoadedGlobalsProvider globalsProvider =  new LazyLoadedGlobalsProvider(
+                this::configureGlobals,
+                false
+        );
+        return new LuaContextHandler(
+                handlerLocation.toAbsolutePath().toString(),
+                globalsProvider
+        );
+    }
+
+    private Globals configureGlobals(final Globals standard) {
+        standard.STDOUT = LuaStdoutSink.createSlf4j(
+                "Lua Handler",
+                Level.INFO
+        );
+        return standard;
     }
 
     public boolean isExecuting() {

@@ -165,13 +165,14 @@ public class Pipeline {
         if (method == null) {
             return true;
         }
+        final ContextTransformer transformer = new ContextTransformer();
+        ContextTransformer.builder(transformer)
+                .withTable("metric", metric.constructContextAttributes())
+                .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
+                .withReadOnly("service_version", 3);
         handler.invoke(
                 method,
-                ContextTransformer.builder()
-                        .withTable("metric", metric.constructContextAttributes())
-                        .withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT)
-                        .withReadOnly("service_version", 3)
-                        .transform()
+                transformer.transform()
         );
         return handler.getFromResult(
                 new String[]{

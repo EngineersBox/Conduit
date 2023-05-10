@@ -1,5 +1,7 @@
 package com.engineersbox.conduit_v2.processing.task;
 
+import com.engineersbox.conduit.handler.ContextTransformer;
+import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
@@ -15,6 +17,7 @@ import org.eclipse.collections.api.RichIterable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask {
 
@@ -24,25 +27,41 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final EventTransformer transformer;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
+    private final LuaContextHandler luaContextHandler;
+    private final ContextTransformer contextTransformer;
+    private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final AtomicReference<RetrievalHandler<Metric>> retriever,
-                                final boolean hasLuaHandlers) {
+                                final LuaContextHandler luaContextHandler,
+                                final Consumer<ContextTransformer.Builder> contextInjector) {
         this.initialMetrics = metrics;
         this.transformer = new EventTransformer(eventTemplate);
         this.retriever = retriever;
-        this.pipeline = createPipeline(hasLuaHandlers);
+        this.pipeline = createPipeline(luaContextHandler != null);
+        this.luaContextHandler = luaContextHandler;
+        this.contextTransformer = new ContextTransformer();
+        this.contextInjector = contextInjector;
     }
 
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final boolean hasLuaHandlers) {
-        final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<RichIterable<Metric>>();
+        final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (hasLuaHandlers) {
             pipelineBuilder.withStage(new FilterPipelineStage<Metric>("Pre-process Lua filter") {
                 @Override
                 public boolean test(final Metric metric) {
-                    // TODO: Invoke pre-process Lua handler and return inclusion state
-                    return true;
+                    MetricProcessingTask.this.luaContextHandler.invoke(
+                            null, // TODO: Invoke pre-process Lua handler and return inclusion state
+                            MetricProcessingTask.this.contextTransformer.transform()
+                    );
+                    return MetricProcessingTask.this.luaContextHandler.getFromResult(
+                            new String[]{
+                                    "executionContext",
+                                    "shouldRun"
+                            },
+                            boolean.class
+                    );
                 }
             });
         }
@@ -71,8 +90,17 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
             pipelineBuilder.withStage(new FilterPipelineStage<Proto.Event[]>("Post-process Lua filter") {
                 @Override
                 public boolean test(final Proto.Event[] element) {
-                    // TODO: Invoke post-process Lua handler and return inclusion state
-                    return false;
+                    MetricProcessingTask.this.luaContextHandler.invoke(
+                            null, // TODO: Invoke post-process Lua handler and return inclusion state
+                            MetricProcessingTask.this.contextTransformer.transform()
+                    );
+                    return MetricProcessingTask.this.luaContextHandler.getFromResult(
+                            new String[]{
+                                    "executionContext",
+                                    "shouldRun"
+                            },
+                            boolean.class
+                    );
                 }
             });
         }
@@ -91,6 +119,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     @Override
     public void accept(final RiemannClient riemannClient) {
+        this.contextInjector.accept(ContextTransformer.builder(this.contextTransformer));
         this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
                 .build()
                 .accept(this.initialMetrics);

@@ -20,77 +20,13 @@ public class ContextTransformer {
     private final Map<String, LuaTable> directTables;
     private final Map<String, Pair<Object, Class<? extends JsonSerializer<?>>>> readOnlyAttributes;
 
-    private ContextTransformer() {
+    public ContextTransformer() {
         this.directTables = new HashMap<>();
         this.readOnlyAttributes = new HashMap<>();
     }
 
-    public static ContextTransformer builder() {
-        return new ContextTransformer();
-    }
-
-    // Use default serializer
-//    public ContextTransformer withReadOnly(final Object ...objects) {
-//        for (final Object obj : objects) {
-//            final Class<?> objClass = obj.getClass();
-//            final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
-//            final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
-//            withReadOnly(name, obj, StdSerializer.None.class);
-//        }
-//        return this;
-//    }
-
-    public ContextTransformer withReadOnly(final String name,
-                                           final Object object) {
-        return withReadOnly(name, object, null);
-    }
-
-    // Provide explicit serializer
-    public ContextTransformer withReadOnly(final Object object,
-                                           final Class<? extends JsonSerializer<?>> serializer) {
-        if (object == null) {
-            throw new IllegalArgumentException("Object cannot be null");
-        }
-        final Class<?> objClass = object.getClass();
-        final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
-        final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
-        this.readOnlyAttributes.put(
-                name,
-                ImmutablePair.of(
-                        object,
-                        serializer
-                )
-        );
-        return this;
-    }
-
-    public ContextTransformer withReadOnly(final String name,
-                                           final Object object,
-                                           final Class<? extends JsonSerializer<?>> serializer) {
-        if (name == null) {
-            throw new IllegalArgumentException("Name cannot be null");
-        } else if (object == null) {
-            throw new IllegalArgumentException("Object cannot be null");
-        }
-        this.readOnlyAttributes.put(
-                name,
-                ImmutablePair.of(
-                        object,
-                        serializer
-                )
-        );
-        return this;
-    }
-
-    public ContextTransformer withTable(final String name,
-                                        final LuaTable table) {
-        if (name == null) {
-            throw new IllegalArgumentException("Name cannot be null");
-        } else if (table == null) {
-            throw new IllegalArgumentException("Table cannot be null");
-        }
-        this.directTables.put(name, table);
-        return this;
+    public static ContextTransformer.Builder builder(final ContextTransformer transformer) {
+        return new Builder(transformer);
     }
 
     @SuppressWarnings("unchecked")
@@ -164,6 +100,69 @@ public class ContextTransformer {
                 "Cannot convert node of type %s into Lua equivalent",
                 node.getNodeType()
         ));
+    }
+
+    public static class Builder {
+
+        private final ContextTransformer transformer;
+
+        private Builder(final ContextTransformer transformer) {
+            this.transformer = transformer;
+        }
+
+        public Builder withReadOnly(final String name,
+                                    final Object object) {
+            return withReadOnly(name, object, null);
+        }
+
+        // Provide explicit serializer
+        public Builder withReadOnly(final Object object,
+                                    final Class<? extends JsonSerializer<?>> serializer) {
+            if (object == null) {
+                throw new IllegalArgumentException("Object cannot be null");
+            }
+            final Class<?> objClass = object.getClass();
+            final LuaContextName ctxName = objClass.getAnnotation(LuaContextName.class);
+            final String name = ctxName == null ? objClass.getSimpleName() : ctxName.value();
+            this.transformer.readOnlyAttributes.put(
+                    name,
+                    ImmutablePair.of(
+                            object,
+                            serializer
+                    )
+            );
+            return this;
+        }
+
+        public Builder withReadOnly(final String name,
+                                    final Object object,
+                                    final Class<? extends JsonSerializer<?>> serializer) {
+            if (name == null) {
+                throw new IllegalArgumentException("Name cannot be null");
+            } else if (object == null) {
+                throw new IllegalArgumentException("Object cannot be null");
+            }
+            this.transformer.readOnlyAttributes.put(
+                    name,
+                    ImmutablePair.of(
+                            object,
+                            serializer
+                    )
+            );
+            return this;
+        }
+
+        public Builder withTable(final String name,
+                                 final LuaTable table) {
+            if (name == null) {
+                throw new IllegalArgumentException("Name cannot be null");
+            } else if (table == null) {
+                throw new IllegalArgumentException("Table cannot be null");
+            }
+            this.transformer.directTables.put(name, table);
+            return this;
+        }
+
     }
 
 }
