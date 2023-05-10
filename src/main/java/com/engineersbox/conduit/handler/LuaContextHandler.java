@@ -3,6 +3,8 @@ package com.engineersbox.conduit.handler;
 import com.engineersbox.conduit.handler.globals.GlobalsProvider;
 import com.engineersbox.conduit.handler.loader.IsolatedLoader;
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -13,7 +15,7 @@ import java.util.function.Function;
 
 public class LuaContextHandler {
 
-    private static final Map<Class<?>, Function<LuaValue, ?>> CONVERTERS = Map.of(
+    private static final ImmutableMap<Class<?>, Function<LuaValue, ?>> CONVERTERS = Maps.immutable.ofAll(Map.of(
             String.class, LuaValue::toString,
             char.class, LuaValue::tochar,
             boolean.class, LuaValue::toboolean,
@@ -23,7 +25,7 @@ public class LuaContextHandler {
             long.class, LuaValue::tolong,
             float.class, LuaValue::tofloat,
             double.class, LuaValue::todouble
-    );
+    ));
 
     private final IsolatedLoader loader;
     private LuaTable result;

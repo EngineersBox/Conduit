@@ -23,7 +23,7 @@ public class Pipeline<T> implements Consumer<T> {
     public void accept(final T initialValue) {
         this.stageQueue.injectInto(
                 initialValue,
-                (final Object previousResult, final PipelineStage<?,?> stage) -> {
+                (final Object previousResult, final PipelineStage<?, ?> stage) -> {
                     stage.injectContext(this.context);
                     return stage.invoke0(previousResult);
                 }

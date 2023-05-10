@@ -24,6 +24,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final EventTransformer transformer;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
+    private final
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
