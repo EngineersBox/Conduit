@@ -80,12 +80,12 @@ public class Conduit {
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
         final boolean hasLuaHandlers = schema.getHandler() != null;
-         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> new MetricProcessingTask(
+        batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> new MetricProcessingTask(
                         metrics.asLazy(),
                         eventTemplate,
                         retrieverReference,
                         hasLuaHandlers
-                )).collect(this.executor::submit);
+                )).forEach(this.executor::submit);
         if (!this.config.ingest.async) {
             this.executor.resettingBarrier();
         }
