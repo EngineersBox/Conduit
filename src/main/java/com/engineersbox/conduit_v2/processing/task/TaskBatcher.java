@@ -1,9 +1,9 @@
 package com.engineersbox.conduit_v2.processing.task;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Streams;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;

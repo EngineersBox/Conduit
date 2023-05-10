@@ -10,9 +10,9 @@ import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
+import org.eclipse.collections.api.RichIterable;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,12 +20,12 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
 
-    private final List<Metric> initialMetrics; // Received from conduit
+    private final RichIterable<Metric> initialMetrics; // Received from conduit
     private final EventTransformer transformer;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
-    private final Pipeline.Builder<List<Metric>> pipeline;
+    private final Pipeline.Builder<RichIterable<Metric>> pipeline;
 
-    public MetricProcessingTask(final List<Metric> metrics,
+    public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final AtomicReference<RetrievalHandler<Metric>> retriever,
                                 final boolean hasLuaHandlers) {
@@ -35,8 +35,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.pipeline = createPipeline(hasLuaHandlers);
     }
 
-    private Pipeline.Builder<List<Metric>> createPipeline(final boolean hasLuaHandlers) {
-        final Pipeline.Builder<List<Metric>> pipelineBuilder = new Pipeline.Builder<List<Metric>>();
+    private Pipeline.Builder<RichIterable<Metric>> createPipeline(final boolean hasLuaHandlers) {
+        final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<RichIterable<Metric>>();
         if (hasLuaHandlers) {
             pipelineBuilder.withStage(new FilterPipelineStage<Metric>("Pre-process Lua filter") {
                 @Override

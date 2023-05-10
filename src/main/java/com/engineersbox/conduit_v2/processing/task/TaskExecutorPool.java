@@ -13,12 +13,12 @@ import java.util.function.Supplier;
 
 public class TaskExecutorPool {
 
-    // TODO: Support configurable pool sizes
     private final ClientBoundForkJoinPool executorService;
 
-    public TaskExecutorPool(final Supplier<RiemannClient> clientProvider) {
+    public TaskExecutorPool(final Supplier<RiemannClient> clientProvider,
+                            final int parallelism) {
         this.executorService = newWorkStealingPool(
-                3, // TODO: Support configurable pool sizes
+                parallelism,
                 new QueuedForkJoinWorkerThreadFactory(clientProvider)
         );
     }

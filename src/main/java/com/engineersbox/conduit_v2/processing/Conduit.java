@@ -6,32 +6,35 @@ import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
-import com.engineersbox.conduit_v2.processing.task.TaskBatcher;
 import com.engineersbox.conduit_v2.processing.task.TaskExecutorPool;
+import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
+import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
+import org.eclipse.collections.api.LazyIterable;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.impl.list.mutable.FastList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class Conduit {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Conduit.class);
 
     private final MetricsSchemaProvider schemaProvider;
-    private final TaskExecutorPool executor;
+    private final WaitableTaskExecutorPool executor;
     private final ConduitConfig config;
     private boolean executing = false;
-    private final List<? super ForkJoinTask<?>> tasks;
     private ContentManager<?, ?, ? ,?> contentManager;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
@@ -49,9 +52,12 @@ public class Conduit {
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;
         // TODO: Implement the client provider
-        this.executor = new TaskExecutorPool(clientProvider);
+        final int parallelism = config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors());
+        this.executor = new WaitableTaskExecutorPool(
+                clientProvider,
+                parallelism
+        );
         this.config = config;
-        this.tasks = new ArrayList<>();
     }
 
     public void execute() {
@@ -68,48 +74,37 @@ public class Conduit {
             );
         }
         final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(contentManager);
-        final Stream<List<Metric>> batchedMetricWorkloads = Stream.of();
+        LazyIterable<Metric> workload = Lists.immutable.<Metric>of().asLazy();
         // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
-        /* final Stream<List<Metric>> batchedMetricWorkloads = */ TaskBatcher.partitioned(
-                schema.values(),
-                this.config.executor.batch_size,
-                this.config.executor.parallel_batching
-        );
-        this.contentManager.poll();
-        submitTasks(
-                batchedMetricWorkloads.map((final List<Metric> metrics) -> new MetricProcessingTask(
-                        metrics,
-                        schema.getEventTemplate(),
-                        retrieverReference,
-                        schema.getHandler() != null
-                )).toArray(MetricProcessingTask[]::new)
-        );
+        //       and values are accessible as Eclipse immutable collection
+        // workload = schema.values().asLazy();
 
+        this.contentManager.poll();
+        final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
+        final Proto.Event eventTemplate = schema.getEventTemplate();
+        final boolean hasLuaHandlers = schema.getHandler() != null;
+         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> new MetricProcessingTask(
+                        metrics.asLazy(),
+                        eventTemplate,
+                        retrieverReference,
+                        hasLuaHandlers
+                )).collect(this.executor::submit);
+        if (!this.config.ingest.async) {
+            this.executor.resettingBarrier();
+        }
         this.schemaProvider.refresh();
         if (this.config.ingest.schema_provider_locking) {
             this.schemaProvider.unlock();
         }
         this.executing = false;
-        this.tasks.clear();
-    }
-
-    private void submitTasks(final MetricProcessingTask ...tasks) {
-        if (this.config.ingest.async) {
-            // NOTE: For complete async behaviour need async = true and schemaProviderLocking = false
-            this.executor.invokeAll(
-                    this.tasks::add,
-                    tasks
-            );
-        }
-        this.executor.waitAll(tasks);
     }
 
     public boolean isExecuting() {
         return this.executing;
     }
 
-    public List<? super ForkJoinTask<?>> getTasks() {
-        return this.config.ingest.async ? this.tasks : null;
+    public MutableList<? super ForkJoinTask<?>> getTasksView() {
+        return this.executor.getTasksView();
     }
 
 }

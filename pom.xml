@@ -25,7 +25,6 @@
         <!-- Dependency Versions -->
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <eclipse.colections.version>11.0.0</eclipse.colections.version>
         <typesafe.version>1.4.1</typesafe.version>
         <log4j2.version>2.17.2</log4j2.version>
         <commons-io.version>2.11.0</commons-io.version>
@@ -41,6 +40,7 @@
         <bcel.version>6.7.0</bcel.version>
         <typesafe-config.version>1.4.2</typesafe-config.version>
         <typesafe.version>1.0.0</typesafe.version>
+        <eclipse-collections.version>11.1.0</eclipse-collections.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -119,17 +119,16 @@
             <artifactId>commons-collections4</artifactId>
             <version>${commons-collections.version}</version>
         </dependency>
-        <!-- Eclipse Collections API -->
-        <dependency>
-            <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections-api</artifactId>
-            <version>${eclipse.colections.version}</version>
-        </dependency>
         <!-- Eclipse Collections -->
         <dependency>
             <groupId>org.eclipse.collections</groupId>
+            <artifactId>eclipse-collections-api</artifactId>
+            <version>${eclipse-collections.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
-            <version>${eclipse.colections.version}</version>
+            <version>${eclipse-collections.version}</version>
         </dependency>
         <!-- Guava -->
         <dependency>

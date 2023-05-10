@@ -5,20 +5,17 @@ public class ConduitConfig {
   public final ConduitConfig.Ingest ingest;
 
   public static class Executor {
-    public final int batch_size;
-    public final boolean parallel_batching;
-    public final java.util.Optional<java.lang.Integer> thread_pool_size;
+    public final int task_batch_size;
+    public final java.util.Optional<java.lang.Integer> task_pool_size;
 
     public Executor(
         com.typesafe.config.Config c,
         java.lang.String parentPath,
         $TsCfgValidator $tsCfgValidator) {
-      this.batch_size = c.hasPathOrNull("batch_size") ? c.getInt("batch_size") : 10;
-      this.parallel_batching =
-          c.hasPathOrNull("parallel_batching") && c.getBoolean("parallel_batching");
-      this.thread_pool_size =
-          c.hasPathOrNull("thread_pool_size")
-              ? java.util.Optional.of(c.getInt("thread_pool_size"))
+      this.task_batch_size = c.hasPathOrNull("task_batch_size") ? c.getInt("task_batch_size") : 10;
+      this.task_pool_size =
+          c.hasPathOrNull("task_pool_size")
+              ? java.util.Optional.of(c.getInt("task_pool_size"))
               : java.util.Optional.empty();
     }
   }
