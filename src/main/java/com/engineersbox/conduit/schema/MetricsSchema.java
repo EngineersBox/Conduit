@@ -13,16 +13,24 @@ import com.engineersbox.conduit.schema.source.http.*;
 import com.engineersbox.conduit.util.ObjectMapperModule;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Range;
 import com.google.protobuf.TextFormat;
 import com.jayway.jsonpath.Configuration;
 import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
+import org.apache.commons.collections4.IteratorUtils;
+import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.map.ImmutableMap;
+import org.eclipse.collections.api.map.MutableMap;
+import org.eclipse.collections.impl.tuple.ImmutableEntry;
+import org.eclipse.collections.impl.utility.Iterate;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MetricsSchema extends HashMap<String, Metric> {
 
@@ -101,6 +109,7 @@ public class MetricsSchema extends HashMap<String, Metric> {
                     Metric.path(metric.get("path").asText())
                             .namespace(metric.get("namespace").asText())
                             .handlerMethod(handlerMethodNode != null ? handlerMethodNode.asText() : null)
+                            .handlers(parseHandlers(metric.get("handlers")))
                             .type(parseMetricType(
                                     MetricType.builder(),
                                     metric.get("type")
@@ -108,6 +117,23 @@ public class MetricsSchema extends HashMap<String, Metric> {
             );
         }
         return builder.build();
+    }
+
+    private static ImmutableMap<String, String> parseHandlers(final JsonNode handlersNode) {
+        if (handlersNode == null || handlersNode.isNull()) {
+            return Maps.immutable.empty();
+        }
+        return Iterate.toMap(
+                IteratorUtils.asIterable(Iterators.transform(
+                        handlersNode.fields(),
+                        (final Map.Entry<String, JsonNode> handler) -> ImmutableEntry.of(
+                                handler.getKey(),
+                                handler.getValue().asText()
+                        )
+                )),
+                Map.Entry::getKey,
+                Map.Entry::getValue
+        ).toImmutable();
     }
 
     private static Path parseHandlerPath(final JsonNode handlerNode) {

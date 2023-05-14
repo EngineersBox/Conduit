@@ -153,6 +153,21 @@
                 "type"
             ]
         },
+        "handler_methods": {
+            "type": "object",
+            "properties": {
+                "pre_process": {
+                    "type": "string"
+                },
+                "adapt": {
+                    "type": "string"
+                },
+                "post_process": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
         "metric": {
             "type": "object",
             "properties": {
@@ -164,6 +179,11 @@
                 },
                 "handler_method": {
                     "type": "string"
+                },
+                "handlers": {
+                    "type": {
+                        "$ref": "#/$defs/handler_methods"
+                    }
                 },
                 "type": {
                     "oneOf": [

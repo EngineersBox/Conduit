@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.schema;
 
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.metric.ParameterizedMetricType;
+import org.eclipse.collections.api.map.ImmutableMap;
 
 public class Metric {
 
@@ -9,6 +10,7 @@ public class Metric {
     private String path;
     private String metricNamespace;
     private String handlerMethod;
+    private ImmutableMap<String, String> handlers;
     private ParameterizedMetricType type;
 
     public String getPath() {
@@ -27,6 +29,10 @@ public class Metric {
 
     public String getSuffix(final DimensionIndex index) {
         return null;
+    }
+
+    public ImmutableMap<String, String> getHandlers() {
+        return this.handlers;
     }
 
 }

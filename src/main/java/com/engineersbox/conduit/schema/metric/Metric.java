@@ -7,6 +7,7 @@ import com.google.common.collect.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.LuaTable;
 
 public class Metric {
@@ -14,6 +15,7 @@ public class Metric {
     private String path;
     private String metricNamespace;
     private String handlerMethod;
+    private ImmutableMap<String, String> handlers;
     private ParameterizedMetricType type;
     private final DimensionallyIndexedRangeMap suffixes;
     private boolean isComplete;
@@ -42,6 +44,14 @@ public class Metric {
             throw new IllegalStateException("Path binding is already complete");
         }
         this.handlerMethod = handlerMethod;
+        return this;
+    }
+
+    public Metric handlers(final ImmutableMap<String, String> handlers) {
+        if (this.isComplete) {
+            throw new IllegalStateException("Path binding is already complete");
+        }
+        this.handlers = handlers;
         return this;
     }
 
@@ -103,6 +113,14 @@ public class Metric {
 
     public String getHandlerMethod() {
         return this.handlerMethod;
+    }
+
+    public ImmutableMap<String, String> getHandlers() {
+        return this.handlers;
+    }
+
+    public String getHandler(final String name) {
+        return this.handlers.get(name);
     }
 
     public String getSuffix(final DimensionIndex query) {

@@ -86,4 +86,10 @@ public class LuaContextHandler {
         }
         return (T) getFromResult0(target, converter);
     }
+
+    public <T> T getFromResult(final String[] target,
+                               final Function<LuaValue, T> converter) {
+        return getFromResult0(target, converter);
+    }
+
 }

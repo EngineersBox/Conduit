@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing;
+package com.engineersbox.conduit_v2.processing.event;
 
 import com.engineersbox.conduit.schema.DimensionIndex;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
