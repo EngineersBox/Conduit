@@ -2,15 +2,14 @@ package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
-import com.engineersbox.conduit_v2.processing.event.EventDeserialiser;
-import com.engineersbox.conduit_v2.processing.event.EventSerialiser;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
-import com.engineersbox.conduit_v2.processing.event.EventsDeserialiser;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
-import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
-import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
@@ -26,7 +25,6 @@ import java.util.function.Consumer;
 public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
-    private static final String LUA_HANDLER_PREFIX = "luaHandler_";
 
     private final RichIterable<Metric> initialMetrics; // Received from conduit
     private final Proto.Event eventTemplate;
@@ -58,35 +56,11 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (hasLuaHandlers) {
             pipelineBuilder.withStages(
-                    new PipelineStage<Metric, Metric>("Handlers Saturation") {
-                        @Override
-                        public Metric invoke(final Metric previousResult) {
-                            previousResult.getHandlers().forEachKeyValue((final String name, final String handler) ->
-                                    setContextAttribute(LUA_HANDLER_PREFIX + name, handler)
-                            );
-                            return previousResult;
-                        }
-                    },
-                    new FilterPipelineStage<Metric>("Pre-process Lua filter") {
-                        @Override
-                        public boolean test(final Metric metric) {
-                            final Object handlerObj = getContextAttribute(LUA_HANDLER_PREFIX + "pre_process");
-                            if (!(handlerObj instanceof String handler)) {
-                                return true;
-                            }
-                            MetricProcessingTask.this.luaContextHandler.invoke(
-                                    handler,
-                                    MetricProcessingTask.this.contextTransformer.transform()
-                            );
-                            return MetricProcessingTask.this.luaContextHandler.getFromResult(
-                                    new String[]{
-                                            "executionContext",
-                                            "shouldRun"
-                                    },
-                                    boolean.class
-                            );
-                        }
-                    }
+                    new HandlerSaturationPipelineStage(),
+                    new PreProcessFilterPipelineStage(
+                            this.luaContextHandler,
+                            this.contextTransformer
+                    )
             );
         }
         pipelineBuilder.withStage(new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
@@ -103,50 +77,16 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         });
         if (hasLuaHandlers) {
             pipelineBuilder.withStages(
-                    new ProcessPipelineStage<Proto.Event[], Proto.Event[]>("Adapter Lua handler") {
-                        @Override
-                        public Proto.Event[] apply(final Proto.Event[] events) {
-                            final Object handlerObj = getContextAttribute(LUA_HANDLER_PREFIX + "adapter");
-                            if (!(handlerObj instanceof String handler)) {
-                                return events;
-                            }
-                            MetricProcessingTask.this.contextBuilder.withReadOnly(
-                                    "events",
-                                    events,
-                                    EventSerialiser.class
-                            );
-                            MetricProcessingTask.this.luaContextHandler.invoke(
-                                    handler,
-                                    MetricProcessingTask.this.contextTransformer.transform()
-                            );
-                            return MetricProcessingTask.this.luaContextHandler.getFromResult(
-                                    new String[]{
-                                            "events"
-                                    },
-                                    new EventsDeserialiser(MetricProcessingTask.this.eventTemplate)
-                            );
-                        }
-                    },
-                    new FilterPipelineStage<Proto.Event[]>("Post-process Lua filter") {
-                        @Override
-                        public boolean test(final Proto.Event[] element) {
-                            final Object handlerObj = getContextAttribute(LUA_HANDLER_PREFIX + "post_process");
-                            if (!(handlerObj instanceof String handler)) {
-                                return true;
-                            }
-                            MetricProcessingTask.this.luaContextHandler.invoke(
-                                    handler,
-                                    MetricProcessingTask.this.contextTransformer.transform()
-                            );
-                            return MetricProcessingTask.this.luaContextHandler.getFromResult(
-                                    new String[]{
-                                            "executionContext",
-                                            "shouldRun"
-                                    },
-                                    boolean.class
-                            );
-                        }
-                    }
+                    new AdapterProcessPipelineStage(
+                            this.contextBuilder,
+                            this.luaContextHandler,
+                            this.contextTransformer,
+                            this.eventTemplate
+                    ),
+                    new PostProcessFilterPipelineStage(
+                            this.luaContextHandler,
+                            this.contextTransformer
+                    )
             );
         }
         return pipelineBuilder.withStage(new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
