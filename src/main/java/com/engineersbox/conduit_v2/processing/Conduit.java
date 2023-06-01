@@ -126,8 +126,8 @@ public class Conduit {
 
     private Globals configureGlobals(final Globals standard) {
         standard.STDOUT = LuaStdoutSink.createSlf4j(
-                "Lua Handler",
-                Level.INFO
+                this.config.handler.name,
+                Level.valueOf(this.config.handler.level.name())
         );
         return standard;
     }

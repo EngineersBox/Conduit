@@ -2,7 +2,16 @@ package com.engineersbox.conduit_v2.config;
 
 public class ConduitConfig {
   public final ConduitConfig.Executor executor;
+  public final ConduitConfig.Handler handler;
   public final ConduitConfig.Ingest ingest;
+  // NOTE: incomplete #62 implementation
+  public enum LogLevel {
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    TRACE;
+  }
 
   public static class Executor {
     public final int task_batch_size;
@@ -17,6 +26,19 @@ public class ConduitConfig {
           c.hasPathOrNull("task_pool_size")
               ? java.util.Optional.of(c.getInt("task_pool_size"))
               : java.util.Optional.empty();
+    }
+  }
+
+  public static class Handler {
+    public final LogLevel level;
+    public final java.lang.String name;
+
+    public Handler(
+        com.typesafe.config.Config c,
+        java.lang.String parentPath,
+        $TsCfgValidator $tsCfgValidator) {
+      this.level = LogLevel.valueOf(c.getString("level"));
+      this.name = c.hasPathOrNull("name") ? c.getString("name") : "Lua Handler";
     }
   }
 
@@ -44,6 +66,14 @@ public class ConduitConfig {
             : new ConduitConfig.Executor(
                 com.typesafe.config.ConfigFactory.parseString("executor{}"),
                 parentPath + "executor.",
+                $tsCfgValidator);
+    this.handler =
+        c.hasPathOrNull("handler")
+            ? new ConduitConfig.Handler(
+                c.getConfig("handler"), parentPath + "handler.", $tsCfgValidator)
+            : new ConduitConfig.Handler(
+                com.typesafe.config.ConfigFactory.parseString("handler{}"),
+                parentPath + "handler.",
                 $tsCfgValidator);
     this.ingest =
         c.hasPathOrNull("ingest")
