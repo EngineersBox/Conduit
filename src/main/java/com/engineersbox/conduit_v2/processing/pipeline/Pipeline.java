@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
+import com.google.inject.Stage;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -106,12 +107,12 @@ public class Pipeline<T> implements Consumer<T> {
         Pair<StageResult<Object>, Integer> val;
         for (int i = 1; i < count; i++) {
             val = deque.pop();
-            final StageResult<Object> result = val.getLeft();
+            final StageResult<Object> result = this.stageQueue.get(val.getRight()).invoke0(val.getLeft().result());
             final Object resultValue = result.result();
-            final Type resultType = TypeUtils.wrap(result.getClass()).getType();
+            final Type resultType = TypeUtils.wrap(resultValue.getClass()).getType();
             if (result.type() != StageResult.Type.COMBINE) {
                 throw new IllegalStateException(String.format(
-                        "Cannot combine results from non-COMBINE stage result at index %d of %d",
+                        "Cannot combine results from non-COMBINE stage result at index %d in [0..%d)",
                         i, count
                 ));
             } else if (!TypeUtils.equals(combineType, resultType)) {
@@ -121,7 +122,7 @@ public class Pipeline<T> implements Consumer<T> {
                         resultType.getTypeName()
                 ));
             }
-            combined[1] = resultValue;
+            combined[i] = resultValue;
         }
         return new StageResult<>(
                 StageResult.Type.SINGLE,
@@ -163,6 +164,7 @@ public class Pipeline<T> implements Consumer<T> {
         }
 
         public Pipeline<T> build() {
+            this.pipeline.stageQueue.forEach((final PipelineStage<?,?> stage) -> stage.injectContext(this.pipeline.context));
             return this.pipeline;
         }
 

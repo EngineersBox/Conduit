@@ -6,8 +6,6 @@ import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 
-import java.util.Collection;
-
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     private final LuaContextHandler contextHandler;

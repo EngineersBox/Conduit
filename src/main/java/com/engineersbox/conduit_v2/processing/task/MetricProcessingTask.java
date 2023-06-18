@@ -5,6 +5,8 @@ import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
+import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
@@ -68,16 +70,22 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                     )
             );
         }
-        pipelineBuilder.withStage(new ProcessPipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
+        pipelineBuilder.withStage(new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
             @Override
-            public Proto.Event[] apply(final Metric metric) {
-                return MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
+            public StageResult<Proto.Event[]> invoke(final Metric metric) {
+                final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
                         MetricProcessingTask.this.retriever.get().lookup(metric),
                         metric.getType(),
                         metric,
                         0,
                         ""
                 ).toArray(Proto.Event[]::new);
+                return new StageResult<>(
+                        StageResult.Type.COMBINE,
+                        MetricProcessingTask.this.initialMetrics.size(), // TODO: Change this to get actual count from pre process filter results
+                        result,
+                        false
+                );
             }
         });
         if (hasLuaHandlers) {

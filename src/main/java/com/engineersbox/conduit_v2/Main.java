@@ -1,30 +1,20 @@
 package com.engineersbox.conduit_v2;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
-import com.engineersbox.conduit.pipeline.BatchingConfiguration;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit.schema.provider.LRUCache;
-import com.engineersbox.conduit.schema.type.Functional;
-import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
-import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
-import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
-import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
 
-	private static final Logger LOGGER = LogManager.getLogger(Main.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String TEST_JSON_BLOB = """
 			{
@@ -72,13 +62,12 @@ public class Main {
 			Conduit conduit = new Conduit(
 					MetricsSchemaProvider.checksumRefreshed("./example/test.json", false),
 					() -> client,
-					(final ContextTransformer.Builder builder) -> {
-					},
+					(final ContextTransformer.Builder builder) -> {},
 					ConfigFactory.create("./example/config.conf")
 			);
 			conduit.execute();
 		} catch (final Exception e) {
-			LOGGER.error(e);
+			LOGGER.error("EXCEPTION IN MAIN:", e);
 		}
     }
 

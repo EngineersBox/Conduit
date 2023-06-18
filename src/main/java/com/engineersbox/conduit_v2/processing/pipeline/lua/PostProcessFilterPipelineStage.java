@@ -5,6 +5,7 @@ import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 import io.riemann.riemann.Proto;
 
+// FIXME: This expects an Iterable<Proto.Event[]> but is receiving Proto.Event[]
 public class PostProcessFilterPipelineStage extends FilterPipelineStage<Proto.Event[]> {
 
     private final LuaContextHandler contextHandler;
