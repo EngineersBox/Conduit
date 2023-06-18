@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.pipeline.lua;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {

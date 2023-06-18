@@ -6,12 +6,9 @@ import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
-import com.engineersbox.conduit.schema.source.Source;
-import com.engineersbox.conduit.schema.source.SourceType;
-import com.engineersbox.conduit.schema.source.custom.CustomSource;
-import com.engineersbox.conduit.schema.source.http.*;
-import com.engineersbox.conduit.util.ObjectMapperModule;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Range;
@@ -22,35 +19,35 @@ import io.riemann.riemann.Proto;
 import org.apache.commons.collections4.IteratorUtils;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
+import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.tuple.ImmutableEntry;
 import org.eclipse.collections.impl.utility.Iterate;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MetricsSchema extends ImmutableUnifiedMap<String, Metric> {
+public class MetricsSchema extends UnifiedMap<String, Metric> {
 
     private Configuration jsonPathConfiguration;
-    private Source source;
+    private Connector<?,?> connector;
     private Proto.Event eventTemplate;
     private Path handler;
     private boolean requiresJseGlobals;
 
     private MetricsSchema() {
+        super();
     }
 
     public Configuration getJsonPathConfiguration() {
         return this.jsonPathConfiguration;
     }
 
-    public Source getSource() {
-        return this.source;
+    public Connector<?, ?> getConnector() {
+        return this.connector;
     }
 
     public Proto.Event getEventTemplate() {
@@ -91,7 +88,7 @@ public class MetricsSchema extends ImmutableUnifiedMap<String, Metric> {
     private static MetricsSchema parse(final JsonNode definition) {
         final MetricsSchema.Builder builder = MetricsSchema.builder()
                 .withJsonPathConfig(parseJsonPathConfiguration(definition.get("configuration")))
-                .withSource(parseSource(definition.get("source")))
+                .withConnector(parseConnector(definition.get("source")))
                 .withHandler(parseHandlerPath(definition.get("handler")));
         try {
             builder.withEventTemplate(parseEventTemplate(definition.get("event_template")));
@@ -145,50 +142,43 @@ public class MetricsSchema extends ImmutableUnifiedMap<String, Metric> {
         return Path.of(handlerNode.asText());
     }
 
-    private static Source parseSource(final JsonNode sourceNode) {
+    private static Connector<?,?> parseConnector(final JsonNode sourceNode) {
         if (sourceNode == null
             || sourceNode.isMissingNode()
             || sourceNode.isNull()
             || sourceNode.isEmpty()) {
             throw new IllegalArgumentException("Missing required \"source\" node in schema definition");
         }
-        final SourceType sourceType = SourceType.valueOf(sourceNode.get("type").asText());
-        return switch (sourceType) {
-            case HTTP -> parseHTTPSource(sourceNode);
-            case CUSTOM -> parseCustomSource(sourceNode);
+        final ConnectorType connectorType = ConnectorType.valueOf(sourceNode.get("type").asText());
+        return switch (connectorType) {
+            case HTTP -> parseHTTPConnector(sourceNode);
+            case CUSTOM -> null;
         };
     }
 
-    private static HTTPSource parseHTTPSource(final JsonNode sourceNode) {
+    private static HTTPConnector parseHTTPConnector(final JsonNode sourceNode) {
         final URI uri = URI.create(sourceNode.get("uri").asText());
         final JsonNode authNode = sourceNode.get("auth");
         final HTTPAuthType authType = HTTPAuthType.valueOf(authNode.get("type").asText());
-        return new HTTPSource(
-                SourceType.HTTP,
+        final HTTPConnector connector = new HTTPConnector();
+        final HTTPConnectorConfiguration config = new HTTPConnectorConfiguration(
+                uri,
                 switch (authType) {
-                    case BASIC -> new HTTPSourceBasicAuthConfig(
+                    case BASIC -> new HTTPBasicAuthConfig(
                             authNode.get("username").asText(),
                             authNode.get("password").asText()
                     );
-                    case CERTIFICATE -> new HTTPSourceCertificateAuthConfig(
+                    case CERTIFICATE -> new HTTPCertificateAuthConfig(
                             HTTPCertType.valueOf(authNode.get("certificate_type").asText()),
                             authNode.has("password")
                                     ? authNode.get("password").asText()
                                     : null,
                             authNode.get("location").asText()
                     );
-                },
-                uri
+                }
         );
-    }
-
-    private static CustomSource parseCustomSource(final JsonNode sourceNode) {
-        final Map<String, Object> properties = ObjectMapperModule.OBJECT_MAPPER.convertValue(
-                sourceNode,
-                new TypeReference<Map<String, Object>>() {}
-        );
-        properties.remove("type");
-        return new CustomSource(properties);
+        connector.saturate(config);
+        return connector;
     }
 
     private static MetricType parseMetricType(final MetricType.Builder builder,
@@ -299,8 +289,8 @@ public class MetricsSchema extends ImmutableUnifiedMap<String, Metric> {
             return this;
         }
 
-        public Builder withSource(final Source source) {
-            this.schema.source = source;
+        public Builder withConnector(final Connector<?,?> connector) {
+            this.schema.connector = connector;
             return this;
         }
 

@@ -97,7 +97,7 @@ public class Pipeline {
         this.metricsSchemaProvider.lock();
         final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
         final ExecutorService executor = this.batchConfig.generateExecutorService();
-        final Source source = this.schema.getSource();
+        final Source source = null;// = this.schema.getConnector();
         if (source.getType().equals(SourceType.CUSTOM)
             && source instanceof CustomSource customSource) {
             customSource.setSource(this.ingestSource);

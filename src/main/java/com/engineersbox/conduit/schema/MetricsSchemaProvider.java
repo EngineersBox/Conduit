@@ -65,7 +65,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 this.fileLastModifiedTime = FileUtils.lastModifiedUnchecked(initialFile);
             }
             private final int chunkCount = Math.max(maxChunkCount, (int) (this.fileSize / chunkSizeBytes));
-            private boolean updateHashes = false;
+            private boolean updateHashes = true;
             private int lastComputedChunkHashIndex;
             private final long[] chunkHashes = new long[this.chunkCount];
 

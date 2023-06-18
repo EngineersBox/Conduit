@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.pipeline.lua;
 
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 
 public class HandlerSaturationPipelineStage extends PipelineStage<Metric, Metric> {

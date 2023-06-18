@@ -11,24 +11,28 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-public class HTTPConnector<T> implements Connector<T, HTTPConnectorConfiguration> {
+public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
 
     private HttpClient client;
     private HTTPConnectorConfiguration config;
 
-    @Override
-    public void configure(final HTTPConnectorConfiguration config) throws Exception {
+    public void saturate(final HTTPConnectorConfiguration config) {
         this.config = config;
+    }
+
+    @Override
+    public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
-        switch (config.getAuthConfig().getAuthType()) {
+        switch (this.config.getAuthConfig().getAuthType()) {
             case BASIC -> {
-                final HTTPBasicAuthConfig basicAuth = (HTTPBasicAuthConfig) config.getAuthConfig();
+                final HTTPBasicAuthConfig basicAuth = (HTTPBasicAuthConfig) this.config.getAuthConfig();
                 builder.authenticator(new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
@@ -40,7 +44,7 @@ public class HTTPConnector<T> implements Connector<T, HTTPConnectorConfiguration
                 });
             }
             case CERTIFICATE -> {
-                final HTTPCertificateAuthConfig certAuth = (HTTPCertificateAuthConfig) config.getAuthConfig();
+                final HTTPCertificateAuthConfig certAuth = (HTTPCertificateAuthConfig) this.config.getAuthConfig();
                 try {
                     final SSLContext sslContext = SSLContext.getInstance("TLS");
                     final TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -68,7 +72,7 @@ public class HTTPConnector<T> implements Connector<T, HTTPConnectorConfiguration
     }
 
     @Override
-    public T retrieve() throws Exception {
+    public String retrieve() throws Exception {
         if (this.client == null || this.config == null) {
             throw new IOException("Connector has not been configured, HTTP client has not be created");
         }
@@ -76,7 +80,10 @@ public class HTTPConnector<T> implements Connector<T, HTTPConnectorConfiguration
                 .GET()
                 .uri(this.config.getUri())
                 .build();
-        return null;
+        return this.client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        ).body();
     }
 
     @Override

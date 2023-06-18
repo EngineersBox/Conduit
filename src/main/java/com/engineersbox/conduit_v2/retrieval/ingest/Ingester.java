@@ -25,7 +25,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
         this.data = null;
     }
 
-    public void consumeSource(final IngestionContext context) {
+    public void consumeSource(final IngestionContext context) throws Exception {
         this.data = this.rawConverter.apply(this.source.invoke(
                 this.connector,
                 context

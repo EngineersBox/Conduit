@@ -63,35 +63,20 @@ public class Main {
 			    },
 			    "expensive": 10
 			}""";
-    private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
-    public static void main (final String[] args) throws IOException {
-        CacheProvider.setCache(new LRUCache(10));
-        final RiemannClient client = RiemannClient.tcp("localhost", 5555);
-        Conduit conduit = new Conduit(
-                MetricsSchemaProvider.checksumRefreshed("./example/test.json", false),
-                () -> client,
-                (final ContextTransformer.Builder builder) -> {},
-                ConfigFactory.create("./example/config.conf")
-        );
-        client.connect();
-
-        try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
-            client.connect();
-            pipeline.executeHandled(Functional.uncheckedConsumer((final List<Proto.Event> events) -> {
-                LOGGER.info("Sending events: \n" + events.stream().map((final Proto.Event event) -> String.format(
-                        " - [Host: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
-                        event.getHost(),
-                        event.getService(),
-                        event.getState(),
-                        event.getMetricF(),
-                        event.getMetricD(),
-                        event.getMetricSint64()
-                )).collect(Collectors.joining()));
-                client.sendEvents(events.toArray(Proto.Event[]::new))
-                        .deref(1, TimeUnit.SECONDS);
-            }));
-        }
+    public static void main (final String[] args) throws Exception {
+		CacheProvider.setCache(new LRUCache(10));
+		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
+			client.connect();
+			Conduit conduit = new Conduit(
+					MetricsSchemaProvider.checksumRefreshed("./example/test.json", false),
+					() -> client,
+					(final ContextTransformer.Builder builder) -> {
+					},
+					ConfigFactory.create("./example/config.conf")
+			);
+			conduit.execute();
+		}
     }
 
 }

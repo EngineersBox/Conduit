@@ -14,12 +14,11 @@ public class IngesterFactory {
             E extends ConnectorConfiguration,
             C extends Connector<R, E>
         > Ingester<T, R, E, C> construct(final MetricsSchema schema,
+                                         final Source<R> source,
                                          final Function<R, T> converter) {
-        final Source<R> source = null; // TODO: Get from schema
-        final C connector = null; // TODO: Get from schema
         return new Ingester<>(
                 source,
-                connector,
+                (C) schema.getConnector(),
                 converter
         );
     }
@@ -28,8 +27,9 @@ public class IngesterFactory {
             T,
             E extends ConnectorConfiguration,
             C extends Connector<T, E>
-        > Ingester<T, T, E, C> construct(final MetricsSchema schema) {
-        return IngesterFactory.construct(schema, Function.identity());
+        > Ingester<T, T, E, C> construct(final MetricsSchema schema,
+                                         final Source<T> source) {
+        return IngesterFactory.construct(schema, source, Function.identity());
     }
 
 }

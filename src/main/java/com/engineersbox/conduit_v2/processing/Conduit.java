@@ -14,6 +14,11 @@ import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
+import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
+import com.engineersbox.conduit_v2.retrieval.ingest.Source;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.LazyIterable;
@@ -69,7 +74,7 @@ public class Conduit {
         this.contextInjector = contextInjector;
     }
 
-    public void execute() {
+    public void execute() throws Exception {
         this.executing = true;
         final MetricsSchema schema = this.schemaProvider.provide();
         if (this.config.ingest.schema_provider_locking) {
@@ -78,6 +83,17 @@ public class Conduit {
         if (this.schemaProvider.instanceRefreshed()) {
             this.contentManager = ContentManagerFactory.construct(
                     schema,
+                    new Source<>() {
+                        private boolean configured = false;
+                        @Override
+                        public <E extends ConnectorConfiguration, C extends Connector<Object, E>> Object invoke(final C connector,
+                                                                                                                final IngestionContext ctx) throws Exception {
+                            if (!this.configured) {
+                                connector.configure();
+                            }
+                            return connector.retrieve();
+                        }
+                    },
                     null,
                     Function.identity() // TODO: allow customisation via config
             );

@@ -16,14 +16,19 @@ import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricProcessingTask.class);
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
 
     private final RichIterable<Metric> initialMetrics; // Received from conduit
@@ -94,6 +99,15 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
             public void accept(final Proto.Event[] events) {
                 final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
                 try {
+                    LOGGER.info("Sending events: \n" + Lists.fixedSize.of(events).stream().map((final Proto.Event event) -> String.format(
+                            " - [Host: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
+                            event.getHost(),
+                            event.getService(),
+                            event.getState(),
+                            event.getMetricF(),
+                            event.getMetricD(),
+                            event.getMetricSint64()
+                    )).collect(Collectors.joining()));
                     riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
                 } catch (IOException e) {
                     throw new RuntimeException(e);

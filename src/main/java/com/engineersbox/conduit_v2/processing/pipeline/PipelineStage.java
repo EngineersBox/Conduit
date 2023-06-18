@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
+import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.reflect.TypeLiteral;
 
 import java.util.Map;
@@ -14,8 +15,8 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
     protected PipelineStage(final String name) {
         this.context = null;
         this.name = name;
-        this.previousType = (Class<T>) new TypeLiteral<T>(){}.getType();
-        this.nextType = (Class<R>) new TypeLiteral<R>(){}.getType();
+        this.previousType = (Class<T>) TypeToken.of(new TypeLiteral<T>(){}.getType()).getRawType();
+        this.nextType = (Class<R>) TypeToken.of(new TypeLiteral<R>(){}.getType()).getRawType();
     }
 
     public String getName() {

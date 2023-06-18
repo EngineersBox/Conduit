@@ -21,7 +21,7 @@ public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Co
         this.pathTraversalHandler = pathTraversalHandler;
     }
 
-    public void poll() {
+    public void poll() throws Exception {
         this.ingester.clear();
         this.ingester.consumeSource(this.context);
         this.pathTraversalHandler.saturate(this.ingester.getCurrent());
