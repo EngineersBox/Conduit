@@ -22,17 +22,19 @@ import io.riemann.riemann.Proto;
 import org.apache.commons.collections4.IteratorUtils;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.eclipse.collections.api.map.MutableMap;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.tuple.ImmutableEntry;
 import org.eclipse.collections.impl.utility.Iterate;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class MetricsSchema extends HashMap<String, Metric> {
+public class MetricsSchema extends ImmutableUnifiedMap<String, Metric> {
 
     private Configuration jsonPathConfiguration;
     private Source source;

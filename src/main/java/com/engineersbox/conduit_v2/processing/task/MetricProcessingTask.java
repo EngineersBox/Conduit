@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
@@ -10,7 +11,6 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;

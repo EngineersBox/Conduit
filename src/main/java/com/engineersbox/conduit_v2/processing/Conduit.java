@@ -6,9 +6,9 @@ import com.engineersbox.conduit.handler.LuaStdoutSink;
 import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
@@ -18,7 +18,6 @@ import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
-import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 import org.luaj.vm2.Globals;
 import org.slf4j.Logger;
@@ -83,12 +82,8 @@ public class Conduit {
                     Function.identity() // TODO: allow customisation via config
             );
         }
-        final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(contentManager);
-        LazyIterable<Metric> workload = Lists.immutable.<Metric>of().asLazy();
-        // TODO: Update this when MetricSchema changed to use new Metric class or new metric class replaced with old one
-        //       and values are accessible as Eclipse immutable collection
-        // workload = schema.values().asLazy();
-
+        final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
+        final LazyIterable<Metric> workload = schema.valuesView().asLazy();
         this.contentManager.poll();
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();

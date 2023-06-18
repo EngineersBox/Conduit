@@ -1,10 +1,10 @@
 package com.engineersbox.conduit_v2.processing.event;
 
 import com.engineersbox.conduit.schema.DimensionIndex;
+import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
 import io.riemann.riemann.Proto;
 
 import java.util.ArrayList;
