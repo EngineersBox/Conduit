@@ -31,13 +31,29 @@ public class Pipeline<T> implements Consumer<T> {
 
     @Override
     public void accept(final T initialValue) {
-        final Deque<Pair<Object, Integer>> valueQueue = new LinkedBlockingDeque<>();
-        valueQueue.push(ImmutablePair.of(initialValue, 0));
+        final Deque<Pair<StageResult<Object>, Integer>> valueQueue = new LinkedBlockingDeque<>();
+        valueQueue.push(ImmutablePair.of(
+                new StageResult<>(
+                        StageResult.Type.SINGLE,
+                        initialValue,
+                        false
+                ),
+                0
+        ));
         final int stageCount = this.stageQueue.size();
         while (!valueQueue.isEmpty()) {
-            final Pair<Object, Integer> value = valueQueue.pop();
+            final Pair<StageResult<Object>, Integer> value = valueQueue.pop();
+            final StageResult<Object> stageState = value.getLeft();
             final int stageIdx = value.getRight();
-            final StageResult<Object> result = stageQueue.get(stageIdx).invoke0(value.getKey());
+            if (stageState.type() == StageResult.Type.COMBINE) {
+                final StageResult<Object> combinedValue = combineResults(stageState, valueQueue);
+                valueQueue.addFirst(ImmutablePair.of(
+                        combinedValue,
+                        stageIdx + 1
+                ));
+                continue;
+            }
+            final StageResult<Object> result = stageQueue.get(stageIdx).invoke0(value.getKey().result());
             if (result.terminate() || stageIdx == stageCount - 1) {
                 continue;
             }
@@ -63,15 +79,58 @@ public class Pipeline<T> implements Consumer<T> {
                         ));
                     }
                     valueStream.forEach((final Object o) -> valueQueue.addFirst(
-                            ImmutablePair.of(o, stageIdx + 1)
+                            ImmutablePair.of(
+                                    new StageResult<>(
+                                            result.type(),
+                                            o,
+                                            result.terminate()
+                                    ),
+                                    stageIdx + 1
+                            )
                     ));
                 }
-                case COMBINE, SINGLE -> valueQueue.addFirst(ImmutablePair.of(
-                        resultValue,
+                case COMBINE -> {
+
+                }
+                case SINGLE -> valueQueue.addFirst(ImmutablePair.of(
+                        result,
                         stageIdx + 1
                 ));
             }
         }
+    }
+
+    private StageResult<Object> combineResults(final StageResult<Object> primary,
+                                               final Deque<Pair<StageResult<Object>, Integer>> deque) {
+        final Object[] combined = new Object[primary.combineCount()];
+        combined[0] = primary.result();
+        final Type combineType = TypeUtils.wrap(combined[0].getClass()).getType();
+        final int count = primary.combineCount();
+        Pair<StageResult<Object>, Integer> val;
+        for (int i = 1; i < count; i++) {
+            val = deque.pop();
+            final StageResult<Object> result = val.getLeft();
+            final Object resultValue = result.result();
+            final Type resultType = TypeUtils.wrap(result.getClass()).getType();
+            if (result.type() != StageResult.Type.COMBINE) {
+                throw new IllegalStateException(String.format(
+                        "Cannot combine results from non-COMBINE stage result at index %d of %d",
+                        i, count
+                ));
+            } else if (!TypeUtils.equals(combineType, resultType)) {
+                throw new IllegalStateException(String.format(
+                        "Cannot combine results for non-matching stage result types: %s != %s",
+                        combineType.getTypeName(),
+                        resultType.getTypeName()
+                ));
+            }
+            combined[1] = resultValue;
+        }
+        return new StageResult<>(
+                StageResult.Type.SINGLE,
+                combined,
+                false
+        );
     }
 
     public static class Builder<T> {

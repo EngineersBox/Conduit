@@ -3,7 +3,6 @@ package com.engineersbox.conduit_v2.processing.pipeline;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
 

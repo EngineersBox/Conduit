@@ -35,7 +35,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final Proto.Event eventTemplate;
     private final EventTransformer transformer;
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
-    private final Pipeline.Builder<Metric> pipeline;
+    private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final LuaContextHandler luaContextHandler;
     private final ContextTransformer contextTransformer;
     private final ContextTransformer.Builder contextBuilder;
@@ -57,8 +57,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.contextInjector = contextInjector;
     }
 
-    private Pipeline.Builder<Metric> createPipeline(final boolean hasLuaHandlers) {
-        final Pipeline.Builder<Metric> pipelineBuilder = new Pipeline.Builder<>();
+    private Pipeline.Builder<RichIterable<Metric>> createPipeline(final boolean hasLuaHandlers) {
+        final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (hasLuaHandlers) {
             pipelineBuilder.withStages(
                     new HandlerSaturationPipelineStage(),
@@ -119,9 +119,9 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     @Override
     public void accept(final RiemannClient riemannClient) {
         this.contextInjector.accept(this.contextBuilder);
-        final Pipeline<Metric> metricPipeline = this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
-                .build();
-        this.initialMetrics.forEach(metricPipeline::accept);
+        this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
+                .build()
+                .accept(this.initialMetrics);
     }
 
 }

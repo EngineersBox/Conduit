@@ -1,6 +1,7 @@
 package com.engineersbox.conduit_v2.processing.pipeline.core;
 
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -17,9 +18,14 @@ public abstract class FilterPipelineStage<T> extends PipelineStage<Collection<T>
     public abstract boolean test(final T element);
 
     @Override
-    public Collection<T> invoke(final Collection<T> previousResult) {
-        return previousResult.stream()
+    public StageResult<Collection<T>> invoke(final Collection<T> previousResult) {
+        final Collection<T> result = previousResult.stream()
                 .filter(this)
                 .collect(Collectors.toList());
+        return new StageResult<>(
+                StageResult.Type.SINGLE,
+                result,
+                false
+        );
     }
 }

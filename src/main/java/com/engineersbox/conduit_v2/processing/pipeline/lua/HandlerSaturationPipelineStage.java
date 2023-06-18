@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.pipeline.lua;
 
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 
 public class HandlerSaturationPipelineStage extends PipelineStage<Metric, Metric> {
 
@@ -12,11 +13,15 @@ public class HandlerSaturationPipelineStage extends PipelineStage<Metric, Metric
     }
 
     @Override
-    public Metric invoke(final Metric previousResult) {
+    public StageResult<Metric> invoke(final Metric previousResult) {
         previousResult.getHandlers().forEachKeyValue((final String name, final String handler) ->
                 setContextAttribute(LUA_HANDLER_PREFIX + name, handler)
         );
-        return previousResult;
+        return new StageResult<>(
+                StageResult.Type.SINGLE,
+                previousResult,
+                false
+        );
     }
 
 }
