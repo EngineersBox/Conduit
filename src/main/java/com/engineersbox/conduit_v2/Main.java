@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+	private static final Logger LOGGER = LogManager.getLogger(Main.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String TEST_JSON_BLOB = """
 			{
@@ -64,7 +65,7 @@ public class Main {
 			    "expensive": 10
 			}""";
 
-    public static void main (final String[] args) throws Exception {
+    public static void main (final String[] args) {
 		CacheProvider.setCache(new LRUCache(10));
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
@@ -76,6 +77,8 @@ public class Main {
 					ConfigFactory.create("./example/config.conf")
 			);
 			conduit.execute();
+		} catch (final Exception e) {
+			LOGGER.error(e);
 		}
     }
 

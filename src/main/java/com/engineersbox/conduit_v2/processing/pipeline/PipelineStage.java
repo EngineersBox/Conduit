@@ -1,9 +1,9 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
-import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.reflect.TypeLiteral;
-
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
 
@@ -12,11 +12,17 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
     protected final Class<T> previousType;
     protected final Class<R> nextType;
 
+    @SuppressWarnings("unchecked")
     protected PipelineStage(final String name) {
         this.context = null;
         this.name = name;
-        this.previousType = (Class<T>) TypeToken.of(new TypeLiteral<T>(){}.getType()).getRawType();
-        this.nextType = (Class<R>) TypeToken.of(new TypeLiteral<R>(){}.getType()).getRawType();
+        final Type[] types = getStageTypeArguments();
+        this.previousType = (Class<T>) types[0];
+        this.nextType = (Class<R>) (types.length == 1 ? types[0] : types[1]);
+    }
+
+    private Type[] getStageTypeArguments() {
+        return ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments();
     }
 
     public String getName() {
@@ -36,9 +42,10 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
     }
 
     @Override
-    public abstract R invoke(final T previousResult);
+    public abstract StageResult<R> invoke(final T previousResult);
 
-    Object invoke0(final Object previousResult) {
+    @SuppressWarnings("unchecked")
+    StageResult<Object> invoke0(final Object previousResult) {
         if (!this.previousType.isInstance(previousResult)) {
             throw new ClassCastException(String.format(
                     "Pipeline stage %s expects %s type for previous result, got %s",
@@ -47,7 +54,7 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
                     previousResult.getClass().getName()
             ));
         }
-        return invoke(this.previousType.cast(previousResult));
+        return (StageResult<Object>) invoke(this.previousType.cast(previousResult));
     }
 
 }

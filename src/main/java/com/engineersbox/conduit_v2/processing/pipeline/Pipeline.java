@@ -1,15 +1,25 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
+import org.apache.commons.lang3.reflect.TypeUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.impl.utility.Iterate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Pipeline<T> implements Consumer<T> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
     private final Map<String, Object> context;
     private final MutableList<PipelineStage<?, ?>> stageQueue;
@@ -21,13 +31,47 @@ public class Pipeline<T> implements Consumer<T> {
 
     @Override
     public void accept(final T initialValue) {
-        this.stageQueue.injectInto(
-                initialValue,
-                (final Object previousResult, final PipelineStage<?, ?> stage) -> {
-                    stage.injectContext(this.context);
-                    return stage.invoke0(previousResult);
+        final Deque<Pair<Object, Integer>> valueQueue = new LinkedBlockingDeque<>();
+        valueQueue.push(ImmutablePair.of(initialValue, 0));
+        final int stageCount = this.stageQueue.size();
+        while (!valueQueue.isEmpty()) {
+            final Pair<Object, Integer> value = valueQueue.pop();
+            final int stageIdx = value.getRight();
+            final StageResult<Object> result = stageQueue.get(stageIdx).invoke0(value.getKey());
+            if (result.terminate() || stageIdx == stageCount - 1) {
+                continue;
+            }
+            final Object resultValue = result.result();
+            switch (result.type()) {
+                case SPLIT -> {
+                    Stream<Object> valueStream;
+                    if (TypeUtils.isArrayType(TypeUtils.wrap(resultValue.getClass()).getType())) {
+                        valueStream = Arrays.stream((Object[]) resultValue);
+                    } else if (resultValue instanceof Collection<?> collection) {
+                        valueStream = (Stream<Object>) collection.stream();
+                    } else if (resultValue instanceof Iterator<?> iterator) {
+                        valueStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+                                iterator,
+                                0
+                        ), false);
+                    } else if (resultValue instanceof Iterable<?> iterable) {
+                        valueStream = (Stream<Object>) StreamSupport.stream(iterable.spliterator(), false);
+                    } else {
+                        throw new ClassCastException(String.format(
+                                "Expected splittable result type, got: %s",
+                                resultValue.getClass().getName()
+                        ));
+                    }
+                    valueStream.forEach((final Object o) -> valueQueue.addFirst(
+                            ImmutablePair.of(o, stageIdx + 1)
+                    ));
                 }
-        );
+                case COMBINE, SINGLE -> valueQueue.addFirst(ImmutablePair.of(
+                        resultValue,
+                        stageIdx + 1
+                ));
+            }
+        }
     }
 
     public static class Builder<T> {
