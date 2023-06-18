@@ -89,10 +89,7 @@ public class Pipeline<T> implements Consumer<T> {
                             )
                     ));
                 }
-                case COMBINE -> {
-
-                }
-                case SINGLE -> valueQueue.addFirst(ImmutablePair.of(
+                case COMBINE, SINGLE -> valueQueue.addFirst(ImmutablePair.of(
                         result,
                         stageIdx + 1
                 ));
