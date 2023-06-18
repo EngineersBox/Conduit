@@ -119,9 +119,13 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     @Override
     public void accept(final RiemannClient riemannClient) {
         this.contextInjector.accept(this.contextBuilder);
-        this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
-                .build()
-                .accept(this.initialMetrics);
+        try {
+            this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
+                    .build()
+                    .accept(this.initialMetrics);
+        } catch (final Exception e) {
+            LOGGER.error("Exception during metric processing pipeline invocation:", e);
+        }
     }
 
 }

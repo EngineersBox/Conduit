@@ -40,8 +40,8 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
     }
 
     @Override
-    public StageResult<Collection<Metric>> invoke(Collection<Metric> previousResult) {
-        final StageResult<Collection<Metric>> result = super.invoke(previousResult);
+    public StageResult<Iterable<Metric>> invoke(final Iterable<Metric> previousResult) {
+        final StageResult<Iterable<Metric>> result = super.invoke(previousResult);
         return new StageResult<>(
                 StageResult.Type.SPLIT,
                 result.result(),
