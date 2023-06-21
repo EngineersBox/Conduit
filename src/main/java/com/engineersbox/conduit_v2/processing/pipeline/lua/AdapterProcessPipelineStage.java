@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], Proto.Event[]> {
+public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], Iterable<Proto.Event>> {
 
     private final ContextTransformer.Builder contextBuilder;
     private final LuaContextHandler contextHandler;
@@ -38,23 +38,22 @@ public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], 
     }
 
     @Override
-    public StageResult<Proto.Event[]> invoke(final Proto.Event[][] events) {
+    public StageResult<Iterable<Proto.Event>> invoke(final Proto.Event[][] events) {
         final Object handlerObj = getContextAttribute(HandlerSaturationPipelineStage.LUA_HANDLER_PREFIX + "adapter");
-        final Proto.Event[] eventsList = Arrays.stream(events)
+        final Stream<Proto.Event> eventsStream = Arrays.stream(events)
                 .map(Arrays::stream)
                 .reduce(Stream::concat)
-                .get()
-                .toArray(Proto.Event[]::new);
+                .get();
         if (!(handlerObj instanceof String handler)) {
             return new StageResult<>(
                     StageResult.Type.SINGLE,
-                    eventsList,
+                    eventsStream.collect(Collectors2.toList()).asLazy(),
                     false
             );
         }
         this.contextBuilder.withReadOnly(
                 "events",
-                eventsList,
+                eventsStream.toArray(Proto.Event[]::new),
                 EventSerialiser.class
         );
         this.contextHandler.invoke(
@@ -69,7 +68,9 @@ public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], 
         );
         return new StageResult<>(
                 StageResult.Type.SINGLE,
-                finalEvents,
+                Arrays.stream(finalEvents)
+                        .collect(Collectors2.toList())
+                        .asLazy(),
                 false
         );
     }
