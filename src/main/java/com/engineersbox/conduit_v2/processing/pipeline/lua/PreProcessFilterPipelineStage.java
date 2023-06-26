@@ -10,12 +10,15 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     private final LuaContextHandler contextHandler;
     private final ContextTransformer contextTransformer;
+    private final boolean hasLuaHandlers;
 
     public PreProcessFilterPipelineStage(final LuaContextHandler contextHandler,
-                                         final ContextTransformer contextTransformer) {
+                                         final ContextTransformer contextTransformer,
+                                         final boolean hasLuaHandlers) {
         super("Pre-process Lua filter");
         this.contextHandler = contextHandler;
         this.contextTransformer = contextTransformer;
+        this.hasLuaHandlers = hasLuaHandlers;
     }
 
     @Override
@@ -39,7 +42,14 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     @Override
     public StageResult<Iterable<Metric>> invoke(final Iterable<Metric> previousResult) {
-        final StageResult<Iterable<Metric>> result = super.invoke(previousResult);
+        if (!this.hasLuaHandlers) {
+            return new StageResult<>(
+                    StageResult.Type.SPLIT,
+                    previousResult,
+                    false
+            );
+        }
+        final StageResult<Iterable<Metric>> result =  super.invoke(previousResult);
         return new StageResult<>(
                 StageResult.Type.SPLIT,
                 result.result(),

@@ -63,31 +63,34 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (hasLuaHandlers) {
             pipelineBuilder.withStages(
-                    new HandlerSaturationPipelineStage(),
-                    new PreProcessFilterPipelineStage(
-                            this.luaContextHandler,
-                            this.contextTransformer
-                    )
+                    new HandlerSaturationPipelineStage()
             );
         }
-        pipelineBuilder.withStage(new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
-            @Override
-            public StageResult<Proto.Event[]> invoke(final Metric metric) {
-                final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
-                        MetricProcessingTask.this.retriever.get().lookup(metric),
-                        metric.getType(),
-                        metric,
-                        0,
-                        ""
-                ).toArray(Proto.Event[]::new);
-                return new StageResult<>(
-                        StageResult.Type.COMBINE,
-                        MetricProcessingTask.this.initialMetrics.size(), // TODO: Change this to get actual count from pre process filter results
-                        result,
-                        false
-                );
-            }
-        });
+        pipelineBuilder.withStages(
+                new PreProcessFilterPipelineStage(
+                        this.luaContextHandler,
+                        this.contextTransformer,
+                        hasLuaHandlers
+                ),
+                new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
+                    @Override
+                    public StageResult<Proto.Event[]> invoke(final Metric metric) {
+                        final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
+                                MetricProcessingTask.this.retriever.get().lookup(metric),
+                                metric.getType(),
+                                metric,
+                                0,
+                                ""
+                        ).toArray(Proto.Event[]::new);
+                        return new StageResult<>(
+                                StageResult.Type.COMBINE,
+                                MetricProcessingTask.this.initialMetrics.size(), // TODO: Change this to get actual count from pre process filter results
+                                result,
+                                false
+                        );
+                    }
+                }
+        );
         if (hasLuaHandlers) {
             pipelineBuilder.withStages(
                     new AdapterProcessPipelineStage(
