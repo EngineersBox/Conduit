@@ -48,9 +48,9 @@ public class Pipeline<T> implements Consumer<T> {
             final int stageIdx = value.getRight();
             if (stageState.type() == StageResult.Type.COMBINE) {
                 final StageResult<Object> combinedValue = combineResults(stageState, valueQueue);
-                valueQueue.addFirst(ImmutablePair.of(
+                valueQueue.push(ImmutablePair.of(
                         combinedValue,
-                        stageIdx + 1
+                        stageIdx
                 ));
                 continue;
             }
@@ -79,7 +79,7 @@ public class Pipeline<T> implements Consumer<T> {
                                 resultValue.getClass().getName()
                         ));
                     }
-                    valueStream.forEach((final Object o) -> valueQueue.addFirst(
+                    valueStream.forEach((final Object o) -> valueQueue.push(
                             ImmutablePair.of(
                                     new StageResult<>(
                                             result.type(),
@@ -90,7 +90,7 @@ public class Pipeline<T> implements Consumer<T> {
                             )
                     ));
                 }
-                case COMBINE, SINGLE -> valueQueue.addFirst(ImmutablePair.of(
+                case COMBINE, SINGLE -> valueQueue.push(ImmutablePair.of(
                         result,
                         stageIdx + 1
                 ));

@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], Iterable<Proto.Event>> {
+public class AdapterProcessPipelineStage extends PipelineStage<Object[], Object[][]> {
 
     private final ContextTransformer.Builder contextBuilder;
     private final LuaContextHandler contextHandler;
@@ -38,22 +38,24 @@ public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], 
     }
 
     @Override
-    public StageResult<Iterable<Proto.Event>> invoke(final Proto.Event[][] events) {
+    public StageResult<Object[][]> invoke(final Object[] events) {
         final Object handlerObj = getContextAttribute(HandlerSaturationPipelineStage.LUA_HANDLER_PREFIX + "adapter");
-        final Stream<Proto.Event> eventsStream = Arrays.stream(events)
-                .map(Arrays::stream)
-                .reduce(Stream::concat)
-                .get();
+        final Proto.Event[] eventsStream = Arrays.stream(events)
+                .map((final Object obj) -> (Proto.Event[]) obj)
+                .flatMap(Arrays::stream)
+                .toArray(Proto.Event[]::new);
         if (!(handlerObj instanceof String handler)) {
+            final Object[][] result = new Object[1][];
+            result[0] = eventsStream;
             return new StageResult<>(
                     StageResult.Type.SINGLE,
-                    eventsStream.collect(Collectors2.toList()).asLazy(),
+                    result,
                     false
             );
         }
         this.contextBuilder.withReadOnly(
                 "events",
-                eventsStream.toArray(Proto.Event[]::new),
+                eventsStream,
                 EventSerialiser.class
         );
         this.contextHandler.invoke(
@@ -66,11 +68,11 @@ public class AdapterProcessPipelineStage extends PipelineStage<Proto.Event[][], 
                 },
                 new EventsDeserialiser(this.eventTemplate)
         );
+        final Object[][] result = new Object[1][];
+        result[0] = finalEvents;
         return new StageResult<>(
                 StageResult.Type.SINGLE,
-                Arrays.stream(finalEvents)
-                        .collect(Collectors2.toList())
-                        .asLazy(),
+                result,
                 false
         );
     }

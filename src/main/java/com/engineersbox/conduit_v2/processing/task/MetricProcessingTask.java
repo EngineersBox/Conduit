@@ -98,33 +98,36 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                             this.luaContextHandler,
                             this.contextTransformer,
                             this.eventTemplate
-                    ),
-                    new PostProcessFilterPipelineStage(
-                            this.luaContextHandler,
-                            this.contextTransformer
                     )
             );
         }
-        return pipelineBuilder.withStage(new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
-            @Override
-            public void accept(final Proto.Event[] events) {
-                final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
-                try {
-                    LOGGER.info("Sending events: \n" + Lists.fixedSize.of(events).stream().map((final Proto.Event event) -> String.format(
-                            " - [Host: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
-                            event.getHost(),
-                            event.getService(),
-                            event.getState(),
-                            event.getMetricF(),
-                            event.getMetricD(),
-                            event.getMetricSint64()
-                    )).collect(Collectors.joining()));
-                    riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+        return pipelineBuilder.withStages(
+                new PostProcessFilterPipelineStage(
+                        this.luaContextHandler,
+                        this.contextTransformer,
+                        hasLuaHandlers
+                ),
+                new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
+                    @Override
+                    public void accept(final Proto.Event[] events) {
+                        final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
+                        try {
+                            LOGGER.info("Sending events: \n" + Lists.fixedSize.of(events).stream().map((final Proto.Event event) -> String.format(
+                                    " - [Host: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d]%n",
+                                    event.getHost(),
+                                    event.getService(),
+                                    event.getState(),
+                                    event.getMetricF(),
+                                    event.getMetricD(),
+                                    event.getMetricSint64()
+                            )).collect(Collectors.joining()));
+                            riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
-            }
-        });
+        );
     }
 
     @Override

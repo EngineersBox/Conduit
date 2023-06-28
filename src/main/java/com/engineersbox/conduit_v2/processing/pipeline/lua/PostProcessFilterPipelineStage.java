@@ -9,18 +9,21 @@ import io.riemann.riemann.Proto;
 import org.eclipse.collections.impl.collector.Collectors2;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
-// FIXME: This expects an Iterable<Proto.Event[]> but is receiving Proto.Event[]
 public class PostProcessFilterPipelineStage extends PipelineStage<Object[], Proto.Event[]> {
 
     private final LuaContextHandler contextHandler;
     private final ContextTransformer contextTransformer;
+    private final boolean hasLuaHandlers;
 
     public PostProcessFilterPipelineStage(final LuaContextHandler contextHandler,
-                                          final ContextTransformer contextTransformer) {
-        super("Pre-process Lua filter");
+                                          final ContextTransformer contextTransformer,
+                                          final boolean hasLuaHandlers) {
+        super("Post-process Lua filter");
         this.contextHandler = contextHandler;
         this.contextTransformer = contextTransformer;
+        this.hasLuaHandlers = hasLuaHandlers;
     }
 
     public boolean test(final Proto.Event element) {
@@ -43,14 +46,15 @@ public class PostProcessFilterPipelineStage extends PipelineStage<Object[], Prot
 
     @Override
     public StageResult<Proto.Event[]> invoke(final Object[] previousResult) {
-        final Proto.Event[] result = Arrays.stream(previousResult)
+        Stream<Proto.Event> result = Arrays.stream(previousResult)
                 .map((final Object obj) -> (Proto.Event[]) obj)
-                .flatMap(Arrays::stream)
-                .filter(this::test)
-                .toArray(Proto.Event[]::new);
+                .flatMap(Arrays::stream);
+        if (this.hasLuaHandlers) {
+            result = result.filter(this::test);
+        }
         return new StageResult<>(
                 StageResult.Type.SINGLE,
-                result,
+                result.toArray(Proto.Event[]::new),
                 false
         );
     }
