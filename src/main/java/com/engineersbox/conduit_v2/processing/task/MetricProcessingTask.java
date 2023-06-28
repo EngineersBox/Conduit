@@ -7,7 +7,6 @@ import com.engineersbox.conduit_v2.processing.event.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
-import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;

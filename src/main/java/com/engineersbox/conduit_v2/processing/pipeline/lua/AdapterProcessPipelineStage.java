@@ -6,18 +6,9 @@ import com.engineersbox.conduit_v2.processing.event.EventSerialiser;
 import com.engineersbox.conduit_v2.processing.event.EventsDeserialiser;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
-import com.engineersbox.conduit_v2.processing.pipeline.core.ProcessPipelineStage;
-import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import io.riemann.riemann.Proto;
-import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.collections.api.factory.Lists;
-import org.eclipse.collections.api.list.MutableList;
-import org.eclipse.collections.impl.collector.Collectors2;
-import org.eclipse.collections.impl.utility.Iterate;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class AdapterProcessPipelineStage extends PipelineStage<Object[], Object[][]> {
 

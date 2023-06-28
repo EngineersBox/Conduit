@@ -4,9 +4,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
-import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 import io.riemann.riemann.Proto;
-import org.eclipse.collections.impl.collector.Collectors2;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
