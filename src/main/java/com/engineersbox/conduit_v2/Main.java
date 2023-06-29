@@ -8,7 +8,6 @@ import com.engineersbox.conduit_v2.processing.Conduit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.client.RiemannClient;
-import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

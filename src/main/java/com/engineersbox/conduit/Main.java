@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.RiemannClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +58,7 @@ public class Main {
 			    },
 			    "expensive": 10
 			}""";
-	private static final Logger LOGGER = LogManager.getLogger(Main.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
 	public static void main (final String[] args) throws IOException {
 		CacheProvider.setCache(new LRUCache(10));
