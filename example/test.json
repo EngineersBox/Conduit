@@ -17,7 +17,7 @@
     "metrics": [
         {
             "namespace": "/service/plugin/test_metric",
-            "path": "$..book[?(@.price <= $['expensive'])].price",
+            "path": "$..book[?(@.price < $.expensive)].price",
             "handler_method": "shouldCollectTestMetric",
             "type": {
                 "container": "LIST",
