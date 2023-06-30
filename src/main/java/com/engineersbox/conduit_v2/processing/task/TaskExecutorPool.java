@@ -3,19 +3,18 @@ package com.engineersbox.conduit_v2.processing.task;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundForkJoinPool;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.QueuedForkJoinWorkerThreadFactory;
-import io.riemann.riemann.client.IRiemannClient;
+import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class TaskExecutorPool {
 
     private final ClientBoundForkJoinPool executorService;
 
-    public TaskExecutorPool(final Supplier<IRiemannClient> clientProvider,
+    public TaskExecutorPool(final ClientPool clientProvider,
                             final int parallelism) {
         this.executorService = newWorkStealingPool(
                 parallelism,

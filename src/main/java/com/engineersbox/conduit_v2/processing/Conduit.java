@@ -11,6 +11,7 @@ import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
+import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
@@ -46,7 +47,7 @@ public class Conduit {
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
-                   final Supplier<IRiemannClient> clientProvider,
+                   final ClientPool clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final String configPath) {
         this(
@@ -59,7 +60,7 @@ public class Conduit {
 
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
-                   final Supplier<IRiemannClient> clientProvider,
+                   final ClientPool clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;

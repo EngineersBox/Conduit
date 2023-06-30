@@ -1,21 +1,32 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
+import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import io.riemann.riemann.client.IRiemannClient;
-import io.riemann.riemann.client.RiemannClient;
 
 import java.util.concurrent.ForkJoinWorkerThread;
 
 public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
 
-    private final IRiemannClient client;
+    private final ClientPool clientPool;
+    private IRiemannClient heldClient;
 
-    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool, final IRiemannClient client) {
+    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
+                                             final ClientPool clientPool) {
         super(pool);
-        this.client = client;
+        this.clientPool = clientPool;
     }
 
     public IRiemannClient getClient() {
-        return this.client;
+        if (this.heldClient == null) {
+            this.heldClient = this.clientPool.acquire();
+        }
+        return this.heldClient;
+    }
+
+    @Override
+    protected void onTermination(final Throwable exception) {
+        super.onTermination(exception);
+        this.clientPool.release(this.heldClient);
     }
 
 }
