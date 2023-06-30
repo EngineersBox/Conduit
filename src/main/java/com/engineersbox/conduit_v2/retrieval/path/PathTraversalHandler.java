@@ -15,10 +15,9 @@ public class PathTraversalHandler<R> {
     }
 
     public void saturate(final R raw) {
-        final Object rawJson = raw instanceof String rawString
-                ? this.provider.parse(rawString)
-                : raw;
-        this.context = this.parseContext.parse(rawJson);
+        this.context = raw instanceof String rawString
+                ? this.parseContext.parse(rawString)
+                : this.parseContext.parse(raw);
     }
 
     public <T> T read(final String path,
