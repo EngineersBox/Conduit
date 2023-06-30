@@ -14,6 +14,12 @@ import java.util.function.Supplier;
 public class WaitableTaskExecutorPool extends TaskExecutorPool {
 
     private final MutableList<ForkJoinTask<?>> tasks;
+    // TODO: Support a pool of clients to be usable in this executor pool
+    //       A thread should pull from the client pool based on some condition
+    //       provided as a predicate for allowing it to be selected (e.g. count
+    //       incremented. Once the thread is finished with the client it is
+    //       returned to the pool and the condition state is updated (e.g.
+    //       count decremented).
 
     public WaitableTaskExecutorPool(final Supplier<RiemannClient> clientProvider,
                                     final int parallelism) {

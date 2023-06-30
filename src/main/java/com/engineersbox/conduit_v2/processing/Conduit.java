@@ -59,6 +59,7 @@ public class Conduit {
         );
     }
 
+
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final Supplier<RiemannClient> clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
@@ -66,6 +67,7 @@ public class Conduit {
         this.schemaProvider = schemaProvider;
         // TODO: Implement the client provider
         final int parallelism = config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors());
+        // TODO: Allow executor pool to be supplied to support reuse between Conduit instances
         this.executor = new WaitableTaskExecutorPool(
                 clientProvider,
                 parallelism
