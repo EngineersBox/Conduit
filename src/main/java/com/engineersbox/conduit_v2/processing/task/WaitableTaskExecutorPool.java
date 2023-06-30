@@ -5,15 +5,16 @@ import com.engineersbox.conduit_v2.processing.task.worker.DroppingClientBoundWor
 import io.riemann.riemann.client.RiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.eclipse.collections.api.list.MutableList;
-import org.eclipse.collections.impl.list.mutable.FastList;
+import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.map.MutableMap;
 
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Supplier;
 
 public class WaitableTaskExecutorPool extends TaskExecutorPool {
 
-    private final MutableList<ForkJoinTask<?>> tasks;
+    private final MutableMap<Long, MutableMap<Integer, ForkJoinTask<?>>> threadTaskMaps;
     // TODO: Support a pool of clients to be usable in this executor pool
     //       A thread should pull from the client pool based on some condition
     //       provided as a predicate for allowing it to be selected (e.g. count
@@ -24,29 +25,50 @@ public class WaitableTaskExecutorPool extends TaskExecutorPool {
     public WaitableTaskExecutorPool(final Supplier<RiemannClient> clientProvider,
                                     final int parallelism) {
         super(clientProvider, parallelism);
-        this.tasks = FastList.newList(parallelism);
+        this.threadTaskMaps = Maps.mutable.withInitialCapacity(parallelism);
     }
 
     @Override
     public ForkJoinTask<?> submit(final ClientBoundWorkerTask task) {
+        return submit(
+                task,
+                Thread.currentThread().threadId()
+        );
+    }
+
+    public ForkJoinTask<?> submit(final ClientBoundWorkerTask task,
+                                  final long origin) {
+        final MutableMap<Integer, ForkJoinTask<?>> taskMap = this.threadTaskMaps.computeIfAbsent(
+                origin,
+                _origin -> Maps.mutable.empty()
+        );
         final Mutable<ForkJoinTask<?>> taskReference = new MutableObject<>();
         final ForkJoinTask<?> forkJoinTask = super.submit(new DroppingClientBoundWorkerTask<>(
                 task,
                 taskReference,
-                this.tasks
+                taskMap
         ));
         taskReference.setValue(forkJoinTask);
-        this.tasks.add(forkJoinTask);
+        taskMap.put(forkJoinTask.hashCode(), forkJoinTask);
         return forkJoinTask;
     }
 
     public void resettingBarrier() {
-        this.tasks.forEach(ForkJoinTask::quietlyJoin);
-        this.tasks.clear();
+        resettingBarrier(Thread.currentThread().threadId());
     }
 
-    public MutableList<? super ForkJoinTask<?>> getTasksView() {
-        return this.tasks.asUnmodifiable();
+    public void resettingBarrier(final long origin) {
+        final MutableMap<Integer, ForkJoinTask<?>> taskMap = this.threadTaskMaps.get(origin);
+        taskMap.forEachValue(ForkJoinTask::quietlyJoin);
+        taskMap.clear();
+    }
+
+    public RichIterable<? super ForkJoinTask<?>> getTasksView() {
+        return getTasksView(Thread.currentThread().threadId());
+    }
+
+    public RichIterable<? super ForkJoinTask<?>> getTasksView(final long origin) {
+        return this.threadTaskMaps.get(origin).valuesView();
     }
 
 }

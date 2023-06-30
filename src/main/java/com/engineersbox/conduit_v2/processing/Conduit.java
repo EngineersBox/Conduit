@@ -150,8 +150,12 @@ public class Conduit {
         return this.executing;
     }
 
-    public MutableList<? super ForkJoinTask<?>> getTasksView() {
+    public RichIterable<? super ForkJoinTask<?>> getTasksView() {
         return this.executor.getTasksView();
+    }
+
+    public RichIterable<? super ForkJoinTask<?>> getTasksView(final long origin) {
+        return this.executor.getTasksView(origin);
     }
 
 }
