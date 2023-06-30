@@ -30,8 +30,8 @@ public class QueueSuppliedClientPool implements ClientPool {
     public IRiemannClient acquire() {
         IRiemannClient client;
         for (;;) {
+            lock.lock();
             try {
-                lock.lock();
                 client = this.clientQueue.poll();
                 if (client != null) {
                     break;
