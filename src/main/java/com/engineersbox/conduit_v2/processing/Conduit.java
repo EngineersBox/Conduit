@@ -92,6 +92,7 @@ public class Conduit {
                                                                                                                 final IngestionContext ctx) throws Exception {
                             if (!this.configured) {
                                 connector.configure();
+                                this.configured = true;
                             }
                             return connector.retrieve();
                         }
