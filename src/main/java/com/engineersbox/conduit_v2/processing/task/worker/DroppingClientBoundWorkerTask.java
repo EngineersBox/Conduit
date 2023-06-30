@@ -1,8 +1,7 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
-import io.riemann.riemann.client.RiemannClient;
+import io.riemann.riemann.client.IRiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
-import org.eclipse.collections.api.collection.MutableCollection;
 import org.eclipse.collections.api.map.MutableMap;
 
 import java.util.concurrent.ForkJoinTask;
@@ -22,7 +21,7 @@ public class DroppingClientBoundWorkerTask<T extends ForkJoinTask<?>, C extends 
     }
 
     @Override
-    public void accept(final RiemannClient riemannClient) {
+    public void accept(final IRiemannClient riemannClient) {
         this.task.accept(riemannClient);
         final T forkJoinTask = ref.getValue();
         if (forkJoinTask == null) {

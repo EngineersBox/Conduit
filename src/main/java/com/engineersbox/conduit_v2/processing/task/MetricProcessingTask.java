@@ -17,6 +17,7 @@ import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import io.riemann.riemann.Proto;
+import io.riemann.riemann.client.IRiemannClient;
 import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Lists;
@@ -150,7 +151,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     }
 
     @Override
-    public void accept(final RiemannClient riemannClient) {
+    public void accept(final IRiemannClient riemannClient) {
         this.contextInjector.accept(this.contextBuilder);
         try {
             this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)

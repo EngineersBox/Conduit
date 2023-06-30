@@ -18,12 +18,10 @@ import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
-import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
 import io.riemann.riemann.Proto;
-import io.riemann.riemann.client.RiemannClient;
+import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
-import org.eclipse.collections.api.list.MutableList;
 import org.luaj.vm2.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +46,7 @@ public class Conduit {
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
-                   final Supplier<RiemannClient> clientProvider,
+                   final Supplier<IRiemannClient> clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final String configPath) {
         this(
@@ -61,7 +59,7 @@ public class Conduit {
 
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
-                   final Supplier<RiemannClient> clientProvider,
+                   final Supplier<IRiemannClient> clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;

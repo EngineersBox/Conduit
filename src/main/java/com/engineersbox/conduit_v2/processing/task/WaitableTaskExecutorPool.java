@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.DroppingClientBoundWorkerTask;
+import io.riemann.riemann.client.IRiemannClient;
 import io.riemann.riemann.client.RiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -22,7 +23,7 @@ public class WaitableTaskExecutorPool extends TaskExecutorPool {
     //       returned to the pool and the condition state is updated (e.g.
     //       count decremented).
 
-    public WaitableTaskExecutorPool(final Supplier<RiemannClient> clientProvider,
+    public WaitableTaskExecutorPool(final Supplier<IRiemannClient> clientProvider,
                                     final int parallelism) {
         super(clientProvider, parallelism);
         this.threadTaskMaps = Maps.mutable.withInitialCapacity(parallelism);
