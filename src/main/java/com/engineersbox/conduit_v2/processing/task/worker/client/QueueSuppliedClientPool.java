@@ -50,11 +50,11 @@ public class QueueSuppliedClientPool implements ClientPool {
 
     @Override
     public void release(final IRiemannClient client) {
-        if (this.queueSize.get() == this.poolSize) {
-            throw new IllegalArgumentException("Cannot release client to full pool");
-        }
+        lock.lock();
         try {
-            lock.lock();
+            if (this.queueSize == this.poolSize) {
+                throw new IllegalArgumentException("Cannot release client to full pool");
+            }
             this.clientQueue.push(client);
         } finally {
             lock.unlock();
