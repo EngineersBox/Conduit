@@ -20,7 +20,6 @@ import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 import io.riemann.riemann.Proto;
-import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.luaj.vm2.Globals;
@@ -33,7 +32,6 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class Conduit {
 
@@ -64,7 +62,6 @@ public class Conduit {
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;
-        // TODO: Implement the client provider
         final int parallelism = config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors());
         // TODO: Allow executor pool to be supplied to support reuse between Conduit instances
         this.executor = new WaitableTaskExecutorPool(
