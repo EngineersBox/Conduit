@@ -29,7 +29,7 @@ public class QueueSuppliedClientPool implements ClientPool {
     @Override
     public IRiemannClient acquire() {
         IRiemannClient client;
-        for (;;) {
+        while (true) {
             lock.lock();
             try {
                 client = this.clientQueue.poll();
