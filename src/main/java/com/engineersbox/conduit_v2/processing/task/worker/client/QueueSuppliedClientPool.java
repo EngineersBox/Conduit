@@ -36,9 +36,9 @@ public class QueueSuppliedClientPool implements ClientPool {
                 if (client != null) {
                     break;
                 } else if (this.queueSize.get() == this.poolSize) {
-                    continue;
+                    client = this.clientProvider.get();
+                    break;
                 }
-                client = this.clientProvider.get();
             } finally {
                 lock.unlock();
             }
