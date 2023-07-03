@@ -134,7 +134,20 @@ public class EventTransformer {
                                                   final String metricNamespace,
                                                   final String suffix) {
         final Proto.Event.Builder builder = this.eventTemplate.toBuilder()
-                .setService(metricNamespace + suffix);
+                .setService(metricNamespace + suffix)
+                .addTags("tag1")
+                .addTags("tag2")
+                .addAttributes(
+                        Proto.Attribute.newBuilder()
+                                .setKey("attr1")
+                                .setValue("value1")
+                                .build()
+                ).addAttributes(
+                        Proto.Attribute.newBuilder()
+                                .setKey("attr2")
+                                .setValue("value2")
+                                .build()
+                );
         return type.buildMetric(builder, value).build();
     }
 }

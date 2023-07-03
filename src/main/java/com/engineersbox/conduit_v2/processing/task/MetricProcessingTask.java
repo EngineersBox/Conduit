@@ -128,14 +128,14 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                                                     event.getMetricSint64(),
                                                     event.getTimeMicros(),
                                                     event.getTtl(),
-                                                    event.getTagsList()
-                                                            .asByteStringList()
-                                                            .stream()
-                                                            .map(ByteString::toString)
-                                                            .collect(Collectors.joining(", ")),
+                                                    String.join(", ", event.getTagsList()),
                                                     event.getAttributesList()
                                                             .stream()
-                                                            .map(AbstractMessage::toString)
+                                                            .map((final Proto.Attribute attr) -> String.format(
+                                                                    "{ key: \"%s\", value: \"%s\" }",
+                                                                    attr.getKey(),
+                                                                    attr.getValue()
+                                                            ))
                                                             .collect(Collectors.joining(", "))
                                             )).collect(Collectors.joining())
                             );
