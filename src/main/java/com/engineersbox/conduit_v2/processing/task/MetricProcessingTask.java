@@ -118,7 +118,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                                     "Sending events: {}",
                                     Arrays.stream(events)
                                             .map((final Proto.Event event) -> String.format(
-                                                    "%n\t- [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]",
+                                                    "%n - [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]",
                                                     event.getHost(),
                                                     event.getDescription(),
                                                     event.getService(),
