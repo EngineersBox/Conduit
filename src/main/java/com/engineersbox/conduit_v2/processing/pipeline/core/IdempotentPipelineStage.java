@@ -18,7 +18,7 @@ public abstract class IdempotentPipelineStage<T> extends PipelineStage<T, T> imp
     public StageResult<T> invoke(final T previousResult) {
         accept(previousResult);
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 previousResult,
                 false
         );

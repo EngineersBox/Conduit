@@ -22,7 +22,7 @@ public abstract class ProcessPipelineStage<T, R> extends PipelineStage<Collectio
                 .map(this)
                 .toList();
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 result,
                 false
         );

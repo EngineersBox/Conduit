@@ -19,7 +19,7 @@ public class HandlerSaturationPipelineStage extends PipelineStage<RichIterable<M
                 setContextAttribute(LUA_HANDLER_PREFIX + name, handler)
         ));
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 previousResults,
                 false
         );

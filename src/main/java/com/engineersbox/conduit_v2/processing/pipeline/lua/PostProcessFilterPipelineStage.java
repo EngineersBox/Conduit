@@ -51,7 +51,7 @@ public class PostProcessFilterPipelineStage extends PipelineStage<Object[], Prot
             result = result.filter(this::test);
         }
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 result.toArray(Proto.Event[]::new),
                 false
         );

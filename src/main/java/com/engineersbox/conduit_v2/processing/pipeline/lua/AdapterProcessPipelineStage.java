@@ -39,7 +39,7 @@ public class AdapterProcessPipelineStage extends PipelineStage<Object[], Object[
             final Object[][] result = new Object[1][];
             result[0] = eventsStream;
             return new StageResult<>(
-                    StageResult.Type.SINGLE,
+                    StageResult.Type.SINGLETON,
                     result,
                     false
             );
@@ -62,7 +62,7 @@ public class AdapterProcessPipelineStage extends PipelineStage<Object[], Object[
         final Object[][] result = new Object[1][];
         result[0] = finalEvents;
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 result,
                 false
         );

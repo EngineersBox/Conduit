@@ -32,13 +32,14 @@ public class Pipeline<T> implements Consumer<T> {
         final Deque<Pair<StageResult<Object>, Integer>> valueQueue = new LinkedBlockingDeque<>();
         valueQueue.push(ImmutablePair.of(
                 new StageResult<>(
-                        StageResult.Type.SINGLE,
+                        StageResult.Type.SINGLETON,
                         initialValue,
                         false
                 ),
                 0
         ));
         final int stageCount = this.stageQueue.size();
+        LOGGER.trace("Starting pipeline execution with {} stages", stageCount);
         while (!valueQueue.isEmpty()) {
             final Pair<StageResult<Object>, Integer> value = valueQueue.pop();
             final StageResult<Object> stageState = value.getLeft();
@@ -51,12 +52,20 @@ public class Pipeline<T> implements Consumer<T> {
                 ));
                 continue;
             }
-            final StageResult<Object> result = stageQueue.get(stageIdx).invoke0(value.getKey().result());
-            if (result.terminate() || stageIdx == stageCount - 1) {
+            final PipelineStage<?, ?> stage = this.stageQueue.get(stageIdx);
+            LOGGER.debug("[SPLIT | SINGLETON] Invoking pipeline stage: {}", stage.getName());
+            final StageResult<Object> result = stage.invoke0(value.getKey().result());
+            if (result.terminate()) {
+                LOGGER.debug("Received termination condition from stage {}, terminating branch", stage.getName());
+                continue;
+            } else if (stageIdx == stageCount - 1) {
+                LOGGER.debug("Reached end of pipeline stages, terminating branch");
                 continue;
             }
             final Object resultValue = result.result();
-            switch (result.type()) {
+            final StageResult.Type resultType = result.type();
+            LOGGER.trace("Received {} type result from pipeline stage {}", resultType.name(), stage.getName());
+            switch (resultType) {
                 case SPLIT -> {
                     Stream<Object> valueStream;
                     if (TypeUtils.isArrayType(TypeUtils.wrap(resultValue.getClass()).getType())) {
@@ -87,12 +96,13 @@ public class Pipeline<T> implements Consumer<T> {
                             )
                     ));
                 }
-                case COMBINE, SINGLE -> valueQueue.push(ImmutablePair.of(
+                case COMBINE, SINGLETON -> valueQueue.push(ImmutablePair.of(
                         result,
                         stageIdx + 1
                 ));
             }
         }
+        LOGGER.trace("Finished pipeline execution");
     }
 
     private StageResult<Object> combineResults(final StageResult<Object> primary,
@@ -104,7 +114,9 @@ public class Pipeline<T> implements Consumer<T> {
         Pair<StageResult<Object>, Integer> val;
         for (int i = 1; i < count; i++) {
             val = deque.pop();
-            final StageResult<Object> result = this.stageQueue.get(val.getRight()).invoke0(val.getLeft().result());
+            final PipelineStage<?, ?> stage = this.stageQueue.get(val.getRight());
+            LOGGER.debug("[COMBINE] Invoking pipeline stage: {}", stage.getName());
+            final StageResult<Object> result = stage.invoke0(val.getLeft().result());
             final Object resultValue = result.result();
             final Type resultType = TypeUtils.wrap(resultValue.getClass()).getType();
             if (result.type() != StageResult.Type.COMBINE) {
@@ -122,7 +134,7 @@ public class Pipeline<T> implements Consumer<T> {
             combined[i] = resultValue;
         }
         return new StageResult<>(
-                StageResult.Type.SINGLE,
+                StageResult.Type.SINGLETON,
                 combined,
                 false
         );

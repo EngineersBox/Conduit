@@ -19,7 +19,7 @@ public record StageResult<T>(Type type,
     public enum Type {
         SPLIT,
         COMBINE,
-        SINGLE
+        SINGLETON
     }
 
 }
