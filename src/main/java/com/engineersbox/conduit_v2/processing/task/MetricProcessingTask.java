@@ -20,12 +20,11 @@ import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.RichIterable;
-import org.eclipse.collections.api.factory.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -55,11 +54,11 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.transformer = new EventTransformer(eventTemplate);
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
-        this.pipeline = createPipeline(luaContextHandler != null);
         this.luaContextHandler = luaContextHandler;
         this.contextTransformer = new ContextTransformer();
         this.contextBuilder = ContextTransformer.builder(this.contextTransformer);
         this.contextInjector = contextInjector;
+        this.pipeline = createPipeline(luaContextHandler != null);
     }
 
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final boolean hasLuaHandlers) {
@@ -117,8 +116,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                         try {
                             LOGGER.info(
                                     "Sending events: \n{}",
-                                    Lists.fixedSize.of(events)
-                                            .stream()
+                                    Arrays.stream(events)
                                             .map((final Proto.Event event) -> String.format(
                                                     " - [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]%n",
                                                     event.getHost(),

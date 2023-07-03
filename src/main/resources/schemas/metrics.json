@@ -181,9 +181,7 @@
                     "type": "string"
                 },
                 "handlers": {
-                    "type": {
-                        "$ref": "#/$defs/handler_methods"
-                    }
+                    "$ref": "#/$defs/handler_methods"
                 },
                 "type": {
                     "oneOf": [

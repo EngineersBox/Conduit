@@ -19,6 +19,9 @@
             "namespace": "/service/plugin/test_metric",
             "path": "$..book[?(@.price < $.expensive)].price",
             "handler_method": "shouldCollectTestMetric",
+            "handlers":{
+                "pre_process": "shouldCollectTestMetric"
+            },
             "type": {
                 "container": "LIST",
                 "type": "DOUBLE",
