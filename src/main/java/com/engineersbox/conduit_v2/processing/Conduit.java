@@ -56,18 +56,39 @@ public class Conduit {
         );
     }
 
-
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final ClientPool clientProvider,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
-        this.schemaProvider = schemaProvider;
-        final int parallelism = config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors());
-        // TODO: Allow executor pool to be supplied to support reuse between Conduit instances
-        this.executor = new WaitableTaskExecutorPool(
-                clientProvider,
-                parallelism
+        this(
+                schemaProvider,
+                new WaitableTaskExecutorPool(
+                        clientProvider,
+                        config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors())
+                ),
+                contextInjector,
+                config
         );
+    }
+
+    public Conduit(final MetricsSchemaProvider schemaProvider,
+                   final WaitableTaskExecutorPool executorPool,
+                   final Consumer<ContextTransformer.Builder> contextInjector,
+                   final String configPath) {
+        this(
+                schemaProvider,
+                executorPool,
+                contextInjector,
+                ConfigFactory.create(configPath)
+        );
+    }
+
+    public Conduit(final MetricsSchemaProvider schemaProvider,
+                   final WaitableTaskExecutorPool executorPool,
+                   final Consumer<ContextTransformer.Builder> contextInjector,
+                   final ConduitConfig config) {
+        this.schemaProvider = schemaProvider;
+        this.executor = executorPool;
         this.config = config;
         this.contextInjector = contextInjector;
     }
