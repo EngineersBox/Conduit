@@ -7,6 +7,8 @@ import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import io.riemann.riemann.Proto;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +139,8 @@ public class EventTransformer {
                 .setService(metricNamespace + suffix)
                 .addTags("tag1")
                 .addTags("tag2")
+                .setTtl(5732.9573f)
+                .setTimeMicros(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
                 .addAttributes(
                         Proto.Attribute.newBuilder()
                                 .setKey("attr1")
