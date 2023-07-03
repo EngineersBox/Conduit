@@ -8,6 +8,8 @@ import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
+    public static final String FILTERED_COUNT_ATTRIBUTE = "pre_process_filtered_count";
+
     private final LuaContextHandler contextHandler;
     private final ContextTransformer contextTransformer;
     private final boolean hasLuaHandlers;
@@ -50,6 +52,7 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
             );
         }
         final StageResult<Iterable<Metric>> result =  super.invoke(previousResult);
+        setContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE, super.filteredCount);
         return new StageResult<>(
                 StageResult.Type.SPLIT,
                 result.result(),

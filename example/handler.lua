@@ -4,7 +4,7 @@
 test_handler = {};
 
 -- Determine if the service is of an appropriate version to collect from
-function test_handler.shouldCollectTestMetric(self, ctx)
+function test_handler.shouldCollectTestMetric(_, ctx)
     for k,v in pairs(ctx) do
         print("Key: "..k.." Value: "..type(v));
     end

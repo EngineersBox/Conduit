@@ -86,7 +86,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                         ).toArray(Proto.Event[]::new);
                         return new StageResult<>(
                                 StageResult.Type.COMBINE,
-                                MetricProcessingTask.this.initialMetrics.size(), // TODO: Change this to get actual count from pre process filter results
+                                (int) getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
                                 result,
                                 false
                         );
@@ -115,10 +115,10 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                         final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
                         try {
                             LOGGER.info(
-                                    "Sending events: \n{}",
+                                    "Sending events: {}",
                                     Arrays.stream(events)
                                             .map((final Proto.Event event) -> String.format(
-                                                    " - [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]%n",
+                                                    "%n\t- [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]",
                                                     event.getHost(),
                                                     event.getDescription(),
                                                     event.getService(),
@@ -140,7 +140,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                                             )).collect(Collectors.joining())
                             );
                             riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
-                        } catch (IOException e) {
+                        } catch (final IOException e) {
                             throw new RuntimeException(e);
                         }
                     }
