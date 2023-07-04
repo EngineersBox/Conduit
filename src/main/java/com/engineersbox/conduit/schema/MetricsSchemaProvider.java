@@ -5,6 +5,8 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,13 +58,21 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
         }
         return new MetricsSchemaProvider() {
 
-            private MetricsSchema schema = provide();
+            private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchemaProvider.class);
+
+            private MetricsSchema schema;
             private long fileSize;
             private long fileLastModifiedTime;
             {
                 final File initialFile = Path.of(schemaPath).toFile();
                 this.fileSize = initialFile.length();
                 this.fileLastModifiedTime = FileUtils.lastModifiedUnchecked(initialFile);
+                LOGGER.trace("[Checksum Refreshed] Initial file properties [Size: {}] [Modified: {}]", this.fileSize, this.fileLastModifiedTime);
+                try {
+                    this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(initialFile));
+                } catch (final IOException e) {
+                    throw new IllegalStateException("Unable to read schema from path " + schemaPath, e);
+                }
             }
             private final int chunkCount = Math.max(maxChunkCount, (int) (this.fileSize / chunkSizeBytes));
             private boolean updateHashes = true;
@@ -77,6 +87,12 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 final File schemaFile = Path.of(schemaPath).toFile();
                 final long updatedFileSize = schemaFile.length();
                 final long updatedLastModifiedTime = FileUtils.lastModifiedUnchecked(schemaFile);
+                LOGGER.trace(
+                        "[Checksum Refreshed] Cached file: [Size: {}, Modified: {}] Refreshed file: [Size: {}, Modified: {}] Compute and compare hashes: {}",
+                        this.fileSize, this.fileLastModifiedTime,
+                        updatedFileSize, updatedLastModifiedTime,
+                        compareHashes
+                );
                 if (updatedFileSize == this.fileSize && updatedLastModifiedTime == this.fileLastModifiedTime) {
                     return this.schema;
                 } else if (compareHashes && compareChunkHashes()) {
@@ -86,9 +102,10 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 this.fileLastModifiedTime = updatedLastModifiedTime;
                 this.updateHashes = true;
                 try {
+                    LOGGER.debug("[Checksum Refreshed] Refreshed schema required, parsing schema file {}", schemaPath);
                     this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(schemaFile));
                     return this.schema;
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new IllegalStateException("Unable to read schema from path " + schemaPath, e);
                 }
             }
@@ -98,6 +115,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 for (int i = 0; i < this.chunkCount; i++) {
                     final long currentChunkHash = this.chunkHashes[i];
                     this.chunkHashes[i] = computeHash(fileByteSource.slice(((long) i) * chunkSizeBytes, chunkSizeBytes));
+                    LOGGER.trace("[Checksum Refreshed] Hash comparison at chunk {}: [Old: {}] [New: {}]", i, currentChunkHash, this.chunkHashes[i]);
                     if (currentChunkHash != this.chunkHashes[i]) {
                         this.lastComputedChunkHashIndex = i;
                         return false;
@@ -121,6 +139,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                     return;
                 }
                 final ByteSource fileByteSource = Files.asByteSource(Path.of(schemaPath).toFile());
+                LOGGER.trace("[Checksum Refreshed] Residual chunk hashes to recompute: {}", this.chunkCount - this.lastComputedChunkHashIndex);
                 for (int i = this.lastComputedChunkHashIndex; i < this.chunkCount; i++) {
                     this.chunkHashes[i] = computeHash(fileByteSource.slice(i * chunkSizeBytes, chunkSizeBytes));
                 }

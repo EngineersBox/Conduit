@@ -108,6 +108,7 @@ public class Conduit {
             this.schemaProvider.lock();
         }
         if (this.schemaProvider.instanceRefreshed()) {
+            LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
             this.contentManager = ContentManagerFactory.construct(
                     schema,
                     source,
@@ -119,6 +120,7 @@ public class Conduit {
         final LazyIterable<Metric> workload = schema.valuesView().asLazy();
         this.contentManager.poll();
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
+        LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
         final LuaContextHandler handler = getHandler(schema.getHandler());
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.workerTaskGenerator.generate(
@@ -128,6 +130,7 @@ public class Conduit {
                         handler,
                         this.contextInjector
                 )).forEach(this.executor::submit);
+        LOGGER.debug("Submitted workloads to conduit executor");
         if (!this.config.ingest.async) {
             this.executor.resettingBarrier();
         }

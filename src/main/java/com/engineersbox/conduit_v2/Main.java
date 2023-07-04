@@ -23,7 +23,7 @@ public class Main {
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
 			Conduit conduit = new Conduit(
-					MetricsSchemaProvider.checksumRefreshed("./example/test.json", false),
+					MetricsSchemaProvider.checksumRefreshed("./example/test.json", true),
 //					new DirectSupplierClientPool(() -> client),
 					new QueueSuppliedClientPool(() -> client, 5),
 					TaskBatchGeneratorFactory.defaultGenerator(),
