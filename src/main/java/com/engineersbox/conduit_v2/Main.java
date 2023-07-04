@@ -29,7 +29,7 @@ public class Main {
 					(final ContextTransformer.Builder builder) -> {},
 					ConfigFactory.create("./example/config.conf")
 			);
-			conduit.execute();
+			conduit.execute(null);
 		} catch (final Exception e) {
 			LOGGER.error("EXCEPTION IN MAIN:", e);
 		}

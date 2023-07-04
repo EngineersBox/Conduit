@@ -104,7 +104,7 @@ public class Conduit {
         this.contextInjector = contextInjector;
     }
 
-    public void execute() throws Exception {
+    public void execute(final IngestionContext context) throws Exception {
         this.executing = true;
         final MetricsSchema schema = this.schemaProvider.provide();
         if (this.config.ingest.schema_provider_locking) {
@@ -125,7 +125,7 @@ public class Conduit {
                             return connector.retrieve();
                         }
                     },
-                    null,
+                    context,
                     Function.identity() // TODO: allow customisation via config
             );
         }
