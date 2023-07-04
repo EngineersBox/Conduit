@@ -104,7 +104,8 @@ public class Conduit {
         this.contextInjector = contextInjector;
     }
 
-    public void execute(final IngestionContext context) throws Exception {
+    public void execute(final IngestionContext context,
+                        final Source<?> source) throws Exception {
         this.executing = true;
         final MetricsSchema schema = this.schemaProvider.provide();
         if (this.config.ingest.schema_provider_locking) {
@@ -113,18 +114,7 @@ public class Conduit {
         if (this.schemaProvider.instanceRefreshed()) {
             this.contentManager = ContentManagerFactory.construct(
                     schema,
-                    new Source<>() {
-                        private boolean configured = false;
-                        @Override
-                        public <E extends ConnectorConfiguration, C extends Connector<Object, E>> Object invoke(final C connector,
-                                                                                                                final IngestionContext ctx) throws Exception {
-                            if (!this.configured) {
-                                connector.configure();
-                                this.configured = true;
-                            }
-                            return connector.retrieve();
-                        }
-                    },
+                    source,
                     context,
                     Function.identity() // TODO: allow customisation via config
             );

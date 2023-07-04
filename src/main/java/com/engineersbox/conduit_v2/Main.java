@@ -8,6 +8,7 @@ import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.task.worker.client.DirectSupplierClientPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.QueueSuppliedClientPool;
+import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.client.RiemannClient;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public class Main {
 					(final ContextTransformer.Builder builder) -> {},
 					ConfigFactory.create("./example/config.conf")
 			);
-			conduit.execute(null);
+			conduit.execute(null, Source.singleConfigurable());
 		} catch (final Exception e) {
 			LOGGER.error("EXCEPTION IN MAIN:", e);
 		}
