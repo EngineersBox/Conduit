@@ -5,6 +5,7 @@ import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit.schema.provider.LRUCache;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
+import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.task.worker.client.DirectSupplierClientPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.QueueSuppliedClientPool;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
@@ -24,6 +25,7 @@ public class Main {
 					MetricsSchemaProvider.checksumRefreshed("./example/test.json", false),
 //					new DirectSupplierClientPool(() -> client),
 					new QueueSuppliedClientPool(() -> client, 5),
+					TaskBatchGeneratorFactory.defaultGenerator(),
 					(final ContextTransformer.Builder builder) -> {},
 					ConfigFactory.create("./example/config.conf")
 			);

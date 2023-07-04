@@ -9,8 +9,10 @@ import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
+import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
+import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
@@ -43,14 +45,17 @@ public class Conduit {
     private boolean executing = false;
     private ContentManager<?, ?, ? ,?> contentManager;
     private final Consumer<ContextTransformer.Builder> contextInjector;
+    private final TaskBatchGenerator workerTaskGenerator;
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final ClientPool clientProvider,
+                   final TaskBatchGenerator workerTaskGenerator,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final String configPath) {
         this(
                 schemaProvider,
                 clientProvider,
+                workerTaskGenerator,
                 contextInjector,
                 ConfigFactory.create(configPath)
         );
@@ -58,6 +63,7 @@ public class Conduit {
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final ClientPool clientProvider,
+                   final TaskBatchGenerator workerTaskGenerator,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this(
@@ -66,6 +72,7 @@ public class Conduit {
                         clientProvider,
                         config.executor.task_pool_size.orElse(Runtime.getRuntime().availableProcessors())
                 ),
+                workerTaskGenerator,
                 contextInjector,
                 config
         );
@@ -73,11 +80,13 @@ public class Conduit {
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final WaitableTaskExecutorPool executorPool,
+                   final TaskBatchGenerator workerTaskGenerator,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final String configPath) {
         this(
                 schemaProvider,
                 executorPool,
+                workerTaskGenerator,
                 contextInjector,
                 ConfigFactory.create(configPath)
         );
@@ -85,10 +94,12 @@ public class Conduit {
 
     public Conduit(final MetricsSchemaProvider schemaProvider,
                    final WaitableTaskExecutorPool executorPool,
+                   final TaskBatchGenerator workerTaskGenerator,
                    final Consumer<ContextTransformer.Builder> contextInjector,
                    final ConduitConfig config) {
         this.schemaProvider = schemaProvider;
         this.executor = executorPool;
+        this.workerTaskGenerator = workerTaskGenerator;
         this.config = config;
         this.contextInjector = contextInjector;
     }
@@ -124,7 +135,7 @@ public class Conduit {
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
         final LuaContextHandler handler = getHandler(schema.getHandler());
-        batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> new MetricProcessingTask(
+        batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.workerTaskGenerator.generate(
                         metrics.asLazy(),
                         eventTemplate,
                         retrieverReference,
