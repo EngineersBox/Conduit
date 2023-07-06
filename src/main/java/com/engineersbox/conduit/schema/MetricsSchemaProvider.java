@@ -94,8 +94,14 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                         compareHashes
                 );
                 if (updatedFileSize == this.fileSize && updatedLastModifiedTime == this.fileLastModifiedTime) {
+                    LOGGER.trace(
+                            "[Checksum Refreshed] File size is equivalent [{}] and modified time has not been updated [{}], returning cached schema",
+                            this.fileSize,
+                            this.fileLastModifiedTime
+                    );
                     return this.schema;
                 } else if (compareHashes && compareChunkHashes()) {
+                    LOGGER.trace("[Checksum Refreshed] Computed chunk checksums are equivalent with cached chunk checksums, returning cached schema");
                     return this.schema;
                 }
                 this.fileSize = updatedFileSize;
