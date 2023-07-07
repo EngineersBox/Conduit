@@ -1,8 +1,10 @@
 package com.engineersbox.conduit_v2.processing.pipeline.lua;
 
+import com.engineersbox.conduit.handler.ContextBuiltins;
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit_v2.processing.event.EventSerialiser;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 
@@ -11,15 +13,15 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
     public static final String FILTERED_COUNT_ATTRIBUTE = "pre_process_filtered_count";
 
     private final LuaContextHandler contextHandler;
-    private final ContextTransformer contextTransformer;
+    private final ContextTransformer.Builder contextBuilder;
     private final boolean hasLuaHandlers;
 
     public PreProcessFilterPipelineStage(final LuaContextHandler contextHandler,
-                                         final ContextTransformer contextTransformer,
+                                         final ContextTransformer.Builder contextBuilder,
                                          final boolean hasLuaHandlers) {
         super("Pre-process Lua filter");
         this.contextHandler = contextHandler;
-        this.contextTransformer = contextTransformer;
+        this.contextBuilder = contextBuilder;
         this.hasLuaHandlers = hasLuaHandlers;
     }
 
@@ -29,9 +31,14 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
         if (!(handlerObj instanceof String handler)) {
             return true;
         }
+        this.contextBuilder.withReadOnly(
+                "metric",
+                metric
+                // TODO: MetricSerializer.class
+        ).withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT);
         this.contextHandler.invoke(
                 handler,
-                this.contextTransformer.transform()
+                this.contextBuilder.build().transform()
         );
         return this.contextHandler.getFromResult(
                 new String[]{

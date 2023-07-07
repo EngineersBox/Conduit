@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2;
 
+import com.engineersbox.conduit.handler.ContextBuiltins;
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit.schema.provider.LRUCache;
@@ -27,7 +28,7 @@ public class Main {
 //					new DirectSupplierClientPool(() -> client),
 					new QueueSuppliedClientPool(() -> client, 5),
 					TaskBatchGeneratorFactory.defaultGenerator(),
-					(final ContextTransformer.Builder builder) -> {},
+					(final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3),
 					ConfigFactory.create("./example/config.conf")
 			);
 			conduit.execute(null, Source.singleConfigurable());

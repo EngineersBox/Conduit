@@ -41,7 +41,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final AtomicReference<RetrievalHandler<Metric>> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final LuaContextHandler luaContextHandler;
-    private final ContextTransformer contextTransformer;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
@@ -55,8 +54,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
         this.luaContextHandler = luaContextHandler;
-        this.contextTransformer = new ContextTransformer();
-        this.contextBuilder = ContextTransformer.builder(this.contextTransformer);
+        this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
         this.pipeline = createPipeline(luaContextHandler != null);
     }
@@ -71,7 +69,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         pipelineBuilder.withStages(
                 new PreProcessFilterPipelineStage(
                         this.luaContextHandler,
-                        this.contextTransformer,
+                        this.contextBuilder,
                         hasLuaHandlers
                 ),
                 new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
@@ -98,7 +96,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                     new AdapterProcessPipelineStage(
                             this.contextBuilder,
                             this.luaContextHandler,
-                            this.contextTransformer,
                             this.eventTemplate
                     )
             );
@@ -106,7 +103,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         return pipelineBuilder.withStages(
                 new PostProcessFilterPipelineStage(
                         this.luaContextHandler,
-                        this.contextTransformer,
+                        this.contextBuilder,
                         hasLuaHandlers
                 ),
                 new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {

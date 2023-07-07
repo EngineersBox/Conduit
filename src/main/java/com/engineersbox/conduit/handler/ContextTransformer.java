@@ -163,6 +163,10 @@ public class ContextTransformer {
             return this;
         }
 
+        public ContextTransformer build() {
+            return this.transformer;
+        }
+
     }
 
 }
