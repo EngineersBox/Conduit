@@ -9,6 +9,12 @@ import com.engineersbox.conduit.schema.provider.MappingProvider;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http.*;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.json.JsonGeneratorImpl;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Range;
@@ -22,10 +28,14 @@ import org.eclipse.collections.api.map.ImmutableMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.tuple.ImmutableEntry;
 import org.eclipse.collections.impl.utility.Iterate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -255,16 +265,36 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
         return builder.build();
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchema.class);
+
     private static Proto.Event parseEventTemplate(final JsonNode eventTemplate) throws TextFormat.ParseException {
         if (eventTemplate == null) {
             return Proto.Event.getDefaultInstance();
         }
         final Proto.Event.Builder eventTemplateBuilder = Proto.Event.newBuilder();
         TextFormat.getParser().merge(
-                eventTemplate.asText(),
+                formatEventTemplate(eventTemplate),
                 eventTemplateBuilder
         );
         return eventTemplateBuilder.build();
+    }
+
+    private static String formatEventTemplate(final JsonNode node) {
+        final StringBuilder builder = new StringBuilder();
+        for (Iterator<Entry<String, JsonNode>> it = node.fields(); it.hasNext();) {
+            final Entry<String, JsonNode> childNode = it.next();
+            builder.append(childNode.getKey()).append(": ");
+            final JsonNode value = childNode.getValue();
+            if (value.isObject()) {
+                builder.append(formatEventTemplate(value));
+            } else {
+                builder.append(value);
+            }
+            if (it.hasNext()) {
+                builder.append(", ");
+            }
+        }
+        return builder.toString();
     }
 
     public static class Builder {

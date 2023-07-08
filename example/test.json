@@ -12,7 +12,11 @@
         "json_provider": "JACKSON",
         "mapping_provider": "JACKSON"
     },
-    "event_template": "host:\"Test Service\"\ndescription: \"Some Metric Description\"\nmetric_d: 123.44",
+    "event_template": {
+        "host": "Test Service",
+        "description": "Some Metric Description",
+        "metric_d": 123.44
+    },
     "handler": "example/compiled/handler.class",
     "metrics": [
         {
