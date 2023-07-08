@@ -28,19 +28,14 @@ public abstract class PipelineStage<T, R> implements InvocableStage<T, R> {
         this.name = name;
         this.typeChecked = typeChecked;
         if (this.typeChecked) {
-            final Type[] types = getStageTypeArguments();
-            this.previousType = (Class<T>) TypeToken.of(types[0]).getRawType();
-            this.nextType = (Class<R>) TypeToken.of(types.length == 1 ? types[0] : types[1]).getRawType();
+            this.previousType = (Class<T>) new TypeToken<T>(getClass()){}.getRawType();
+            this.nextType = (Class<R>) new TypeToken<R>(getClass()){}.getRawType();
+            LOGGER.info("PREVIOUS: {}", this.previousType);
+            LOGGER.info("NEXT: {}", this.nextType);
         } else {
             this.previousType = null;
             this.nextType = null;
         }
-    }
-
-    private Type[] getStageTypeArguments() {
-        Class<?> clazz;
-        for (clazz = getClass(); !clazz.getSuperclass().equals(PipelineStage.class); clazz = clazz.getSuperclass());
-        return ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments();
     }
 
     public String getName() {
