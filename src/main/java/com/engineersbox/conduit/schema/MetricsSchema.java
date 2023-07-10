@@ -60,6 +60,10 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
         return this.handler;
     }
 
+    public boolean requiresJseGlobals() {
+        return this.requiresJseGlobals;
+    }
+
     public static MetricsSchema.Builder builder() {
         return new Builder();
     }
@@ -255,8 +259,6 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
         }
         return builder.build();
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchema.class);
 
     private static Proto.Event parseEventTemplate(final JsonNode eventTemplate) throws TextFormat.ParseException {
         if (eventTemplate == null) {
