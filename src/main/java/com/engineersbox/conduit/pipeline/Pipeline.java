@@ -161,7 +161,7 @@ public class Pipeline {
 
     private boolean invokeLuaHandler(final Metric metric,
                                      final LuaContextHandler handler) {
-        final String method = metric.getHandlerMethod();
+        final String method = metric.getHandler("pre_process");
         if (method == null) {
             return true;
         }

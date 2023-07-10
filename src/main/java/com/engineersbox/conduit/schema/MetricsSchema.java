@@ -99,18 +99,17 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
         }
         final JsonNode metrics = definition.get("metrics");
         for (final JsonNode metric : metrics) {
-            final JsonNode handlerMethodNode = metric.get("handler_method");
-            if (handlerMethodNode != null) {
+            final JsonNode handlersNode = metric.get("handlers");
+            if (handlersNode != null) {
                 if (builder.schema.handler == null) {
-                    throw new IllegalArgumentException("Missing \"handler\" path to reference handler method from");
+                    throw new IllegalArgumentException("Missing \"handler\" path to reference handler methods from");
                 }
                 builder.schema.requiresJseGlobals = true;
             }
             builder.put(
                     Metric.path(metric.get("path").asText())
                             .namespace(metric.get("namespace").asText())
-                            .handlerMethod(handlerMethodNode != null ? handlerMethodNode.asText() : null)
-                            .handlers(parseHandlers(metric.get("handlers")))
+                            .handlers(parseHandlers(handlersNode))
                             .type(parseMetricType(
                                     MetricType.builder(),
                                     metric.get("type")

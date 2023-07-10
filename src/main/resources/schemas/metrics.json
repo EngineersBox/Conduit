@@ -156,18 +156,9 @@
         },
         "handler_methods": {
             "type": "object",
-            "properties": {
-                "pre_process": {
-                    "type": "string"
-                },
-                "adapt": {
-                    "type": "string"
-                },
-                "post_process": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": true
+            "additionalProperties": {
+                "type": "string"
+            }
         },
         "metric": {
             "type": "object",
