@@ -70,8 +70,6 @@ public class Pipeline<T> implements Consumer<T> {
                     Stream<Object> valueStream;
                     if (TypeUtils.isArrayType(TypeUtils.wrap(resultValue.getClass()).getType())) {
                         valueStream = Arrays.stream((Object[]) resultValue);
-                    } else if (resultValue instanceof Collection<?> collection) {
-                        valueStream = (Stream<Object>) collection.stream();
                     } else if (resultValue instanceof Iterator<?> iterator) {
                         valueStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(
                                 iterator,

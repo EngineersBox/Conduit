@@ -3,8 +3,6 @@ package com.engineersbox.conduit_v2.processing.task;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.DroppingClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
-import io.riemann.riemann.client.IRiemannClient;
-import io.riemann.riemann.client.RiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.eclipse.collections.api.RichIterable;
@@ -12,7 +10,6 @@ import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.MutableMap;
 
 import java.util.concurrent.ForkJoinTask;
-import java.util.function.Supplier;
 
 public class WaitableTaskExecutorPool extends TaskExecutorPool {
 
