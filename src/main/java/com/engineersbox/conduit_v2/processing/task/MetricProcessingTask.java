@@ -14,11 +14,8 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipe
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
-import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.ByteString;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
-import io.riemann.riemann.client.RiemannClient;
 import org.eclipse.collections.api.RichIterable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +106,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
                     @Override
                     public void accept(final Proto.Event[] events) {
-                        final RiemannClient riemannClient = (RiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
+                        final IRiemannClient riemannClient = (IRiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
                         try {
                             LOGGER.info(
                                     "Sending events: {}",
