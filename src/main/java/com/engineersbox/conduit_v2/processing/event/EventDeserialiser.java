@@ -1,6 +1,5 @@
 package com.engineersbox.conduit_v2.processing.event;
 
-import com.google.protobuf.Message;
 import io.riemann.riemann.Proto;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
