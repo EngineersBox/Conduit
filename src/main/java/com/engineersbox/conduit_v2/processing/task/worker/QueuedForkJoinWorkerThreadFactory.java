@@ -1,15 +1,9 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
-import com.google.common.collect.Queues;
-import io.riemann.riemann.client.IRiemannClient;
-import io.riemann.riemann.client.RiemannBatchClient;
-import io.riemann.riemann.client.RiemannClient;
 
-import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.function.Supplier;
 
 public class QueuedForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
 

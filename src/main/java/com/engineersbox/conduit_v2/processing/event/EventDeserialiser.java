@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.event;
 
+import com.google.protobuf.Message;
 import io.riemann.riemann.Proto;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
@@ -46,7 +47,6 @@ public class EventDeserialiser implements Function<LuaValue, Proto.Event> {
                 LuaValue::tojstring,
                 builder::setDescription
         );
-
         setField(
                 table.get("tags"),
                 LuaValue::istable,
@@ -62,9 +62,37 @@ public class EventDeserialiser implements Function<LuaValue, Proto.Event> {
                 },
                 (final LuaValue[] tags) -> {
                     for (final LuaValue value : tags) {
-                        if (value != null && value.isstring()) {
-                            builder.addTags(value.tojstring());
+                        if (value != null) {
+                            builder.addTags(value.tostring().tojstring());
                         }
+                    }
+                    return builder;
+                }
+        );
+        setField(
+                table.get("attributes"),
+                LuaValue::istable,
+                (final LuaValue value) -> {
+                    builder.clearAttributes();
+                    final LuaTable attributes = value.checktable();
+                    final LuaValue[] keys = attributes.keys();
+                    final Proto.Attribute[] values = new Proto.Attribute[attributes.keyCount()];
+                    for (int i = 0; i < attributes.keyCount(); i++) {
+                        final Proto.Attribute.Builder attrBuilder = Proto.Attribute.newBuilder();
+                        if (keys[i] != null) {
+                            attrBuilder.setKey(keys[i].tostring().tojstring());
+                        }
+                        final LuaValue attrValue = attributes.get(keys[i]);
+                        if (attrValue != null && attrValue.isstring()) {
+                            attrBuilder.setValue(attrValue.tostring().tojstring());
+                        }
+                        values[i] = attrBuilder.build();
+                    }
+                    return values;
+                },
+                (final Proto.Attribute[] attributes) -> {
+                    for (final Proto.Attribute attribute : attributes) {
+                        builder.addAttributes(attribute);
                     }
                     return builder;
                 }
