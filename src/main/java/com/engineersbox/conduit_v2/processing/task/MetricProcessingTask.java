@@ -81,7 +81,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                         ).toArray(Proto.Event[]::new);
                         return new StageResult<>(
                                 StageResult.Type.COMBINE,
-                                (int) getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
+                                (int) super.getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
                                 result,
                                 false
                         );
@@ -106,7 +106,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                 new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
                     @Override
                     public void accept(final Proto.Event[] events) {
-                        final IRiemannClient riemannClient = (IRiemannClient) this.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
+                        final IRiemannClient riemannClient = (IRiemannClient) super.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
                         try {
                             LOGGER.info(
                                     "Sending events: {}",
