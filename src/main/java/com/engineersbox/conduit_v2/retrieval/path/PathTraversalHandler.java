@@ -19,7 +19,7 @@ public class PathTraversalHandler<R> {
         } else if (raw instanceof InputStream rawInputStream) {
             this.parseContext.parse(rawInputStream);
         } else if (raw instanceof byte[] rawBytes) {
-            this.parseContext.parse(rawBytes);
+            this.parseContext.parseUtf8(rawBytes);
         } else {
             this.parseContext.parse(raw);
         }
