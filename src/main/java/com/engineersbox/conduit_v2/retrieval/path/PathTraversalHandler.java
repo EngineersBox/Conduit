@@ -15,13 +15,13 @@ public class PathTraversalHandler<R> {
 
     public void saturate(final R raw) {
         if (raw instanceof String rawString) {
-            this.parseContext.parse(rawString);
+            this.context = this.parseContext.parse(rawString);
         } else if (raw instanceof InputStream rawInputStream) {
-            this.parseContext.parse(rawInputStream);
+            this.context = this.parseContext.parse(rawInputStream);
         } else if (raw instanceof byte[] rawBytes) {
-            this.parseContext.parseUtf8(rawBytes);
+            this.context = this.parseContext.parseUtf8(rawBytes);
         } else {
-            this.parseContext.parse(raw);
+            this.context = this.parseContext.parse(raw);
         }
     }
 
