@@ -4,7 +4,9 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.map.MutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +30,12 @@ public class Pipeline<T> implements Consumer<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
-    private final Map<String, Object> context;
+    private final MutableMap<String, Object> context;
     private final MutableList<PipelineStage<?, ?>> stageQueue;
 
     private Pipeline() {
         this.stageQueue = Lists.mutable.empty();
-        this.context = new HashMap<>();
+        this.context = Maps.mutable.empty();
     }
 
     @Override
