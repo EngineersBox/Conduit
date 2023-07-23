@@ -32,30 +32,30 @@ public class Main {
 """;
 
     public static void main (final String[] args) throws JsonProcessingException {
-		final ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new ProtobufModule());
-		final Proto.Event event = mapper.readValue(test, Proto.Event.class);
-		LOGGER.info(
-				"EVENT: [host: {}] [description: {}] [metric_d: {}]",
-				event.getHost(),
-				event.getDescription(),
-				event.getMetricD()
-		);
-//		CacheProvider.setCache(new LRUCache(10));
-//		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
-//			client.connect();
-//			Conduit conduit = new Conduit(
-//					MetricsSchemaProvider.checksumRefreshed("./example/test.json", true),
-////					new DirectSupplierClientPool(() -> client),
-//					new QueueSuppliedClientPool(() -> client, 5),
-//					TaskBatchGeneratorFactory.defaultGenerator(),
-//					(final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3),
-//					ConfigFactory.create("./example/config.conf")
-//			);
-//			conduit.execute(null, Source.singleConfigurable());
-//		} catch (final Exception e) {
-//			LOGGER.error("EXCEPTION IN MAIN:", e);
-//		}
+//		final ObjectMapper mapper = new ObjectMapper();
+//		mapper.registerModule(new ProtobufModule());
+//		final Proto.Event event = mapper.readValue(test, Proto.Event.class);
+//		LOGGER.info(
+//				"EVENT: [host: {}] [description: {}] [metric_d: {}]",
+//				event.getHost(),
+//				event.getDescription(),
+//				event.getMetricD()
+//		);
+		CacheProvider.setCache(new LRUCache(10));
+		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
+			client.connect();
+			Conduit conduit = new Conduit(
+					MetricsSchemaProvider.checksumRefreshed("./example/test.json", true),
+//					new DirectSupplierClientPool(() -> client),
+					new QueueSuppliedClientPool(() -> client, 5),
+					TaskBatchGeneratorFactory.defaultGenerator(),
+					(final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3),
+					ConfigFactory.create("./example/config.conf")
+			);
+			conduit.execute(null, Source.singleConfigurable());
+		} catch (final Exception e) {
+			LOGGER.error("EXCEPTION IN MAIN:", e);
+		}
     }
 
 }
