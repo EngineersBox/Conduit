@@ -1,6 +1,9 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class HTTPBasicAuthConfig extends HTTPAuthConfig {
 
     private static final String TYPE = "BASIC";
@@ -8,8 +11,9 @@ public class HTTPBasicAuthConfig extends HTTPAuthConfig {
     private final String username;
     private final String password;
 
-    public HTTPBasicAuthConfig(final String username,
-                               final String password) {
+    @JsonCreator
+    public HTTPBasicAuthConfig(@JsonProperty("username") final String username,
+                               @JsonProperty("password") final String password) {
         super(HTTPBasicAuthConfig.TYPE);
         this.username = username;
         this.password = password;

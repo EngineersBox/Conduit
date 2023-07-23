@@ -165,7 +165,7 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
         final URI uri = URI.create(sourceNode.get("uri").asText());
         final JsonNode authNode = sourceNode.get("auth");
         final HTTPAuthType authType = HTTPAuthType.valueOf(authNode.get("type").asText());
-        final HTTPConnector connector = new HTTPConnector();
+        final HTTPConnector connector = new HTTPConnector(null);
         final HTTPConnectorConfiguration config = new HTTPConnectorConfiguration(
                 uri,
                 switch (authType) {

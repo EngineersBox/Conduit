@@ -32,8 +32,8 @@ public class JsonPathConfigDeserializer extends StdDeserializer<Configuration> {
                                      final DeserializationContext _context) throws IOException {
         final JsonNode node = parser.getCodec().readTree(parser);
         return Configuration.builder()
-                .jsonProvider(DataTypeProvider.JSON_PROVIDERS.get(node.get("json_provider")).get())
-                .mappingProvider(DataTypeProvider.MAPPING_PROVIDERS.get(node.get("mapping_provider")).get())
+                .jsonProvider(DataTypeProvider.JSON_PROVIDERS.get(node.get("json_provider").asText()).get())
+                .mappingProvider(DataTypeProvider.MAPPING_PROVIDERS.get(node.get("mapping_provider").asText()).get())
                 .build();
     }
 }

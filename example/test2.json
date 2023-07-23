@@ -1,13 +1,16 @@
 {
     "source": {
         "type": "HTTP",
-        "auth": {
-            "type": "CERTIFICATE",
-            "location": "example/certificate.p12", // TODO: Fix this to use client SSL certs for auth: https://stuff-things.net/2015/09/17/client-certificate-ca-setup-and-signing/
-            "certificate_type": "PKCS12",
-            "password": "test"
-        },
-        "uri": "https://localhost:8000/source.json"
+        "config": {
+            "auth": {
+                "type": "CERTIFICATE",
+                "location": "example/certificate.p12",
+                // TODO: Fix this to use client SSL certs for auth: https://stuff-things.net/2015/09/17/client-certificate-ca-setup-and-signing/
+                "certificate_type": "PKCS12",
+                "password": "test"
+            },
+            "uri": "https://localhost:8000/source.json"
+        }
     },
     "configuration": {
         "json_provider": "JACKSON",

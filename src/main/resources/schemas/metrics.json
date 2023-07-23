@@ -135,20 +135,31 @@
             "properties": {
                 "type": {
                     "$ref": "#/$defs/source_type"
-                }
-            },
-            "if": { "properties": { "type": { "const": "HTTP" } } },
-            "then": {
-                "$ref": "#/$defs/http_source",
-                "properties": {
-                    "type": {
-                        "$ref": "#/$defs/source_type"
-                    }
                 },
-                "unevaluatedProperties": false
-            },
-            "else": {
-                "$ref": "#/$defs/custom_source"
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "HTTP"
+                                }
+                            }
+                        },
+                        "then": {
+                            "$ref": "#/$defs/http_source",
+                            "properties": {
+                                "type": {
+                                    "$ref": "#/$defs/source_type"
+                                }
+                            },
+                            "unevaluatedProperties": false
+                        },
+                        "else": {
+                            "$ref": "#/$defs/custom_source"
+                        }
+                    }
+                }
             },
             "required": [
                 "type"

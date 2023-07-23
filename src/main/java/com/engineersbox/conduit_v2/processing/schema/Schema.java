@@ -4,9 +4,11 @@ import com.engineersbox.conduit.schema.Validator;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
@@ -26,24 +28,43 @@ import java.util.stream.Collectors;
  */
 public class Schema {
 
+    /* TODO: Support hooking into validation (schema valdiator library supports this)
+     *       in order to build schema object at the same time as validation completes
+     *       for a given node. Once validated, this can be reused and streamed node by
+     *       node.  After the initial configuration section (non-metrics block)
+     *       has been validated and parsed, this should be forwarded to a different thread
+     *       to handle configuring the ingestion setup as needed (creating classes and stuff)
+     *       At the same time metrics are being validated and then each one (once validated),
+     *       is forwarded (pipelined) through the Conduit handlers to the worker thread pools
+     *       that each have pipelines (or whatever the configuration is, could be one pipeline
+     *       with many threads).
+     *
+     */
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    
     static {
-        MAPPER.registerModules(
+        configureMapper(MAPPER);
+    }
+
+    public static void configureMapper(final ObjectMapper mapper) {
+        mapper.registerModules(
                 new ProtobufModule(),
                 new EclipseCollectionsModule()
-        );
+        ).setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
     }
 
     // NOTE: Deserialized via ConnectorDeserializer
-    @JsonProperty
+    @JsonProperty("source")
     private Connector<?,?> source;
-    @JsonProperty
+    @JsonProperty("configuration")
     @JsonDeserialize(using = JsonPathConfigDeserializer.class)
     private Configuration jsonPathConfiguration;
     // NOTE: Deserialized via com.hubspot.jackson.datatype.protobuf.ProtobufModule
-    @JsonProperty
+    @JsonProperty("eventTemplate")
+    @JsonAlias("event_template")
     private Proto.Event eventTemplate;
-    @JsonProperty
+    @JsonProperty("handler")
     private String handler;
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     // NOTE: Single metric deserialized via MetricDeserializer

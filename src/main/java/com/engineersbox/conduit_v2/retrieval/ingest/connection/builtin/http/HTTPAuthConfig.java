@@ -1,5 +1,7 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
@@ -13,7 +15,8 @@ public abstract class HTTPAuthConfig {
 
     private final String type;
 
-    protected HTTPAuthConfig(final String type) {
+    @JsonCreator
+    protected HTTPAuthConfig(@JsonProperty("type") final String type) {
         this.type = type;
     }
 

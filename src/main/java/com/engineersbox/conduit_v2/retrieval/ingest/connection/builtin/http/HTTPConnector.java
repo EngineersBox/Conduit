@@ -1,6 +1,7 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,8 +25,12 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
 
     @JsonIgnore
     private HttpClient client;
-    @JsonProperty
     private HTTPConnectorConfiguration config;
+
+    @JsonCreator
+    public HTTPConnector(@JsonProperty("config") final HTTPConnectorConfiguration config) {
+        saturate(config);
+    }
 
     public void saturate(final HTTPConnectorConfiguration config) {
         this.config = config;
