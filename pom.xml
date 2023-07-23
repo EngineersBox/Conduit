@@ -41,6 +41,7 @@
         <typesafe-config.version>1.4.2</typesafe-config.version>
         <typesafe.version>1.0.0</typesafe.version>
         <eclipse-collections.version>11.1.0</eclipse-collections.version>
+        <jdpb.version>0.9.14</jdpb.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -78,6 +79,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <!-- Jackson Protobuf JSON interop -->
+        <dependency>
+            <groupId>com.hubspot.jackson</groupId>
+            <artifactId>jackson-datatype-protobuf</artifactId>
+            <version>${jdpb.version}</version>
         </dependency>
         <!-- JsonPath -->
         <dependency>
