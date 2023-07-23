@@ -7,19 +7,19 @@ import java.net.URI;
 public class HTTPConnectorConfiguration implements ConnectorConfiguration {
 
     private final URI uri;
-    private final HTTPAuthConfig authConfig;
+    private final HTTPAuthConfig auth;
 
     public HTTPConnectorConfiguration(final URI uri,
-                                      final HTTPAuthConfig authConfig) {
+                                      final HTTPAuthConfig auth) {
         this.uri = uri;
-        this.authConfig = authConfig;
+        this.auth = auth;
     }
 
     public URI getUri() {
         return uri;
     }
 
-    public HTTPAuthConfig getAuthConfig() {
-        return authConfig;
+    public HTTPAuthConfig getAuth() {
+        return auth;
     }
 }

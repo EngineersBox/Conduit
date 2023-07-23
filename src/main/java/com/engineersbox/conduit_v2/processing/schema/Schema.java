@@ -4,6 +4,7 @@ import com.engineersbox.conduit.schema.Validator;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -34,15 +35,19 @@ public class Schema {
     }
 
     // NOTE: Deserialized via ConnectorDeserializer
-    private Connector<?,?> connector;
+    @JsonProperty
+    private Connector<?,?> source;
+    @JsonProperty
     @JsonDeserialize(using = JsonPathConfigDeserializer.class)
     private Configuration jsonPathConfiguration;
     // NOTE: Deserialized via com.hubspot.jackson.datatype.protobuf.ProtobufModule
+    @JsonProperty
     private Proto.Event eventTemplate;
+    @JsonProperty
     private String handler;
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     // NOTE: Single metric deserialized via MetricDeserializer
-    private MutableList<Metric> metrics;
+//    private MutableList<Metric> metrics;
 
     public static Schema from(final String raw) throws IOException {
         return from(raw, MAPPER);

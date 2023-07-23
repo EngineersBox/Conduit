@@ -1,9 +1,9 @@
 package com.engineersbox.conduit_v2.processing.schema.json;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.jayway.jsonpath.Configuration;
 
@@ -28,7 +28,12 @@ public class JsonPathConfigDeserializer extends StdDeserializer<Configuration> {
     }
 
     @Override
-    public Configuration deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-        return null;
+    public Configuration deserialize(final JsonParser parser,
+                                     final DeserializationContext _context) throws IOException {
+        final JsonNode node = parser.getCodec().readTree(parser);
+        return Configuration.builder()
+                .jsonProvider(DataTypeProvider.JSON_PROVIDERS.get(node.get("json_provider")).get())
+                .mappingProvider(DataTypeProvider.MAPPING_PROVIDERS.get(node.get("mapping_provider")).get())
+                .build();
     }
 }

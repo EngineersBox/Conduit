@@ -1,6 +1,8 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -20,7 +22,9 @@ import java.security.cert.CertificateException;
 
 public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
 
+    @JsonIgnore
     private HttpClient client;
+    @JsonProperty
     private HTTPConnectorConfiguration config;
 
     public void saturate(final HTTPConnectorConfiguration config) {
@@ -30,9 +34,9 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
     @Override
     public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
-        switch (this.config.getAuthConfig().getAuthType()) {
-            case BASIC -> {
-                final HTTPBasicAuthConfig basicAuth = (HTTPBasicAuthConfig) this.config.getAuthConfig();
+        switch (this.config.getAuth().getType()) {
+            case "BASIC" -> {
+                final HTTPBasicAuthConfig basicAuth = (HTTPBasicAuthConfig) this.config.getAuth();
                 builder.authenticator(new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
@@ -43,16 +47,16 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
                     }
                 });
             }
-            case CERTIFICATE -> {
-                final HTTPCertificateAuthConfig certAuth = (HTTPCertificateAuthConfig) this.config.getAuthConfig();
+            case "CERTIFICATE" -> {
+                final HTTPCertificateAuthConfig certAuth = (HTTPCertificateAuthConfig) this.config.getAuth();
                 try {
                     final SSLContext sslContext = SSLContext.getInstance("TLS");
                     final TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                    final KeyStore cert = KeyStore.getInstance(certAuth.getCertType().name());
+                    final KeyStore cert = KeyStore.getInstance(certAuth.getCertificateType());
                     final InputStream certStream = new FileInputStream(certAuth.getCertificatePath().toAbsolutePath().toString());
                     cert.load(
                             certStream,
-                            certAuth.getCertPassword()
+                            certAuth.getCertificatePassword()
                     );
                     certStream.close();
                     trustManager.init(cert);

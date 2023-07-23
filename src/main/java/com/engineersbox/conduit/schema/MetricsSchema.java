@@ -174,7 +174,7 @@ public class MetricsSchema extends UnifiedMap<String, Metric> {
                             authNode.get("password").asText()
                     );
                     case CERTIFICATE -> new HTTPCertificateAuthConfig(
-                            HTTPCertType.valueOf(authNode.get("certificate_type").asText()),
+                            HTTPCertType.valueOf(authNode.get("certificate_type").asText()).name(),
                             authNode.has("password")
                                     ? authNode.get("password").asText()
                                     : null,

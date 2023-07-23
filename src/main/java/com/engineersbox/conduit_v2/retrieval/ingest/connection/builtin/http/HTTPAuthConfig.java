@@ -1,14 +1,23 @@
 package com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http;
 
-public class HTTPAuthConfig {
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
-    private final HTTPAuthType authType;
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.CUSTOM,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonTypeIdResolver(HTTPAuthConfigTypeResolver.class)
+public abstract class HTTPAuthConfig {
 
-    public HTTPAuthConfig(final HTTPAuthType authType) {
-        this.authType = authType;
+    private final String type;
+
+    protected HTTPAuthConfig(final String type) {
+        this.type = type;
     }
 
-    public HTTPAuthType getAuthType() {
-        return authType;
+    public String getType() {
+        return type;
     }
 }
