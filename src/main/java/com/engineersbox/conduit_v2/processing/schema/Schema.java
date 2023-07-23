@@ -42,7 +42,7 @@ public class Schema {
      */
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    
+
     static {
         configureMapper(MAPPER);
     }
@@ -51,7 +51,7 @@ public class Schema {
         mapper.registerModules(
                 new ProtobufModule(),
                 new EclipseCollectionsModule()
-        ).setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
+        ).setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE); // Needed for Riemann Proto.Event JSON to Protobuf definitions
     }
 
     // NOTE: Deserialized via ConnectorDeserializer
