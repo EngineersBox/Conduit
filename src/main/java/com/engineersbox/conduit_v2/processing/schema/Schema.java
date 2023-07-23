@@ -38,7 +38,6 @@ public class Schema {
      *       is forwarded (pipelined) through the Conduit handlers to the worker thread pools
      *       that each have pipelines (or whatever the configuration is, could be one pipeline
      *       with many threads).
-     *
      */
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
