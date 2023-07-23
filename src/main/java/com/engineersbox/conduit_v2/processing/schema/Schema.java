@@ -15,6 +15,7 @@ import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import com.jayway.jsonpath.Configuration;
 import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
+import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.MutableList;
 
 import java.io.File;
@@ -67,7 +68,12 @@ public class Schema {
     private String handler;
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     // NOTE: Single metric deserialized via MetricDeserializer
-//    private MutableList<Metric> metrics;
+    @JsonProperty("metrics")
+    private MutableList<Metric> metrics;
+
+    public LazyIterable<Metric> lazyMetricsView() {
+        return this.metrics.asLazy();
+    }
 
     public static Schema from(final String raw) throws IOException {
         return from(raw, MAPPER);
