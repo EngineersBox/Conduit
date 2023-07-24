@@ -11,7 +11,7 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
+import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;

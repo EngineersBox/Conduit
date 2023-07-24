@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.schema;
+package com.engineersbox.conduit_v2.processing.schema;
 
 import com.engineersbox.conduit.util.ObjectMapperModule;
 import com.fasterxml.jackson.databind.JsonNode;

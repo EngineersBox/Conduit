@@ -6,6 +6,7 @@ import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
+import com.engineersbox.conduit_v2.processing.schema.Validator;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http.*;
@@ -22,8 +23,6 @@ import org.eclipse.collections.api.map.ImmutableMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.tuple.ImmutableEntry;
 import org.eclipse.collections.impl.utility.Iterate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.nio.file.Path;

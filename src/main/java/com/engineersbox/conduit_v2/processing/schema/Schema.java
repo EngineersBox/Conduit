@@ -1,7 +1,7 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
-import com.engineersbox.conduit.schema.Validator;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
+import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;

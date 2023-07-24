@@ -1,7 +1,5 @@
-package com.engineersbox.conduit_v2.processing.schema;
+package com.engineersbox.conduit_v2.processing.schema.metric;
 
-import com.engineersbox.conduit.schema.DimensionIndex;
-import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Range;

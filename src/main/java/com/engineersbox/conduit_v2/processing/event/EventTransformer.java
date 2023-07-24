@@ -1,9 +1,9 @@
 package com.engineersbox.conduit_v2.processing.event;
 
-import com.engineersbox.conduit.schema.DimensionIndex;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
-import com.engineersbox.conduit_v2.processing.schema.MetricKind;
-import com.engineersbox.conduit_v2.processing.schema.MetricType;
+import com.engineersbox.conduit_v2.processing.schema.metric.DimensionIndex;
+import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.processing.schema.metric.MetricKind;
+import com.engineersbox.conduit_v2.processing.schema.metric.MetricType;
 import io.riemann.riemann.Proto;
 
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package com.engineersbox.conduit_v2.processing.schema.json;
 
-import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
+import com.engineersbox.conduit_v2.processing.schema.metric.DimensionallyIndexedRangeMap;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

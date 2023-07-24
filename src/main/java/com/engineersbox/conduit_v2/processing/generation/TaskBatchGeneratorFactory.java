@@ -2,7 +2,7 @@ package com.engineersbox.conduit_v2.processing.generation;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
-import com.engineersbox.conduit_v2.processing.schema.Metric;
+import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.MetricProcessingTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;

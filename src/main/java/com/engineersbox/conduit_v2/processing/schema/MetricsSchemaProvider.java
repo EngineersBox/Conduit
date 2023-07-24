@@ -1,6 +1,5 @@
-package com.engineersbox.conduit.schema;
+package com.engineersbox.conduit_v2.processing.schema;
 
-import com.engineersbox.conduit_v2.processing.schema.Schema;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;

@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema;
+package com.engineersbox.conduit_v2.processing.schema.metric;
 
 import com.jayway.jsonpath.TypeRef;
 import org.apache.commons.lang3.reflect.TypeUtils;
