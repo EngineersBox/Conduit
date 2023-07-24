@@ -4,7 +4,11 @@ import com.engineersbox.conduit_v2.processing.schema.metric.DimensionIndex;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.schema.metric.MetricKind;
 import com.engineersbox.conduit_v2.processing.schema.metric.MetricType;
+import com.google.common.base.Strings;
 import io.riemann.riemann.Proto;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -13,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EventTransformer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EventTransformer.class);
 
     private final Proto.Event eventTemplate;
 
@@ -59,6 +65,11 @@ public class EventTransformer {
                                                     final int currentDimension,
                                                     final String suffix) {
         if (!(value instanceof List<?> list)) {
+            LOGGER.warn(
+                    "Expected raw metric value to be of type {}, instead got {}, skipping",
+                    List.class.getName(),
+                    value.getClass().getName()
+            );
             return List.of();
         }
         final List<Proto.Event> events = new ArrayList<>();
@@ -66,6 +77,7 @@ public class EventTransformer {
         for (final Object component : list) {
             final String nextSuffix = formatSuffix(
                     suffix,
+                    null,
                     currentDimension,
                     index,
                     metric
@@ -89,15 +101,20 @@ public class EventTransformer {
                                                    final int currentDimension,
                                                    final String suffix) {
         if (!(value instanceof Map<?, ?> mapValue)) {
+            LOGGER.warn(
+                    "Expected raw metric value to be of type {}, instead got {}, skipping",
+                    Map.class.getName(),
+                    value.getClass().getName()
+            );
             return List.of();
         }
         final Map<String, ?> map = (Map<String, ?>) mapValue;
         final List<Proto.Event> events = new ArrayList<>();
         int index = 0;
         for (final Map.Entry<String, ?> entry : map.entrySet()) {
-            // TODO: supply entry key to replace {name} template variable
             final String nextSuffix = formatSuffix(
                     suffix,
+                    entry.getKey(),
                     currentDimension,
                     index,
                     metric
@@ -107,7 +124,7 @@ public class EventTransformer {
                     type.getStructure(),
                     metric,
                     currentDimension + 1,
-                    nextSuffix + entry.getKey()
+                    nextSuffix
             ));
             index++;
         }
@@ -115,6 +132,7 @@ public class EventTransformer {
     }
 
     private String formatSuffix(final String current,
+                                final String name,
                                 final int dimension,
                                 final int index,
                                 final Metric binding) {
@@ -128,6 +146,9 @@ public class EventTransformer {
         } else {
             nextSuffix += "/" + index;
         }
+        if (!Strings.isNullOrEmpty(name)) {
+            nextSuffix = nextSuffix.replace("{name}", name);
+        }
         return nextSuffix;
     }
 
@@ -135,6 +156,7 @@ public class EventTransformer {
                                                   final MetricKind type,
                                                   final String metricNamespace,
                                                   final String suffix) {
+        // TODO: Remove test values set on builder here
         final Proto.Event.Builder builder = this.eventTemplate.toBuilder()
                 .setService(metricNamespace + suffix)
                 .addTags("tag1")

@@ -22,7 +22,7 @@
     "handler": "example/compiled/handler.class",
     "metrics": [
         {
-            "namespace": "/service/plugin/test_metric",
+            "namespace": "/service/plugin/list_metric",
             "path": "$..book[?(@.price < $.expensive)].price",
             "structure": {
                 "type": "LIST",
@@ -37,6 +37,26 @@
                     {
                         "template": "/other_book_{index}",
                         "from": 1
+                    }
+                ]
+            }
+        },
+        {
+            "namespace": "/service/extension/map_metric",
+            "path": "$.store.counts",
+            "structure": {
+                "type": "MAP",
+                "structure": {
+                    "type": "INTEGER"
+                },
+                "suffixes": [
+                    {
+                        "template": "/count_{name}@{index}",
+                        "to": 2
+                    },
+                    {
+                        "template": "/other_{index}_{name}",
+                        "from": 2
                     }
                 ]
             }
