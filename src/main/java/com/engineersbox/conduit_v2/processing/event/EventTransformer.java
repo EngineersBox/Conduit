@@ -77,7 +77,7 @@ public class EventTransformer {
         for (final Object component : list) {
             final String nextSuffix = formatSuffix(
                     suffix,
-                    null,
+                    "",
                     currentDimension,
                     index,
                     metric
@@ -146,7 +146,7 @@ public class EventTransformer {
         } else {
             nextSuffix += "/" + index;
         }
-        if (!Strings.isNullOrEmpty(name)) {
+        if (name != null) {
             nextSuffix = nextSuffix.replace("{name}", name);
         }
         return nextSuffix;

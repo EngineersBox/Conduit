@@ -1,6 +1,5 @@
 package com.engineersbox.conduit_v2.processing.schema.json;
 
-import com.engineersbox.conduit_v2.processing.schema.metric.DimensionallyIndexedRangeMap;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -17,36 +16,34 @@ public class SuffixFormatDeserializer extends JsonDeserializer<Pair<Range<Intege
     @Override
     public Pair<Range<Integer>, String> deserialize(final JsonParser parser,
                                                     final DeserializationContext _context) throws IOException, JacksonException {
-        final DimensionallyIndexedRangeMap map = new DimensionallyIndexedRangeMap();
         final JsonNode suffixFormatNode = parser.getCodec().readTree(parser);
-        if (suffixFormatNode == null
-                || suffixFormatNode.isNull()
-                || suffixFormatNode.isEmpty()
-                || suffixFormatNode.isMissingNode()) {
-            return ImmutablePair.of(Range.all(), "/{index}");
-        } else if (suffixFormatNode.isArray()) {
-            for (final JsonNode formatNode : suffixFormatNode) {
-                final JsonNode fromJsonNode = formatNode.get("from");
-                final JsonNode toJsonNode = formatNode.get("to");
-                final int from = fromJsonNode == null ? -1 : fromJsonNode.asInt();
-                final int to = toJsonNode == null ? -1 : toJsonNode.asInt();
-                Range<Integer> range;
-                if (from == -1 && to == -1) {
-                    range = Range.all();
-                } else if (from > -1 && to == -1) {
-                    range = Range.atLeast(from);
-                } else if (from == -1 && to > -1) {
-                    range = Range.lessThan(to);
-                } else {
-                    range = Range.closedOpen(from, to);
-                }
-                return ImmutablePair.of(
-                        range,
-                        formatNode.get("template").asText()
-                );
-            }
+        if (nodeMissing(suffixFormatNode)) {
+            return ImmutablePair.of(Range.all(), "/{name}{index}");
         }
-        return ImmutablePair.of(Range.all(), suffixFormatNode.asText());
+        final JsonNode fromJsonNode = suffixFormatNode.get("from");
+        final JsonNode toJsonNode = suffixFormatNode.get("to");
+        final int from = nodeMissing(fromJsonNode) ? -1 : fromJsonNode.asInt();
+        final int to = nodeMissing(toJsonNode) ? -1 : toJsonNode.asInt();
+        Range<Integer> range;
+        if (from == -1 && to == -1) {
+            range = Range.all();
+        } else if (from > -1 && to == -1) {
+            range = Range.atLeast(from);
+        } else if (from == -1 && to > -1) {
+            range = Range.lessThan(to);
+        } else {
+            range = Range.closedOpen(from, to);
+        }
+        return ImmutablePair.of(
+                range,
+                suffixFormatNode.get("template").asText()
+        );
+    }
+
+    private boolean nodeMissing(final JsonNode node) {
+        return node == null
+                || node.isNull()
+                || node.isMissingNode();
     }
 
 }
