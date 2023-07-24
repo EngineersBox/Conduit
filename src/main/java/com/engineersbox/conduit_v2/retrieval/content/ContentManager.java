@@ -1,6 +1,6 @@
 package com.engineersbox.conduit_v2.retrieval.content;
 
-import com.engineersbox.conduit.schema.metric.Metric;
+import com.engineersbox.conduit_v2.processing.schema.Metric;
 import com.engineersbox.conduit_v2.retrieval.ingest.Ingester;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
@@ -37,7 +37,7 @@ public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Co
     @Override
     public Object lookup(final Metric metric) {
         final String path = metric.getPath();
-        final TypeRef<?> type = metric.getType().intoConcrete();
+        final TypeRef<?> type = metric.getStructure().intoConcrete();
         LOGGER.trace("Performing look up for metric path {} into type {}", path, type.getType());
         return this.pathTraversalHandler.read(path, type);
     }

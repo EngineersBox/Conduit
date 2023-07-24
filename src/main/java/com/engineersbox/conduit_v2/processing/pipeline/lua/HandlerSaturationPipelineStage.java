@@ -1,8 +1,8 @@
 package com.engineersbox.conduit_v2.processing.pipeline.lua;
 
-import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
+import com.engineersbox.conduit_v2.processing.schema.Metric;
 import org.eclipse.collections.api.RichIterable;
 
 public class HandlerSaturationPipelineStage extends PipelineStage<RichIterable<Metric>, RichIterable<Metric>> {

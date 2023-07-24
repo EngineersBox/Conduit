@@ -1,6 +1,6 @@
 package com.engineersbox.conduit.schema;
 
-import com.engineersbox.conduit.util.ObjectMapperModule;
+import com.engineersbox.conduit_v2.processing.schema.Schema;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
@@ -18,17 +18,17 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
     private static final int CHUNK_SIZE_BYTES_DEFAULT = 4096;
     private static final int CHUNK_COUNT_DEFAULT = -1;
 
-    public abstract MetricsSchema provide();
+    public abstract Schema provide();
     public abstract void refresh();
 
     public boolean instanceRefreshed() {
         return true;
     }
 
-    public static MetricsSchemaProvider singleton(final MetricsSchema schema) {
+    public static MetricsSchemaProvider singleton(final Schema schema) {
         return new MetricsSchemaProvider() {
             @Override
-            public MetricsSchema provide() {
+            public Schema provide() {
                 return schema;
             }
 
@@ -60,7 +60,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
 
             private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchemaProvider.class);
 
-            private MetricsSchema schema;
+            private Schema schema;
             private long fileSize;
             private long fileLastModifiedTime;
             {
@@ -69,7 +69,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 this.fileLastModifiedTime = FileUtils.lastModifiedUnchecked(initialFile);
                 LOGGER.trace("[Checksum Refreshed] Initial file properties [Size: {}] [Modified: {}]", this.fileSize, this.fileLastModifiedTime);
                 try {
-                    this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(initialFile));
+                    this.schema = Schema.from(initialFile);
                 } catch (final IOException e) {
                     throw new IllegalStateException("Unable to read schema from path " + schemaPath, e);
                 }
@@ -80,7 +80,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
             private final long[] chunkHashes = new long[this.chunkCount];
 
             @Override
-            public MetricsSchema provide() {
+            public Schema provide() {
                 if (super.isLocked()) {
                     return this.schema;
                 }
@@ -109,7 +109,7 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
                 this.updateHashes = true;
                 try {
                     LOGGER.debug("[Checksum Refreshed] Refreshed schema required, parsing schema file {}", schemaPath);
-                    this.schema = MetricsSchema.from(ObjectMapperModule.OBJECT_MAPPER.readTree(schemaFile));
+                    this.schema = Schema.from(schemaFile);
                     return this.schema;
                 } catch (final IOException e) {
                     throw new IllegalStateException("Unable to read schema from path " + schemaPath, e);

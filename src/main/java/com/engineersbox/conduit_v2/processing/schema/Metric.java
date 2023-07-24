@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.map.ImmutableMap;
 
 public class Metric {
 
@@ -51,5 +53,13 @@ public class Metric {
 
     public ParameterizedMetricType getStructure() {
         return this.structure;
+    }
+
+    public String getSuffix(final DimensionIndex query) {
+        return this.suffixes.get(query);
+    }
+
+    public ImmutableMap<String, String> getHandlers() {
+        return Maps.immutable.of();
     }
 }

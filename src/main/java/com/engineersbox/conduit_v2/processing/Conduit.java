@@ -4,12 +4,12 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.handler.LuaStdoutSink;
 import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
-import com.engineersbox.conduit.schema.MetricsSchema;
 import com.engineersbox.conduit.schema.MetricsSchemaProvider;
-import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
+import com.engineersbox.conduit_v2.processing.schema.Metric;
+import com.engineersbox.conduit_v2.processing.schema.Schema;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
@@ -103,7 +103,7 @@ public class Conduit {
     public void execute(final IngestionContext context,
                         final Source<?> source) throws Exception {
         this.executing = true;
-        final MetricsSchema schema = this.schemaProvider.provide();
+        final Schema schema = this.schemaProvider.provide();
         if (this.config.ingest.schema_provider_locking) {
             this.schemaProvider.lock();
         }
@@ -117,7 +117,7 @@ public class Conduit {
             );
         }
         final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
-        final LazyIterable<Metric> workload = schema.valuesView().asLazy();
+        final LazyIterable<Metric> workload = schema.lazyMetricsView();
         this.contentManager.poll();
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);

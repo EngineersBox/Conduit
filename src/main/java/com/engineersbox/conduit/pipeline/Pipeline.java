@@ -63,7 +63,7 @@ public class Pipeline {
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
         this(
-                MetricsSchemaProvider.singleton(schema),
+                MetricsSchemaProvider.singleton(null),
                 ingestSource,
                 batchConfig
         );
@@ -93,33 +93,33 @@ public class Pipeline {
     }
 
     public void executeHandled(final Consumer<List<Proto.Event>> batchedEventsConsumer) {
-        this.schema = this.metricsSchemaProvider.provide();
-        this.metricsSchemaProvider.lock();
-        final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
-        final ExecutorService executor = this.batchConfig.generateExecutorService();
-        final Source source = null;// = this.schema.getConnector();
-        if (source.getType().equals(SourceType.CUSTOM)
-            && source instanceof CustomSource customSource) {
-            customSource.setSource(this.ingestSource);
-        }
-        final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
-                .parse(source.invoke(this.ingestionContext));
-        workload.stream()
-                .map((final List<Metric> batch) -> CompletableFuture.runAsync(
-                        () -> handleBatch(
-                                batch,
-                                new LuaContextHandler(
-                                        this.schema.getHandler().toAbsolutePath().toString(),
-                                        this.globalsProvider
-                                ),
-                                context,
-                                batchedEventsConsumer
-                        ),
-                        executor
-                )).forEach(CompletableFuture::join);
-        LOGGER.info("Refreshing schema provider");
-        this.metricsSchemaProvider.refresh();
-        this.metricsSchemaProvider.unlock();
+//        this.schema = this.metricsSchemaProvider.provide();
+//        this.metricsSchemaProvider.lock();
+//        final List<List<Metric>> workload = this.batchConfig.splitWorkload(new ArrayList<>(this.schema.values()));
+//        final ExecutorService executor = this.batchConfig.generateExecutorService();
+//        final Source source = null;// = this.schema.getConnector();
+//        if (source.getType().equals(SourceType.CUSTOM)
+//            && source instanceof CustomSource customSource) {
+//            customSource.setSource(this.ingestSource);
+//        }
+//        final ReadContext context = JsonPath.using(this.schema.getJsonPathConfiguration())
+//                .parse(source.invoke(this.ingestionContext));
+//        workload.stream()
+//                .map((final List<Metric> batch) -> CompletableFuture.runAsync(
+//                        () -> handleBatch(
+//                                batch,
+//                                new LuaContextHandler(
+//                                        this.schema.getHandler().toAbsolutePath().toString(),
+//                                        this.globalsProvider
+//                                ),
+//                                context,
+//                                batchedEventsConsumer
+//                        ),
+//                        executor
+//                )).forEach(CompletableFuture::join);
+//        LOGGER.info("Refreshing schema provider");
+//        this.metricsSchemaProvider.refresh();
+//        this.metricsSchemaProvider.unlock();
     }
 
     private Globals configureGlobals(final Globals standard) {

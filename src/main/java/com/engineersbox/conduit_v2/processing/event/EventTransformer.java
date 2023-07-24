@@ -1,10 +1,9 @@
 package com.engineersbox.conduit_v2.processing.event;
 
 import com.engineersbox.conduit.schema.DimensionIndex;
-import com.engineersbox.conduit.schema.metric.Metric;
-import com.engineersbox.conduit.schema.metric.MetricContainerType;
-import com.engineersbox.conduit.schema.metric.MetricType;
-import com.engineersbox.conduit.schema.metric.MetricValueType;
+import com.engineersbox.conduit_v2.processing.schema.Metric;
+import com.engineersbox.conduit_v2.processing.schema.MetricKind;
+import com.engineersbox.conduit_v2.processing.schema.MetricType;
 import io.riemann.riemann.Proto;
 
 import java.time.LocalDateTime;
@@ -29,13 +28,13 @@ public class EventTransformer {
         if (type.isLeaf()) {
             return List.of(parsePrimitiveMetricEvent(
                     value,
-                    type.getValueType(),
+                    type.getType(),
                     metric.getNamespace(),
                     suffix
             ));
         }
-        final MetricContainerType containerType = type.getContainerType();
-        return switch (containerType) {
+        final MetricKind metricKind = type.getType();
+        return switch (metricKind) {
             case LIST -> parseListMetricEvents(
                     value,
                     type,
@@ -50,7 +49,7 @@ public class EventTransformer {
                     currentDimension,
                     suffix
             );
-            default -> throw new IllegalStateException("Unknown metric container type: " + containerType.name());
+            default -> throw new IllegalStateException("Unknown metric container type: " + metricKind.name());
         };
     }
 
@@ -73,7 +72,7 @@ public class EventTransformer {
             );
             events.addAll(parseCoerceMetricEvents(
                     component,
-                    type.getChild().get(),
+                    type.getStructure(),
                     metric,
                     currentDimension + 1,
                     nextSuffix
@@ -105,7 +104,7 @@ public class EventTransformer {
             );
             events.addAll(parseCoerceMetricEvents(
                     entry.getValue(),
-                    type.getChild().get(),
+                    type.getStructure(),
                     metric,
                     currentDimension + 1,
                     nextSuffix + entry.getKey()
@@ -133,7 +132,7 @@ public class EventTransformer {
     }
 
     private Proto.Event parsePrimitiveMetricEvent(final Object value,
-                                                  final MetricValueType type,
+                                                  final MetricKind type,
                                                   final String metricNamespace,
                                                   final String suffix) {
         final Proto.Event.Builder builder = this.eventTemplate.toBuilder()

@@ -72,6 +72,26 @@ public class Schema {
         return this.metrics.asLazy();
     }
 
+    public Connector<?, ?> getConnector() {
+        return this.source;
+    }
+
+    public Configuration getJsonPathConfiguration() {
+        return this.jsonPathConfiguration;
+    }
+
+    public Proto.Event getEventTemplate() {
+        return this.eventTemplate;
+    }
+
+    public Path getHandler() {
+        return Path.of(this.handler);
+    }
+
+    public boolean requiresJseGlobals() {
+        return this.handler != null;
+    }
+
     public static Schema from(final String raw) throws IOException {
         return from(raw, MAPPER);
     }
