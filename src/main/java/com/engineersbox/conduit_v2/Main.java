@@ -24,7 +24,7 @@ public class Main {
 		CacheProvider.setCache(new LRUCache(10));
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
-			Conduit conduit = new Conduit(
+			final Conduit conduit = new Conduit(
 					MetricsSchemaProvider.checksumRefreshed("./example/test.json", true),
 //					new DirectSupplierClientPool(() -> client),
 					new QueueSuppliedClientPool(() -> client, 5),
