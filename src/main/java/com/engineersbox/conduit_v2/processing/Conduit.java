@@ -122,6 +122,7 @@ public class Conduit {
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = workload.chunk(this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
+        // TODO: Move lua stuff to be a schema extension with supplementary processing bindings
         final LuaContextHandler handler = schema.requiresJseGlobals() ? getHandler(schema.getHandler()) : null;
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.workerTaskGenerator.generate(
                         metrics.asLazy(),
