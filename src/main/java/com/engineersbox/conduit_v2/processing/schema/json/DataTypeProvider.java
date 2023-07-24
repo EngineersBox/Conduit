@@ -7,7 +7,7 @@ import org.eclipse.collections.api.map.MutableMap;
 
 import java.util.function.Supplier;
 
-final class DataTypeProvider {
+public final class DataTypeProvider {
 
     // Make these atomic updates using the same method the CacheProvider from jsonpath uses
     static final MutableMap<String, Supplier<? extends JsonProvider>> JSON_PROVIDERS;
