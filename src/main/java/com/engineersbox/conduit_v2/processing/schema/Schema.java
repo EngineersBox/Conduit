@@ -53,7 +53,6 @@ public class Schema {
         ).setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE); // Needed for Riemann Proto.Event JSON to Protobuf definitions
     }
 
-    // NOTE: Deserialized via ConnectorDeserializer
     @JsonProperty("source")
     private Connector<?,?> source;
     @JsonProperty("configuration")
@@ -66,7 +65,6 @@ public class Schema {
     @JsonProperty("handler")
     private String handler;
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
-    // NOTE: Single metric deserialized via MetricDeserializer
     @JsonProperty("metrics")
     private MutableList<Metric> metrics;
 

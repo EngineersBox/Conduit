@@ -241,18 +241,13 @@
                 "template": {
                     "type": "string"
                 },
-                "range": {
-                    "type": "object",
-                    "properties": {
-                        "from": {
-                            "type": "integer",
-                            "default": -1
-                        },
-                        "to": {
-                            "type": "integer",
-                            "default": -1
-                        }
-                    }
+                "from": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "to": {
+                    "type": "integer",
+                    "default": -1
                 }
             },
             "required": [

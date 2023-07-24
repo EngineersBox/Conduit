@@ -96,6 +96,7 @@ public class EventTransformer {
         final List<Proto.Event> events = new ArrayList<>();
         int index = 0;
         for (final Map.Entry<String, ?> entry : map.entrySet()) {
+            // TODO: supply entry key to replace {name} template variable
             final String nextSuffix = formatSuffix(
                     suffix,
                     currentDimension,

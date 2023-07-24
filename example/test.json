@@ -24,7 +24,6 @@
         {
             "namespace": "/service/plugin/test_metric",
             "path": "$..book[?(@.price < $.expensive)].price",
-
             "structure": {
                 "type": "LIST",
                 "structure": {
@@ -33,15 +32,11 @@
                 "suffixes": [
                     {
                         "template": "/book_{index}",
-                        "range": {
-                            "to": 1
-                        }
+                        "to": 1
                     },
                     {
                         "template": "/other_book_{index}",
-                        "range": {
-                            "from": 1
-                        }
+                        "from": 1
                     }
                 ]
             }

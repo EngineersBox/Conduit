@@ -1,24 +1,19 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
-import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
-import com.engineersbox.conduit_v2.processing.schema.json.MetricTypeDeserializer;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Range;
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.collections.api.LazyIterable;
+import org.eclipse.collections.api.list.ImmutableList;
 
-import javax.annotation.Nullable;
-
-//@JsonDeserialize(using = MetricTypeDeserializer.class)
 public class MetricType {
 
     private final MetricKind type; // Union<ContainerType | ValueType>
     private final ParameterizedMetricType structure; // Child element type structure, nullable
-    private final DimensionallyIndexedRangeMap suffixes;
+    private final ImmutableList<Pair<Range<Integer>, String>> suffixes;
 
-    @JsonCreator
-    public MetricType(@JsonProperty("type") final MetricKind type,
-                      @JsonProperty("structure") final ParameterizedMetricType structure,
-                      @JsonProperty("suffixes") final DimensionallyIndexedRangeMap suffixes) {
+    public MetricType(final MetricKind type,
+                      final ParameterizedMetricType structure,
+                      final ImmutableList<Pair<Range<Integer>, String>> suffixes) {
         this.type = type;
         this.structure = structure;
         this.suffixes = suffixes;
@@ -34,6 +29,10 @@ public class MetricType {
 
     public ParameterizedMetricType getStructure() {
         return this.structure;
+    }
+
+    public LazyIterable<Pair<Range<Integer>, String>> getSuffixes() {
+        return this.suffixes.asLazy();
     }
 
 }
