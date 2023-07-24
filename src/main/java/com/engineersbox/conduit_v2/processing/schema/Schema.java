@@ -40,6 +40,15 @@ public class Schema {
      *       with many threads).
      */
 
+    /* TODO: Support schema extensions for additional properties, including validation schema
+     *       extensions. These should be extendable as extensions of this class with new properties
+     *       where the user provides the required mappings. Given that Jackson is used to
+     *       deserialize the schema itself, this doesn't require any additional deserialization
+     *       hooks other than annotating fields/constructors in the overridden class correctly.
+     *       The user will need to implement the appropriate event transformation hooks (how
+     *       should this be done?) and the relevant bindings for invocations in pipelines.
+     */
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
