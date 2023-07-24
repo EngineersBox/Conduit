@@ -73,16 +73,16 @@
                     },
                     "suffixes": [
                         {
-                            "template": "/ALU{index}#{name}",
+                            "template": "+ALU{index}#{name}",
                             "to": 1
                         },
                         {
-                            "template": "/{index}_REG::BIN#{name}",
+                            "template": "+{index}_REG::BIN#{name}",
                             "from": 1,
                             "to": 3
                         },
                         {
-                            "template": "/{index}_REGFILE::{name}",
+                            "template": "+{index}_REGFILE::{name}",
                             "from": 3
                         }
                     ]

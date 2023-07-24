@@ -40,14 +40,14 @@
         "complex": [
             {
                 "operation": "MUL",
-                "parameter0": "23",
-                "parameter1": "75",
-                "result": "1725"
+                "parameter0": 23,
+                "parameter1": 75,
+                "result": 1725.0
             },
             {
                 "component": "dTLB",
                 "misses_compulsory": "7%",
-                "misses": "23%"
+                "misses": 1824534
             }
         ]
     },
