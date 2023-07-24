@@ -56,7 +56,7 @@ TODO
 
 TODO
 
-Example: [./example/test.json](./example/test.json)
+Example: [./example/test.json](./example/test.json) targeting [./example/source.json](./example/source.json)
 
 #### Provider
 
