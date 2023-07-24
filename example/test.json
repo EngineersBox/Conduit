@@ -62,6 +62,44 @@
             }
         },
         {
+            "namespace": "/service/complex/double_nested",
+            "path": "$.store.complex",
+            "structure": {
+                "type": "LIST",
+                "structure": {
+                    "type": "MAP",
+                    "structure": {
+                        "type": "STRING"
+                    },
+                    "suffixes": [
+                        {
+                            "template": "/ALU{index}#{name}",
+                            "to": 1
+                        },
+                        {
+                            "template": "/{index}_REG::BIN#{name}",
+                            "from": 1,
+                            "to": 3
+                        },
+                        {
+                            "template": "/{index}_REGFILE::{name}",
+                            "from": 3
+                        }
+                    ]
+                },
+                "suffixes": [
+                    {
+                        "template": "/calculation::{index}",
+                        "to": 1
+                    },
+                    {
+                        "template": "/perf_counter::{index}",
+                        "from": 1
+                    }
+                ]
+            }
+        },
+        {
             "namespace": "/service/core/books_count",
             "path": "$..book.length()",
             "structure": {

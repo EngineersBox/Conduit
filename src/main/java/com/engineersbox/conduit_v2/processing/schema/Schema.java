@@ -4,6 +4,7 @@ import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserial
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import com.jayway.jsonpath.Configuration;
 import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.MutableList;
 
@@ -77,6 +79,21 @@ public class Schema {
     @JsonProperty("metrics")
     private MutableList<Metric> metrics;
 
+    @JsonCreator
+    public Schema() {}
+
+    public Schema(final Connector<?, ?> source,
+                  final Configuration jsonPathConfiguration,
+                  final Proto.Event eventTemplate,
+                  final String handler,
+                  final MutableList<Metric> metrics) {
+        this.source = source;
+        this.jsonPathConfiguration = jsonPathConfiguration;
+        this.eventTemplate = eventTemplate;
+        this.handler = handler;
+        this.metrics = metrics;
+    }
+
     public LazyIterable<Metric> lazyMetricsView() {
         return this.metrics.asLazy();
     }
@@ -122,13 +139,11 @@ public class Schema {
         if (messages.isEmpty()) {
             return mapper.treeToValue(definition, Schema.class);
         }
-        final var anon = new Object(){
-            int index = 0;
-        };
+        final MutableInt index = new MutableInt(0);
         final String formattedMessages = messages.stream()
                 .map((final ValidationMessage msg) -> String.format(
                         " - [%d]: %s",
-                        anon.index++,
+                        index.getAndIncrement(),
                         msg.getMessage()
                 )).collect(Collectors.joining("\n"));
         throw new IllegalArgumentException("Invalid schema definition:\n" + formattedMessages);

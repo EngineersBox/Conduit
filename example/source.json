@@ -36,7 +36,20 @@
             "reference": 72,
             "fiction": 9265,
             "journal": 234
-        }
+        },
+        "complex": [
+            {
+                "operation": "MUL",
+                "parameter0": "23",
+                "parameter1": "75",
+                "result": "1725"
+            },
+            {
+                "component": "dTLB",
+                "misses_compulsory": "7%",
+                "misses": "23%"
+            }
+        ]
     },
     "expensive": 10
 }
