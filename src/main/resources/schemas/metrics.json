@@ -171,68 +171,24 @@
                 "type": "string"
             }
         },
-        "metric": {
+        "metric_structure": {
             "type": "object",
             "properties": {
-                "namespace": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "handler_method": {
-                    "type": "string"
-                },
-                "handlers": {
-                    "$ref": "#/$defs/handler_methods"
-                },
                 "type": {
-                    "oneOf": [
-                        {
-                            "$ref": "#/$defs/primitive_metric"
-                        },
-                        {
-                            "$ref": "#/$defs/container_metric"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "namespace",
-                "path",
-                "type"
-            ],
-            "additionalProperties": false
-        },
-        "primitive_metric": {
-            "enum": [
-                "STRING",
-                "FLOAT",
-                "DOUBLE",
-                "INTEGER",
-                "BOOLEAN"
-            ]
-        },
-        "container_metric": {
-            "type": "object",
-            "properties": {
-                "container": {
                     "enum": [
+                        "MAP",
                         "LIST",
-                        "MAP"
+                        "STRING",
+                        "FLOAT",
+                        "DOUBLE",
+                        "INTEGER",
+                        "BOOLEAN"
                     ]
                 },
-                "type": {
-                    "oneOf": [
-                        {
-                            "$ref": "#/$defs/primitive_metric"
-                        },
-                        {
-                            "$ref": "#/$defs/container_metric"
-                        }
-                    ]
+                "structure": {
+                    "$ref": "#/$defs/metric_structure"
                 },
-                "suffix_format": {
+                "suffixes": {
                     "oneOf": [
                         {
                             "type": "array",
@@ -249,8 +205,33 @@
                 }
             },
             "required": [
-                "container",
                 "type"
+            ],
+            "additionalProperties": false
+        },
+        "metric": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "handler_method": {
+                    "type": "string"
+                },
+                "handlers": {
+                    "$ref": "#/$defs/handler_methods"
+                },
+                "structure": {
+                    "$ref": "#/$defs/metric_structure"
+                }
+            },
+            "required": [
+                "namespace",
+                "path",
+                "structure"
             ],
             "additionalProperties": false
         },
@@ -260,13 +241,18 @@
                 "template": {
                     "type": "string"
                 },
-                "from": {
-                    "type": "integer",
-                    "default": -1
-                },
-                "to": {
-                    "type": "integer",
-                    "default": -1
+                "range": {
+                    "type": "object",
+                    "properties": {
+                        "from": {
+                            "type": "integer",
+                            "default": -1
+                        },
+                        "to": {
+                            "type": "integer",
+                            "default": -1
+                        }
+                    }
                 }
             },
             "required": [

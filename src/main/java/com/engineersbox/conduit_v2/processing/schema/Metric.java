@@ -6,17 +6,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Metric {
 
-    private final String path;
     private final String namespace;
-    private final ParameterizedMetricType type;
+    private final String path;
+    private final ParameterizedMetricType structure;
 
     @JsonCreator
-    public Metric(@JsonProperty("path") final String path,
-                  @JsonProperty("namespace") final String namespace,
-                  @JsonProperty("type") final ParameterizedMetricType type) {
-        this.path = path;
+    public Metric(@JsonProperty("namespace") final String namespace,
+                  @JsonProperty("path") final String path,
+                  @JsonProperty("structure") final ParameterizedMetricType structure) {
         this.namespace = namespace;
-        this.type = type;
+        this.path = path;
+        this.structure = structure;
     }
 
     public String getPath() {
@@ -27,7 +27,7 @@ public class Metric {
         return this.namespace;
     }
 
-    public ParameterizedMetricType getType() {
-        return this.type;
+    public ParameterizedMetricType getStructure() {
+        return this.structure;
     }
 }

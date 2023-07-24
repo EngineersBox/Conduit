@@ -1,6 +1,7 @@
 package com.engineersbox.conduit.schema;
 
-import com.google.common.collect.Maps;
+import com.engineersbox.conduit_v2.processing.schema.json.DimensionallyIndexedRangeMapDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -8,6 +9,7 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.util.NoSuchElementException;
 
+@JsonDeserialize(using = DimensionallyIndexedRangeMapDeserializer.class)
 public class DimensionallyIndexedRangeMap {
 
     private final RangeMap<Integer, RangeMap<Integer, String>> dimensionMap;

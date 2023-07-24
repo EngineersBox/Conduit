@@ -1,13 +1,27 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
-public class ParameterizedMetricType {
+import com.engineersbox.conduit.schema.DimensionallyIndexedRangeMap;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.jayway.jsonpath.TypeRef;
 
-    /* TODO: This represents either a primitive type or a
-     *       container type, depending on the "type" field value.
-     *       This should be a base class that is extended as two
-     *       child classes, one for primitive types and another
-     *       for container types. This should be deserialisable
-     *       by using the @JsonTypeInfo and @JsonTypeIdResolver
-     */
+import javax.annotation.Nullable;
+
+//@JsonDeserialize(using = MetricTypeDeserializer.class)
+public class ParameterizedMetricType extends MetricType {
+
+    private final TypeRef<?> concreteType;
+
+    @JsonCreator
+    public ParameterizedMetricType(@JsonProperty("type") final MetricKind type,
+                                   @JsonProperty("structure") final ParameterizedMetricType structure,
+                                   @JsonProperty("suffixes") final DimensionallyIndexedRangeMap suffixes) {
+        super(type, structure, suffixes);
+        this.concreteType = ParameterizedTypeConstructor.construct(this);
+    }
+
+    public TypeRef<?> intoConcrete() {
+        return this.concreteType;
+    }
 
 }
