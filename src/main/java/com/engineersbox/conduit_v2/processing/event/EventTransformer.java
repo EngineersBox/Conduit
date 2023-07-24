@@ -6,12 +6,15 @@ import com.engineersbox.conduit_v2.processing.schema.metric.MetricKind;
 import com.engineersbox.conduit_v2.processing.schema.metric.MetricType;
 import com.google.common.base.Strings;
 import io.riemann.riemann.Proto;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -161,8 +164,8 @@ public class EventTransformer {
                 .setService(metricNamespace + suffix)
                 .addTags("tag1")
                 .addTags("tag2")
-                .setTtl(5732.9573f)
-                .setTimeMicros(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+                .setTtl(RandomUtils.nextFloat(0f, 10_000f))
+                .setTimeMicros(ChronoUnit.MICROS.between(Instant.EPOCH, Instant.now()))
                 .addAttributes(
                         Proto.Attribute.newBuilder()
                                 .setKey("attr1")
@@ -176,4 +179,5 @@ public class EventTransformer {
                 );
         return type.buildMetric(builder, value).build();
     }
+
 }
