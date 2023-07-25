@@ -1,9 +1,9 @@
 <aspectj>
     <aspects>
-        <aspect name="com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionRegistrationAspect"/>
-        <aspect name="com.engineersbox.conduit_v2.processing.schema.json.path.CacheProviderRegistrationAspect"/>
+<!--        <aspect name="com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionRegistrationAspect"/>-->
+<!--        <aspect name="com.engineersbox.conduit_v2.processing.schema.json.path.CacheProviderRegistrationAspect"/>-->
         <weaver options="-verbose -showWeaveInfo">
-            <include within="*"/>
+            <include within="com.jayway.jsonpath.internal.function.*"/>
         </weaver>
     </aspects>
 </aspectj>

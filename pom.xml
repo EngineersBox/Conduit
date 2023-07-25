@@ -43,7 +43,7 @@
         <eclipse-collections.version>11.1.0</eclipse-collections.version>
         <jackson-eclipse-collections.version>2.15.2</jackson-eclipse-collections.version>
         <jackson-protobuf.version>0.9.14</jackson-protobuf.version>
-        <aspectj.version>1.9.9.1</aspectj.version>
+        <aspectj.version>1.9.19</aspectj.version>
         <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
 
         <!-- Maven -->
@@ -288,10 +288,10 @@
                 <configuration>
                     <showWeaveInfo>true</showWeaveInfo>
                     <verbose>true</verbose>
-                    <complianceLevel>${java.version}</complianceLevel>
+                    <complianceLevel>19.0</complianceLevel>
                     <verbose>true</verbose>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>19.0</source>
+                    <target>19.0</target>
                 </configuration>
                 <executions>
                     <execution>
@@ -300,6 +300,20 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:"${settings.localRepository}"/org/aspectj/
+                        aspectjweaver/${aspectj.version}/
+                        aspectjweaver-${aspectj.version}.jar
+                    </argLine>
+                    <useSystemClassLoader>true</useSystemClassLoader>
+                    <forkMode>always</forkMode>
+                </configuration>
             </plugin>
         </plugins>
     </build>
