@@ -189,17 +189,10 @@
                     "$ref": "#/$defs/metric_structure"
                 },
                 "suffixes": {
-                    "oneOf": [
+                    "type": "array",
+                    "prefixItems": [
                         {
-                            "type": "array",
-                            "prefixItems": [
-                                {
-                                    "$ref": "#/$defs/range_suffix_format"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "string"
+                            "$ref": "#/$defs/range_suffix_format"
                         }
                     ]
                 }

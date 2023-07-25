@@ -4,8 +4,13 @@ import com.google.common.collect.Range;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.impl.factory.Iterables;
+
+import java.util.Objects;
 
 public class MetricType {
+
+    private static final LazyIterable<Pair<Range<Integer>, String>> DEFAULT_EMPTY_ITERABLE = Iterables.<Pair<Range<Integer>, String>>iList().asLazy();
 
     private final MetricKind type; // Union<ContainerType | ValueType>
     private final ParameterizedMetricType structure; // Child element type structure, nullable
@@ -32,7 +37,7 @@ public class MetricType {
     }
 
     public LazyIterable<Pair<Range<Integer>, String>> getSuffixes() {
-        return this.suffixes.asLazy();
+        return this.suffixes == null ? DEFAULT_EMPTY_ITERABLE : this.suffixes.asLazy();
     }
 
 }

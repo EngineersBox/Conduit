@@ -18,7 +18,6 @@ import io.riemann.riemann.Proto;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.ImmutableList;
-import org.eclipse.collections.api.list.MutableList;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,10 +30,10 @@ import java.util.stream.Collectors;
  */
 public class Schema {
 
-    /* TODO: Support hooking into validation (schema valdiator library supports this)
+    /* TODO: Support hooking into validation (schema validator library supports this)
      *       in order to build schema object at the same time as validation completes
      *       for a given node. Once validated, this can be reused and streamed node by
-     *       node.  After the initial configuration section (non-metrics block)
+     *       node. After the initial configuration section (non-metrics block)
      *       has been validated and parsed, this should be forwarded to a different thread
      *       to handle configuring the ingestion setup as needed (creating classes and stuff)
      *       At the same time metrics are being validated and then each one (once validated),
