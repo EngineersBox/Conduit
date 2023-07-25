@@ -105,6 +105,13 @@
             "structure": {
                 "type": "INTEGER"
             }
+        },
+        {
+            "namespace": "/service/test/custom_func",
+            "path": "$..bicycle.color.someFunc()",
+            "structure": {
+                "type": "STRING"
+            }
         }
     ]
 }

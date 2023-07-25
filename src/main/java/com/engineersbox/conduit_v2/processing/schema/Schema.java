@@ -17,6 +17,7 @@ import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.eclipse.collections.api.LazyIterable;
+import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.list.MutableList;
 
 import java.io.File;
@@ -77,7 +78,7 @@ public class Schema {
     private String handler;
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     @JsonProperty("metrics")
-    private MutableList<Metric> metrics;
+    private ImmutableList<Metric> metrics;
 
     @JsonCreator
     public Schema() {}
@@ -86,7 +87,7 @@ public class Schema {
                   final Configuration jsonPathConfiguration,
                   final Proto.Event eventTemplate,
                   final String handler,
-                  final MutableList<Metric> metrics) {
+                  final ImmutableList<Metric> metrics) {
         this.source = source;
         this.jsonPathConfiguration = jsonPathConfiguration;
         this.eventTemplate = eventTemplate;
