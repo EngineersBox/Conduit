@@ -6,8 +6,6 @@ import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.impl.factory.Iterables;
 
-import java.util.Objects;
-
 public class MetricType {
 
     private static final LazyIterable<Pair<Range<Integer>, String>> DEFAULT_EMPTY_ITERABLE = Iterables.<Pair<Range<Integer>, String>>iList().asLazy();
