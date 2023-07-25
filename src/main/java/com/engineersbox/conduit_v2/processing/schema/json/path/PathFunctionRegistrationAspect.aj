@@ -1,9 +1,8 @@
 package com.engineersbox.conduit_v2.processing.schema.json.path;
 
 import com.jayway.jsonpath.internal.function.PathFunction;
-import org.apache.commons.lang3.reflect.ConstructorUtils;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public aspect PathFunctionRegistrationAspect {
 
@@ -13,15 +12,8 @@ public aspect PathFunctionRegistrationAspect {
 
     PathFunction around(String functionName): pathFuncInstantiationVisit(functionName) {
         System.out.println("INVOKING LTW ASPECT FOR PATH FUNCTIONS");
-        final Class<?> custom = PathFunctionProvider.FUNCTIONS.get(functionName);
-        if (custom != null) {
-            try {
-                return (PathFunction) ConstructorUtils.invokeConstructor(custom);
-            } catch (final NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new RuntimeException("Cannot instantiate custom path function: " + functionName, e);
-            }
-        }
-        return proceed(functionName);
+        final PathFunction function = PathFunctionProvider.getFunctionInstance(functionName);
+        return Objects.requireNonNullElse(function, proceed(functionName));
     }
     // -javaagent:$MAVEN_REPOSITORY$/org/aspectj/aspectjweaver/1.9.19/aspectjweaver-1.9.19.jar
 }
