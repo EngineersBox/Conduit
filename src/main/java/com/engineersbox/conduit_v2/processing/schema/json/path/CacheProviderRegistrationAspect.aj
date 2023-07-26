@@ -12,7 +12,7 @@ public aspect CacheProviderRegistrationAspect {
         if (!(Thread.currentThread() instanceof ClientBoundForkJoinWorkerThead cbfjwThread)) {
             return proceed();
         }
-        final Cache cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getAffinityId());
+        final Cache cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getCacheAffinityId());
         if (cache != null) {
             return cache;
         }

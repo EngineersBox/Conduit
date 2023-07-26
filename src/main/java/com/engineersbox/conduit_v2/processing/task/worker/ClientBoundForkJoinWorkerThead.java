@@ -9,13 +9,21 @@ public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
 
     private final ClientPool clientPool;
     private IRiemannClient heldClient;
-    private long affinityId;
+    private long cacheAffinityId;
 
     protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
                                              final ClientPool clientPool) {
         super(pool);
         this.clientPool = clientPool;
-        this.affinityId = threadId();
+        setCacheAffinityId(threadId());
+    }
+
+    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
+                                             final ClientPool clientPool,
+                                             final long cacheAffinityId) {
+        super(pool);
+        this.clientPool = clientPool;
+        setCacheAffinityId(cacheAffinityId);
     }
 
     public IRiemannClient getClient() {
@@ -25,14 +33,14 @@ public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
         return this.heldClient;
     }
 
-    public long setAffinityId(final long affinityId) {
-        final long previousAffinityId = this.affinityId;
-        this.affinityId = affinityId;
+    public long setCacheAffinityId(final long cacheAffinityId) {
+        final long previousAffinityId = this.cacheAffinityId;
+        this.cacheAffinityId = cacheAffinityId;
         return previousAffinityId;
     }
 
-    public long getAffinityId() {
-        return this.affinityId;
+    public long getCacheAffinityId() {
+        return this.cacheAffinityId;
     }
 
     @Override
