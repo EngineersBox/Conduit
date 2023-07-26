@@ -9,11 +9,13 @@ public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
 
     private final ClientPool clientPool;
     private IRiemannClient heldClient;
+    private long affinityId;
 
     protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
                                              final ClientPool clientPool) {
         super(pool);
         this.clientPool = clientPool;
+        this.affinityId = threadId();
     }
 
     public IRiemannClient getClient() {
@@ -21,6 +23,16 @@ public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
             this.heldClient = this.clientPool.acquire();
         }
         return this.heldClient;
+    }
+
+    public long setAffinityId(final long affinityId) {
+        final long previousAffinityId = this.affinityId;
+        this.affinityId = affinityId;
+        return previousAffinityId;
+    }
+
+    public long getAffinityId() {
+        return this.affinityId;
     }
 
     @Override
