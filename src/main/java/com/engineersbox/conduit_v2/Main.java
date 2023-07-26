@@ -6,8 +6,10 @@ import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionProvider;
+import com.engineersbox.conduit_v2.processing.task.worker.client.DirectSupplierClientPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.QueueSuppliedClientPool;
 import com.engineersbox.conduit_v2.retrieval.caching.LRUCache;
+import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.PathRef;
@@ -44,11 +46,12 @@ public class Main {
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
 			final Conduit conduit = new Conduit(
-					MetricsSchemaProvider.checksumRefreshed("./example/test.json", true),
-//					new DirectSupplierClientPool(() -> client),
-					new QueueSuppliedClientPool(() -> client, 5),
-					TaskBatchGeneratorFactory.defaultGenerator(),
-					(final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3),
+					new Conduit.Parameters()
+							.setSchemaProvider(MetricsSchemaProvider.checksumRefreshed("./example/test.json", true))
+							.setExecutor(/* new DirectSupplierClientPool(() -> client) */ new QueueSuppliedClientPool(() -> client, 5))
+							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
+							.setBatcher(WorkloadBatcher.defaultbatcher())
+							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
 					ConfigFactory.create("./example/config.conf")
 			);
 			conduit.execute(null, Source.singleConfigurable());
