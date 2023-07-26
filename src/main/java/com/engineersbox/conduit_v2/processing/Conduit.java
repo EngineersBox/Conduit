@@ -20,6 +20,9 @@ import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import io.riemann.riemann.Proto;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.luaj.vm2.Globals;
@@ -27,11 +30,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Conduit {
 
@@ -181,16 +188,24 @@ public class Conduit {
         }
 
         void validate() {
-            if (this.schemaProvider == null) {
-                throw new IllegalStateException("Expected a schema provider to be set as a parameter");
-            } else if (this.executor == null) {
-                throw new IllegalStateException("Expected executor pool to be set as a parameter");
-            } else if (this.batcher == null) {
-                throw new IllegalStateException("Expected workload batcher to be set as a parameter");
-            } else if (this.contextInjector == null) {
-                throw new IllegalStateException("Expected context injector to be set as a parameter");
-            } else if (this.workerTaskGenerator == null) {
-                throw new IllegalStateException("Expected worker task generator to be set as a parameter");
+            final String message = Arrays.stream(getClass().getDeclaredFields())
+                    .map((final Field field) -> {
+                        field.setAccessible(true);
+                        try {
+                            if (field.get(this) == null) {
+                                return " - " + field.getType().getSimpleName();
+                            }
+                        } catch (final IllegalAccessException e) {
+                            // NOTE: Won't happen, within the same class
+                        }
+                        return null;
+                    }).filter(Objects::nonNull)
+                    .collect(Collectors.joining("\n"));
+            if (!message.isEmpty()) {
+                throw new IllegalStateException(String.format(
+                        "Missing parameters of types for Conduit:%n%s",
+                        message
+                ));
             }
         }
     }
