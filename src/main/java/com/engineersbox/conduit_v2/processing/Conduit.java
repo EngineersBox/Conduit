@@ -54,6 +54,7 @@ public class Conduit {
                    final ConduitConfig config) {
         this.params = params;
         this.config = config;
+        this.params.validate();
     }
 
     public void execute(final IngestionContext context,
@@ -188,6 +189,8 @@ public class Conduit {
                 throw new IllegalStateException("Expected workload batcher to be set as a parameter");
             } else if (this.contextInjector == null) {
                 throw new IllegalStateException("Expected context injector to be set as a parameter");
+            } else if (this.workerTaskGenerator == null) {
+                throw new IllegalStateException("Expected worker task generator to be set as a parameter");
             }
         }
     }
