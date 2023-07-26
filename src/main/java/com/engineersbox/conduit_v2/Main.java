@@ -1,12 +1,11 @@
 package com.engineersbox.conduit_v2;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
-import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
+import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionProvider;
-import com.engineersbox.conduit_v2.processing.task.worker.client.DirectSupplierClientPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.QueueSuppliedClientPool;
 import com.engineersbox.conduit_v2.retrieval.caching.LRUCache;
 import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
@@ -48,7 +47,7 @@ public class Main {
 			final Conduit conduit = new Conduit(
 					new Conduit.Parameters()
 							.setSchemaProvider(MetricsSchemaProvider.checksumRefreshed("./example/test.json", true))
-							.setExecutor(/* new DirectSupplierClientPool(() -> client) */ new QueueSuppliedClientPool(() -> client, 5))
+							.setExecutor(new QueueSuppliedClientPool(() -> client, 5))
 							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 							.setBatcher(WorkloadBatcher.defaultbatcher())
 							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
