@@ -6,6 +6,14 @@ import java.io.InputStream;
 
 public class PathTraversalHandler<R> {
 
+    /* TODO: Allow for configurations to be retrieved based on affinity ID
+     *       which requires using the JsonPath.parse(raw, config) methods
+     *       instead of the JsonPath.using(config).parse(raw) handlers.
+     *       Each time the saturate method is called, the config should
+     *       be retrieved based on the affinity id and then the raw data
+     *       parsed with it.
+     */
+
     private final ParseContext parseContext;
     private ReadContext context;
 

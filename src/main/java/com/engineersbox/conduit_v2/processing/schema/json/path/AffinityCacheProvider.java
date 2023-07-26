@@ -24,7 +24,7 @@ public class AffinityCacheProvider {
             final Cache previousCache = CACHES.put(affinityId, cache);
             if (previousCache != null) {
                 LOGGER.warn(
-                        "Overwritten previous json-path function registration [Affinity ID: {}] [Previous: {}] [New: {}]",
+                        "Overwritten previous JsonPath cache registration [Affinity ID: {}] [Previous: {}] [New: {}]",
                         affinityId,
                         previousCache.getClass().getName(),
                         cache.getClass().getName()

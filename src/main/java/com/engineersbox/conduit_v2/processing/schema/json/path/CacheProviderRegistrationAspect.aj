@@ -11,7 +11,7 @@ public aspect CacheProviderRegistrationAspect {
     Cache around(): pathFuncInstantiationVisit() {
         final Cache cache;
         if (!(Thread.currentThread() instanceof ClientBoundForkJoinWorkerThead cbfjwThread)
-            || (cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getCacheAffinityId())) == null) {
+            || (cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getAffinityId())) == null) {
             return proceed();
         }
         return cache;
