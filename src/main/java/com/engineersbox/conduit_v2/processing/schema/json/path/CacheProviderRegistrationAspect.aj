@@ -9,14 +9,12 @@ public aspect CacheProviderRegistrationAspect {
             execution(public static com.jayway.jsonpath.spi.cache.Cache com.jayway.com.jayway.jsonpath.spi.cache.CacheProvider.getCache());
 
     Cache around(): pathFuncInstantiationVisit() {
-        if (!(Thread.currentThread() instanceof ClientBoundForkJoinWorkerThead cbfjwThread)) {
+        final Cache cache;
+        if (!(Thread.currentThread() instanceof ClientBoundForkJoinWorkerThead cbfjwThread)
+            || (cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getCacheAffinityId())) == null) {
             return proceed();
         }
-        final Cache cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getCacheAffinityId());
-        if (cache != null) {
-            return cache;
-        }
-        return proceed();
+        return cache;
     }
     // -javaagent:$MAVEN_REPOSITORY$/org/aspectj/aspectjweaver/1.9.19/aspectjweaver-1.9.19.jar
 }
