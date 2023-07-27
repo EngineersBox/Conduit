@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -35,7 +34,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final RichIterable<Metric> initialMetrics; // Received from conduit
     private final Proto.Event eventTemplate;
     private final EventTransformer transformer;
-    private final AtomicReference<RetrievalHandler<Metric>> retriever;
+    private final RetrievalHandler<Metric> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final LuaContextHandler luaContextHandler;
     private final ContextTransformer.Builder contextBuilder;
@@ -43,7 +42,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
-                                final AtomicReference<RetrievalHandler<Metric>> retriever,
+                                final RetrievalHandler<Metric> retriever,
                                 final LuaContextHandler luaContextHandler,
                                 final Consumer<ContextTransformer.Builder> contextInjector) {
         this.initialMetrics = metrics;
@@ -73,7 +72,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                     @Override
                     public StageResult<Proto.Event[]> invoke(final Metric metric) {
                         final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
-                                MetricProcessingTask.this.retriever.get().lookup(metric),
+                                MetricProcessingTask.this.retriever.lookup(metric),
                                 metric.getStructure(),
                                 metric,
                                 0,

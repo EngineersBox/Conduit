@@ -173,34 +173,54 @@
         },
         "metric_structure": {
             "type": "object",
-            "properties": {
-                "type": {
-                    "enum": [
-                        "MAP",
-                        "LIST",
-                        "STRING",
-                        "FLOAT",
-                        "DOUBLE",
-                        "INTEGER",
-                        "BOOLEAN"
-                    ]
-                },
-                "structure": {
-                    "$ref": "#/$defs/metric_structure"
-                },
-                "suffixes": {
-                    "type": "array",
-                    "prefixItems": [
-                        {
-                            "$ref": "#/$defs/range_suffix_format"
+            // TODO: Fix this not matching either branch in oneOf
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "enum": [
+                                "STRING",
+                                "FLOAT",
+                                "DOUBLE",
+                                "INTEGER",
+                                "BOOLEAN",
+                                "INFER"
+                            ]
                         }
-                    ]
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "enum": [
+                                "LIST",
+                                "MAP"
+                            ]
+                        },
+                        "structure": {
+                            "$ref": "#/$defs/metric_structure"
+                        },
+                        "suffixes": {
+                            "type": "array",
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/$defs/range_suffix_format"
+                                }
+                            ]
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "additionalProperties": false
                 }
-            },
-            "required": [
-                "type"
-            ],
-            "additionalProperties": false
+            ]
         },
         "metric": {
             "type": "object",

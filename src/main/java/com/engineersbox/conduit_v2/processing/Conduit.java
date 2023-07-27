@@ -4,13 +4,13 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit.handler.LuaStdoutSink;
 import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
-import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
-import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
+import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.processing.schema.Schema;
+import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
@@ -20,9 +20,6 @@ import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import io.riemann.riemann.Proto;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.luaj.vm2.Globals;
@@ -80,7 +77,6 @@ public class Conduit {
                     Function.identity() // TODO: allow customisation via config
             );
         }
-        final AtomicReference<RetrievalHandler<Metric>> retrieverReference = new AtomicReference<>(this.contentManager);
         final LazyIterable<Metric> workload = schema.lazyMetricsView();
         this.contentManager.poll();
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = this.params.batcher.chunk(workload, this.config.executor.task_batch_size);
@@ -91,7 +87,7 @@ public class Conduit {
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.params.workerTaskGenerator.generate(
                         metrics.asLazy(),
                         eventTemplate,
-                        retrieverReference,
+                        this.contentManager,
                         handler,
                         this.params.contextInjector
                 )).forEach(this.params.executor::submit);

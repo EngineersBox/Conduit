@@ -21,6 +21,8 @@ public class ParameterizedTypeConstructor {
     private static Type constructReflectiveType(final MetricType metricType) {
         if (metricType.isLeaf()) {
             return TypeUtils.wrap(metricType.getType().getType()).getType();
+        } else if (metricType.getType().equals(MetricKind.INFER)) {
+            throw new IllegalStateException("Cannot infer type for non-leaf structural type (container)");
         } else if (metricType.getType().equals(MetricKind.MAP)) {
             return TypeUtils.parameterize(
                     metricType.getType().getType(),

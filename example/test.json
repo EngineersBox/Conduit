@@ -67,9 +67,9 @@
             "structure": {
                 "type": "LIST",
                 "structure": {
-                    "type": "MAP",
+                    "type": "INFER",
                     "structure": {
-                        "type": "STRING"
+                        "type": "INFER"
                     },
                     "suffixes": [
                         {

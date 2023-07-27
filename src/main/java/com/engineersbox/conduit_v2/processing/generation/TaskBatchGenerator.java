@@ -16,7 +16,7 @@ public interface TaskBatchGenerator {
 
     ClientBoundWorkerTask generate(final RichIterable<Metric> metrics,
                                    final Proto.Event eventTemplate,
-                                   final AtomicReference<RetrievalHandler<Metric>> retrieverReference,
+                                   final RetrievalHandler<Metric> retrieverReference,
                                    final LuaContextHandler handler,
                                    final Consumer<ContextTransformer.Builder> contextInjector);
 

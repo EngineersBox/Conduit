@@ -58,6 +58,7 @@ public class EventTransformer {
                     currentDimension,
                     suffix
             );
+            case INFER -> throw new IllegalStateException("Cannot infer type for non-leaf structural type (containers)");
             default -> throw new IllegalStateException("Unknown metric container type: " + metricKind.name());
         };
     }
