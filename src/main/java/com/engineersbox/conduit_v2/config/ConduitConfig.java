@@ -44,13 +44,36 @@ public class ConduitConfig {
 
   public static class Ingest {
     public final boolean async;
+    public final Ingest.Event_transformer event_transformer;
     public final boolean schema_provider_locking;
+
+    public static class Event_transformer {
+      public final boolean skip_on_infer_failure;
+
+      public Event_transformer(
+          com.typesafe.config.Config c,
+          java.lang.String parentPath,
+          $TsCfgValidator $tsCfgValidator) {
+        this.skip_on_infer_failure =
+            !c.hasPathOrNull("skip_on_infer_failure") || c.getBoolean("skip_on_infer_failure");
+      }
+    }
 
     public Ingest(
         com.typesafe.config.Config c,
         java.lang.String parentPath,
         $TsCfgValidator $tsCfgValidator) {
       this.async = c.hasPathOrNull("async") && c.getBoolean("async");
+      this.event_transformer =
+          c.hasPathOrNull("event_transformer")
+              ? new Ingest.Event_transformer(
+                  c.getConfig("event_transformer"),
+                  parentPath + "event_transformer.",
+                  $tsCfgValidator)
+              : new Ingest.Event_transformer(
+                  com.typesafe.config.ConfigFactory.parseString("event_transformer{}"),
+                  parentPath + "event_transformer.",
+                  $tsCfgValidator);
       this.schema_provider_locking =
           !c.hasPathOrNull("schema_provider_locking") || c.getBoolean("schema_provider_locking");
     }
