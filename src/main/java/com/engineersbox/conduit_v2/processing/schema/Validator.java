@@ -2,10 +2,7 @@ package com.engineersbox.conduit_v2.processing.schema;
 
 import com.engineersbox.conduit.util.ObjectMapperModule;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersionDetector;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +22,9 @@ public class Validator {
             // Won't occur
         }
         final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(node));
-        SCHEMA = factory.getSchema(node);
+        final SchemaValidatorsConfig config = new SchemaValidatorsConfig();
+//        config.setFailFast(true);
+        SCHEMA = factory.getSchema(node, config);
         SCHEMA.initializeValidators();
     }
 

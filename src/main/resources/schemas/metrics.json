@@ -174,10 +174,10 @@
         "metric_structure": {
             "oneOf": [
                 {
-                    "$ref": "#/$defs/primitive_metric_structure"
+                    "$ref": "#/$defs/container_metric_structure"
                 },
                 {
-                    "$ref": "#/$defs/container_metric_structure"
+                    "$ref": "#/$defs/primitive_metric_structure"
                 }
             ]
         },
@@ -193,13 +193,14 @@
                         "BOOLEAN",
                         "INFER"
                     ],
-                    "additionalProperties": false
+                    "type": "string"
                 }
             },
             "required": [
                 "type"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "unevaluatedProperties": false
         },
         "container_metric_structure": {
             "type": "object",
@@ -209,7 +210,7 @@
                         "LIST",
                         "MAP"
                     ],
-                    "additionalProperties": false
+                    "type": "string"
                 },
                 "structure": {
                     "$ref": "#/$defs/metric_structure"
