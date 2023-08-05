@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
+import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
@@ -80,7 +81,7 @@ public class Schema {
     @JsonProperty("metrics")
     private ImmutableList<Metric> metrics;
     @JsonProperty("extensions")
-    @JsonDeserialize(contentUsing = )
+    @JsonDeserialize(contentUsing = ExtensionDeserializer.class)
     private ImmutableMap<String, Object> extensions;
 
     @JsonCreator

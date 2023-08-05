@@ -25,6 +25,10 @@
                 }
             ]
         },
+        "extensions": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "required": [
             "source",
             "metrics"

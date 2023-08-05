@@ -11,12 +11,14 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
+import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.map.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,38 +38,42 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final EventTransformer transformer;
     private final RetrievalHandler<Metric> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
-    private final LuaContextHandler luaContextHandler;
+    private final ImmutableMap<String, Object> extensions;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final RetrievalHandler<Metric> retriever,
-                                final LuaContextHandler luaContextHandler,
+                                final ImmutableMap<String, Object> extensions,
                                 final Consumer<ContextTransformer.Builder> contextInjector) {
         this.initialMetrics = metrics;
         this.transformer = new EventTransformer(eventTemplate);
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
-        this.luaContextHandler = luaContextHandler;
+        this.extensions = extensions;
         this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
-        this.pipeline = createPipeline(luaContextHandler != null);
+        LuaHandlerExtension luaHandlerExtension = null;
+        if (extensions.get("lua_handlers") instanceof LuaHandlerExtension extension) {
+            luaHandlerExtension = extension;
+        }
+        this.pipeline = createPipeline(luaHandlerExtension);
     }
 
-    private Pipeline.Builder<RichIterable<Metric>> createPipeline(final boolean hasLuaHandlers) {
+    private Pipeline.Builder<RichIterable<Metric>> createPipeline(final LuaHandlerExtension handlerExtension) {
         final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
-        if (hasLuaHandlers) {
+        if (handlerExtension != null) {
             pipelineBuilder.withStages(
-                    new HandlerSaturationPipelineStage()
+                    new HandlerSaturationPipelineStage(),
+                    new PreProcessFilterPipelineStage(
+                            handlerExtension::getPreProcessHandler,
+                            this.contextBuilder,
+                            hasLuaHandlers
+                    ),
             );
         }
-        pipelineBuilder.withStages(
-                new PreProcessFilterPipelineStage(
-                        this.luaContextHandler,
-                        this.contextBuilder,
-                        hasLuaHandlers
-                ),
+        pipelineBuilder.withStage(
                 new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
                     @Override
                     public StageResult<Proto.Event[]> invoke(final Metric metric) {

@@ -7,27 +7,29 @@ import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 
+import java.util.function.Function;
+
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     public static final String FILTERED_COUNT_ATTRIBUTE = "pre_process_filtered_count";
 
-    private final LuaContextHandler contextHandler;
+    private final Function<String, LuaContextHandler> contextHandlerRetriever;
     private final ContextTransformer.Builder contextBuilder;
     private final boolean hasLuaHandlers;
 
-    public PreProcessFilterPipelineStage(final LuaContextHandler contextHandler,
+    public PreProcessFilterPipelineStage(final Function<String, LuaContextHandler> contextHandlerRetriever,
                                          final ContextTransformer.Builder contextBuilder,
                                          final boolean hasLuaHandlers) {
         super("Pre-process Lua filter");
-        this.contextHandler = contextHandler;
+        this.contextHandlerRetriever = contextHandlerRetriever;
         this.contextBuilder = contextBuilder;
         this.hasLuaHandlers = hasLuaHandlers;
     }
 
     @Override
     public boolean test(final Metric metric) {
-        final Object handlerObj = getContextAttribute(HandlerSaturationPipelineStage.LUA_HANDLER_PREFIX + "pre_process");
-        if (!(handlerObj instanceof String handler)) {
+        final LuaContextHandler handler = this.contextHandlerRetriever.apply(metric.getNamespace());
+        if (handler == null) {
             return true;
         }
         this.contextBuilder.withReadOnly(
@@ -35,7 +37,7 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
                 metric
                 // TODO: MetricSerializer.class
         ).withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT);
-        this.contextHandler.invoke(
+        this.invoke(
                 handler,
                 this.contextBuilder.build().transform()
         );
