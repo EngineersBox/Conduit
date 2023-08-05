@@ -18,6 +18,7 @@ import io.riemann.riemann.Proto;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.api.map.ImmutableMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,6 +79,9 @@ public class Schema {
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     @JsonProperty("metrics")
     private ImmutableList<Metric> metrics;
+    @JsonProperty("extensions")
+    @JsonDeserialize(contentUsing = )
+    private ImmutableMap<String, Object> extensions;
 
     @JsonCreator
     public Schema() {}
