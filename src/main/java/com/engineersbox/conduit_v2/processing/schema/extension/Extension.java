@@ -3,15 +3,14 @@ package com.engineersbox.conduit_v2.processing.schema.extension;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public interface Extension {
+public interface Extension extends ExtensionSchemaPatch {
 
     String name();
-    @SuppressWarnings("unchecked")
-    default Class<? extends JsonDeserializer<? extends Extension>> deserializerClass() {
-        return (Class<? extends JsonDeserializer<? extends Extension>>) JsonDeserializer.None.class;
+
+    default Class<? extends JsonDeserializer<?>> deserializerClass() {
+        return JsonDeserializer.None.class;
     }
-    default TypeReference<? extends Extension> targetType() {
-        return null;
-    }
+
+    TypeReference<?> targetType();
 
 }
