@@ -97,6 +97,9 @@
                         "from": 1
                     }
                 ]
+            },
+            "extensions": {
+                "lua_pre_process_handler_definition": "test1"
             }
         },
         {
@@ -104,6 +107,9 @@
             "path": "$..book.length()",
             "structure": {
                 "type": "INTEGER"
+            },
+            "extensions": {
+                "lua_pre_process_handler_definition": "other"
             }
         },
         {
@@ -113,5 +119,11 @@
                 "type": "STRING"
             }
         }
-    ]
+    ],
+    "extensions": {
+        "lua_pre_process_handler_definitions": {
+            "test1": "example/compiled/handler.class",
+            "other": "example/handler.lua"
+        }
+    }
 }

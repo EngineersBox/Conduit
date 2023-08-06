@@ -13,8 +13,6 @@ import org.luaj.vm2.Globals;
 import org.slf4j.event.Level;
 
 import java.io.InputStream;
-import java.nio.file.Path;
-
 
 public class LuaHandlerExtension {
 
@@ -25,9 +23,6 @@ public class LuaHandlerExtension {
     private static String LUA_CONTEXT_LOGGER_NAME = "LuaHandlerExtension";
     private static Level LUA_CONTEXT_LOGGER_LEVEL = Level.INFO;
 
-    @JsonProperty("lua_handlers_definition")
-    @JsonAlias("luaHandlersDefinition")
-    private Path handlersDefinition;
     @JsonProperty("lua_pre_process_handler_definitions")
     @JsonAlias("luaPreProcessHandlerDefinitions")
     @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
@@ -40,10 +35,6 @@ public class LuaHandlerExtension {
     @JsonAlias("luaPostProcessHandlerDefinitions")
     @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
     private ImmutableMap<String, LuaContextHandler> luaPostProcessHandlerDefinitions;
-
-    public Path getHandlersDefinition() {
-        return this.handlersDefinition;
-    }
 
     public LuaContextHandler getPreProcessHandleDefinition(final String name) {
         return this.luaPreProcessHandlerDefinitions.get(name);
