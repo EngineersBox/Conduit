@@ -8,9 +8,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ConcurrentMutableMap;
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExtensionProvider {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionProvider.class);
     private static final ConcurrentMutableMap<String, Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>>> DESERIALIZERS = ConcurrentHashMap.newMap();
     private static final ConcurrentMutableMap<String, ExtensionSchemaPatch> SCHEMA_PATCHES = ConcurrentHashMap.newMap();
 
@@ -20,14 +23,12 @@ public class ExtensionProvider {
         if (StringUtils.isBlank(extension.name())) {
             throw new IllegalArgumentException("Cannot register extension with blank name");
         }
-        final boolean hasDeserializeAnnotation = extension.getClass().isAnnotationPresent(JsonDeserialize.class);
         Class<? extends JsonDeserializer<?>> deserializer = extension.deserializerClass();
-        TypeReference<?> targetType = extension.targetType();
-        if (hasDeserializeAnnotation) {
+        final TypeReference<?> targetType = extension.targetType();
+        if (targetType != null && ((Class<?>) targetType.getType()).isAnnotationPresent(JsonDeserialize.class)) {
             deserializer = JsonDeserializer.None.class;
-            if (targetType == null) {
-                targetType = new TypeReference<T>() {};
-            }
+        } else {
+            LOGGER.trace("Target type was null or no @JsonDeserialize annotation present, defaulting to provided JsonDeserializer<?> implementation for \"{}\"", extension.name());
         }
         registerExtensionSchemaPatch(extension.name(), extension);
         registerExtensionDeserializer(
