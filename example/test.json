@@ -121,9 +121,11 @@
         }
     ],
     "extensions": {
-        "lua_pre_process_handler_definitions": {
-            "test1": "example/compiled/handler.class",
-            "other": "example/handler.lua"
+        "lua_handlers": {
+            "lua_pre_process_handler_definitions": {
+                "test1": "example/compiled/handler.class",
+                "other": "example/handler.lua"
+            }
         }
     }
 }
