@@ -65,12 +65,12 @@ public class LuaHandlerExtension {
     }
 
     public static Extension getExtensionMetadata() {
-        return new ExtensionImpl();
+        return new ExtensionMetadata();
     }
 
-    private static class ExtensionImpl implements Extension {
+    private static class ExtensionMetadata implements Extension {
 
-        private ExtensionImpl() {}
+        private ExtensionMetadata() {}
 
         @Override
         public String name() {
