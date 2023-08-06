@@ -4,7 +4,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
-import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
+import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionProvider;
@@ -49,7 +49,7 @@ public class Main {
 			client.connect();
 			final Conduit conduit = new Conduit(
 					new Conduit.Parameters()
-							.setSchemaProvider(MetricsSchemaProvider.checksumRefreshed("./example/test.json", true))
+							.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
 							.setExecutor(new QueueSuppliedClientPool(() -> client, 5))
 							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 							.setBatcher(WorkloadBatcher.defaultbatcher())

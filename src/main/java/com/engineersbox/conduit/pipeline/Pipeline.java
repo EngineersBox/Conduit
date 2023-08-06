@@ -9,7 +9,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit_v2.processing.schema.metric.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
+import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaFactory;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
@@ -33,17 +33,17 @@ public class Pipeline {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
-    private final MetricsSchemaProvider metricsSchemaProvider;
+    private final MetricsSchemaFactory metricsSchemaFactory;
     private MetricsSchema schema;
     private final IngestSource ingestSource;
     private final BatchingConfiguration batchConfig;
     private IngestionContext ingestionContext;
     private final LazyLoadedGlobalsProvider globalsProvider;
 
-    public Pipeline(final MetricsSchemaProvider provider,
+    public Pipeline(final MetricsSchemaFactory provider,
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
-        this.metricsSchemaProvider = provider;
+        this.metricsSchemaFactory = provider;
         this.ingestSource = ingestSource;
         this.batchConfig = batchConfig;
         this.ingestionContext = IngestionContext.defaultContext();
@@ -57,7 +57,7 @@ public class Pipeline {
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
         this(
-                MetricsSchemaProvider.singleton(null),
+                MetricsSchemaFactory.singleton(null),
                 ingestSource,
                 batchConfig
         );
@@ -67,7 +67,7 @@ public class Pipeline {
                     final IngestSource ingestSource,
                     final BatchingConfiguration batchConfig) {
         this(
-                MetricsSchemaProvider.checksumRefreshed(schemaPath, false),
+                MetricsSchemaFactory.checksumRefreshed(schemaPath, false),
                 ingestSource,
                 batchConfig
         );

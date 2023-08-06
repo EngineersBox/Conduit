@@ -1,22 +1,17 @@
 package com.engineersbox.conduit_v2.processing;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
-import com.engineersbox.conduit.handler.LuaContextHandler;
-import com.engineersbox.conduit.handler.LuaStdoutSink;
-import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
-import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
+import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.processing.schema.Schema;
-import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
-import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
@@ -24,17 +19,13 @@ import io.riemann.riemann.Proto;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.luaj.vm2.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 import java.lang.reflect.Field;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -117,7 +108,7 @@ public class Conduit {
 
     public static class Parameters {
 
-        private MetricsSchemaProvider schemaProvider;
+        private MetricsSchemaFactory schemaProvider;
         private WaitableTaskExecutorPool executor;
         private TaskBatchGenerator workerTaskGenerator;
         private WorkloadBatcher batcher;
@@ -129,7 +120,7 @@ public class Conduit {
             this.contextInjector = (_b) -> {};
         }
 
-        public Parameters setSchemaProvider(final MetricsSchemaProvider schemaProvider) {
+        public Parameters setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
             this.schemaProvider = schemaProvider;
             return this;
         }

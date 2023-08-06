@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class MetricsSchemaProvider extends ReentrantLock {
+public abstract class MetricsSchemaFactory extends ReentrantLock {
 
     private static final int CHUNK_SIZE_BYTES_DEFAULT = 4096;
     private static final int CHUNK_COUNT_DEFAULT = -1;
@@ -24,8 +24,8 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
         return true;
     }
 
-    public static MetricsSchemaProvider singleton(final Schema schema) {
-        return new MetricsSchemaProvider() {
+    public static MetricsSchemaFactory singleton(final Schema schema) {
+        return new MetricsSchemaFactory() {
             @Override
             public Schema provide() {
                 return schema;
@@ -38,9 +38,9 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
         };
     }
 
-    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
-                                                          final boolean compareHashes) {
-        return MetricsSchemaProvider.checksumRefreshed(
+    public static MetricsSchemaFactory checksumRefreshed(final String schemaPath,
+                                                         final boolean compareHashes) {
+        return MetricsSchemaFactory.checksumRefreshed(
                 schemaPath,
                 CHUNK_SIZE_BYTES_DEFAULT,
                 CHUNK_COUNT_DEFAULT,
@@ -48,16 +48,16 @@ public abstract class MetricsSchemaProvider extends ReentrantLock {
         );
     }
 
-    public static MetricsSchemaProvider checksumRefreshed(final String schemaPath,
-                                                          final long chunkSizeBytes,
-                                                          final int maxChunkCount,
-                                                          final boolean compareHashes) {
+    public static MetricsSchemaFactory checksumRefreshed(final String schemaPath,
+                                                         final long chunkSizeBytes,
+                                                         final int maxChunkCount,
+                                                         final boolean compareHashes) {
         if (!Path.of(schemaPath).toFile().exists()) {
             throw new IllegalArgumentException("Schema could not be found at path " + schemaPath);
         }
-        return new MetricsSchemaProvider() {
+        return new MetricsSchemaFactory() {
 
-            private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchemaProvider.class);
+            private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchemaFactory.class);
 
             private Schema schema;
             private long fileSize;
