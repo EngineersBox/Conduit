@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 
 
-public class LuaHandlerExtension implements Extension {
+public class LuaHandlerExtension {
 
     static GlobalsProvider GLOBALS_PROVIDER = new LazyLoadedGlobalsProvider(
             LuaHandlerExtension::configureGlobals,
@@ -57,23 +57,6 @@ public class LuaHandlerExtension implements Extension {
         return this.luaPostProcessHandlerDefinitions.get(name);
     }
 
-    @Override
-    public String name() {
-        return "lua_handlers";
-    }
-
-    @Override
-    public TypeReference<? extends Extension> targetType() {
-        return new TypeReference<LuaHandlerExtension>() {};
-    }
-
-    @Override
-    public InputStream schemaPatchStream() {
-        return Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream("schemas/lua/lua_handlers_schema_patch.json");
-    }
-
     public static void setLuaContextLoggerName(final String name) {
         LUA_CONTEXT_LOGGER_NAME = name;
     }
@@ -88,6 +71,33 @@ public class LuaHandlerExtension implements Extension {
                 LUA_CONTEXT_LOGGER_LEVEL
         );
         return standard;
+    }
+
+    public static Extension getExtensionMetadata() {
+        return new ExtensionImpl();
+    }
+
+    private static class ExtensionImpl implements Extension {
+
+        private ExtensionImpl() {}
+
+        @Override
+        public String name() {
+            return "lua_handlers";
+        }
+
+        @Override
+        public TypeReference<?> targetType() {
+            return new TypeReference<LuaHandlerExtension>() {};
+        }
+
+        @Override
+        public InputStream schemaPatchStream() {
+            return Thread.currentThread()
+                    .getContextClassLoader()
+                    .getResourceAsStream("schemas/lua/lua_handlers_schema_patch.json");
+        }
+
     }
 
 }

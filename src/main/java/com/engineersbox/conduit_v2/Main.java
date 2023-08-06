@@ -5,6 +5,8 @@ import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
+import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionProvider;
+import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.processing.schema.json.path.PathFunctionProvider;
 import com.engineersbox.conduit_v2.processing.task.worker.client.QueueSuppliedClientPool;
 import com.engineersbox.conduit_v2.retrieval.caching.LRUCache;
@@ -42,6 +44,7 @@ public class Main {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
 		CacheProvider.setCache(new LRUCache(10));
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
+		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
 			client.connect();
 			final Conduit conduit = new Conduit(
