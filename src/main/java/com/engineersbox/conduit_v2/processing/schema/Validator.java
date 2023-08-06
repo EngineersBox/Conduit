@@ -41,7 +41,7 @@ public class Validator {
     }
 
     private static JsonNode applySchemaPatch(final ExtensionSchemaPatch extensionSchemaPatch,
-                                         final JsonNode schemaNode) throws IOException, JsonPatchException {
+                                             final JsonNode schemaNode) throws IOException, JsonPatchException {
         final String literalPatch = extensionSchemaPatch.schemaPatchLiteral();
         if (StringUtils.isNotBlank(literalPatch)) {
             final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(literalPatch, JsonPatch.class);
