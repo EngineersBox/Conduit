@@ -6,6 +6,7 @@ import com.engineersbox.conduit.handler.globals.GlobalsProvider;
 import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.Globals;
@@ -13,7 +14,8 @@ import org.slf4j.event.Level;
 
 import java.nio.file.Path;
 
-public class LuaHandlerExtension {
+
+public class LuaHandlerExtension implements Extension {
 
     static GlobalsProvider GLOBALS_PROVIDER = new LazyLoadedGlobalsProvider(
             LuaHandlerExtension::configureGlobals,
@@ -52,6 +54,16 @@ public class LuaHandlerExtension {
 
     public LuaContextHandler getPostProcessHandler(final String name) {
         return this.luaPostProcessHandlers.get(name);
+    }
+
+    @Override
+    public String name() {
+        return "lua_handlers";
+    }
+
+    @Override
+    public TypeReference<? extends Extension> targetType() {
+        return new TypeReference<LuaHandlerExtension>() {};
     }
 
     public static void setLuaContextLoggerName(final String name) {

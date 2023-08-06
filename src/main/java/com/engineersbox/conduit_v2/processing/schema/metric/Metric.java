@@ -1,7 +1,10 @@
 package com.engineersbox.conduit_v2.processing.schema.metric;
 
+import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
+import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.factory.Maps;
@@ -13,15 +16,18 @@ public class Metric {
     private final String path;
     private final ParameterizedMetricType structure;
     private final DimensionallyIndexedRangeMap suffixes;
+    private final ImmutableMap<String, Extension> extensions;
 
     @JsonCreator
     public Metric(@JsonProperty("namespace") final String namespace,
                   @JsonProperty("path") final String path,
-                  @JsonProperty("structure") final ParameterizedMetricType structure) {
+                  @JsonProperty("structure") final ParameterizedMetricType structure,
+                  @JsonProperty("extensions") @JsonDeserialize(contentUsing = ExtensionDeserializer.class) final ImmutableMap<String, Extension> extensions) {
         this.namespace = namespace;
         this.path = path;
         this.structure = structure;
         this.suffixes = new DimensionallyIndexedRangeMap();
+        this.extensions = extensions;
         extractSuffixesToMap(0, this.structure);
     }
 
@@ -60,4 +66,9 @@ public class Metric {
     public ImmutableMap<String, String> getHandlers() {
         return Maps.immutable.of();
     }
+
+    public ImmutableMap<String, Extension> getExtensions() {
+        return this.extensions;
+    }
+
 }

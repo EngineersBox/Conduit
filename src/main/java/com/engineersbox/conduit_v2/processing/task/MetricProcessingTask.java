@@ -1,7 +1,6 @@
 package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
-import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
@@ -11,6 +10,7 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
+import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
@@ -38,24 +38,24 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final EventTransformer transformer;
     private final RetrievalHandler<Metric> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
-    private final ImmutableMap<String, Object> extensions;
+    private final ImmutableMap<String, Extension> schemaExtensions;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final RetrievalHandler<Metric> retriever,
-                                final ImmutableMap<String, Object> extensions,
+                                final ImmutableMap<String, Extension> schemaExtensions,
                                 final Consumer<ContextTransformer.Builder> contextInjector) {
         this.initialMetrics = metrics;
         this.transformer = new EventTransformer(eventTemplate);
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
-        this.extensions = extensions;
+        this.schemaExtensions = schemaExtensions;
         this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
         LuaHandlerExtension luaHandlerExtension = null;
-        if (extensions.get("lua_handlers") instanceof LuaHandlerExtension extension) {
+        if (schemaExtensions.get("lua_handlers") instanceof LuaHandlerExtension extension) {
             luaHandlerExtension = extension;
         }
         this.pipeline = createPipeline(luaHandlerExtension);

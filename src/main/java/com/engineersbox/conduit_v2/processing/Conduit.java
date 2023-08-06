@@ -10,6 +10,7 @@ import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaProvider;
 import com.engineersbox.conduit_v2.processing.schema.Schema;
+import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
@@ -22,6 +23,7 @@ import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import io.riemann.riemann.Proto;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,13 +84,12 @@ public class Conduit {
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = this.params.batcher.chunk(workload, this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
-        // TODO: Move lua stuff to be a schema extension with supplementary processing bindings
-        final LuaContextHandler handler = schema.requiresJseGlobals() ? getHandler(schema.getHandler()) : null;
+        final ImmutableMap<String, Extension> extensions = schema.getExtensions();
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.params.workerTaskGenerator.generate(
                         metrics.asLazy(),
                         eventTemplate,
                         this.contentManager,
-                        handler,
+                        extensions,
                         this.params.contextInjector
                 )).forEach(this.params.executor::submit);
         LOGGER.debug("Submitted workloads to conduit executor");
@@ -100,28 +101,6 @@ public class Conduit {
             this.params.schemaProvider.unlock();
         }
         this.executing = false;
-    }
-
-    private LuaContextHandler getHandler(final Path handlerLocation) {
-        if (handlerLocation == null) {
-            return null;
-        }
-        final LazyLoadedGlobalsProvider globalsProvider =  new LazyLoadedGlobalsProvider(
-                this::configureGlobals,
-                false
-        );
-        return new LuaContextHandler(
-                handlerLocation.toAbsolutePath().toString(),
-                globalsProvider
-        );
-    }
-
-    private Globals configureGlobals(final Globals standard) {
-        standard.STDOUT = LuaStdoutSink.createSlf4j(
-                this.config.handler.name,
-                Level.valueOf(this.config.handler.level.name())
-        );
-        return standard;
     }
 
     public boolean isExecuting() {

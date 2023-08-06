@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
+import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
@@ -82,7 +83,7 @@ public class Schema {
     private ImmutableList<Metric> metrics;
     @JsonProperty("extensions")
     @JsonDeserialize(contentUsing = ExtensionDeserializer.class)
-    private ImmutableMap<String, Object> extensions;
+    private ImmutableMap<String, Extension> extensions;
 
     @JsonCreator
     public Schema() {}
@@ -117,6 +118,10 @@ public class Schema {
 
     public Path getHandler() {
         return Path.of(this.handler);
+    }
+
+    public ImmutableMap<String, Extension> getExtensions() {
+        return this.extensions;
     }
 
     public boolean requiresJseGlobals() {
