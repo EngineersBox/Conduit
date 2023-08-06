@@ -19,6 +19,10 @@
             <id>clojars.org</id>
             <url>https://repo.clojars.org</url>
         </repository>
+        <repository>
+            <id>github.com</id>
+            <url>https://github.com</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -36,6 +40,7 @@
 		<riemann-client.version>0.5.3</riemann-client.version>
         <guava.version>31.1-jre</guava.version>
         <json-schema-validator.version>1.0.86</json-schema-validator.version>
+        <json-patch.version>1.13</json-patch.version>
         <luaj.version>3.0.1</luaj.version>
         <bcel.version>6.7.0</bcel.version>
         <typesafe-config.version>1.4.2</typesafe-config.version>
@@ -105,6 +110,12 @@
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>${jsonpath.version}</version>
+        </dependency>
+        <!-- JSON Patch -->
+        <dependency>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>json-patch</artifactId>
+            <version>${json-patch.version}</version>
         </dependency>
         <!-- Reflection Utils -->
         <dependency>

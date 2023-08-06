@@ -13,6 +13,9 @@ public class Validator {
     private static final JsonSchema SCHEMA;
 
     static {
+        /* TODO: Use json-patch library to patch schema with extension schema changes
+         *       to support validation with dynamic schema injection.
+         */
         JsonNode node = null;
         try (final InputStream resource = Thread.currentThread()
                 .getContextClassLoader()

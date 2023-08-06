@@ -12,7 +12,6 @@ import org.eclipse.collections.api.map.ImmutableMap;
 
 import java.util.Arrays;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public class AdapterProcessPipelineStage extends PipelineStage<Object[], Object[][]> {
 
