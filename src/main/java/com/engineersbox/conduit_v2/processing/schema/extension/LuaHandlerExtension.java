@@ -12,6 +12,7 @@ import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.Globals;
 import org.slf4j.event.Level;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 
 
@@ -24,8 +25,8 @@ public class LuaHandlerExtension implements Extension {
     private static String LUA_CONTEXT_LOGGER_NAME = "LuaHandlerExtension";
     private static Level LUA_CONTEXT_LOGGER_LEVEL = Level.INFO;
 
-    @JsonProperty("handlers_definition")
-    @JsonAlias("handlersDefinition")
+    @JsonProperty("lua_handlers_definition")
+    @JsonAlias("luaHandlersDefinition")
     private Path handlersDefinition;
     @JsonProperty("lua_pre_process_handler_definitions")
     @JsonAlias("luaPreProcessHandlerDefinitions")
@@ -64,6 +65,13 @@ public class LuaHandlerExtension implements Extension {
     @Override
     public TypeReference<? extends Extension> targetType() {
         return new TypeReference<LuaHandlerExtension>() {};
+    }
+
+    @Override
+    public InputStream schemaPatchStream() {
+        return Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream("schemas/lua/lua_handlers_schema_patch.json");
     }
 
     public static void setLuaContextLoggerName(final String name) {

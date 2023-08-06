@@ -27,6 +27,7 @@
         },
         "extensions": {
             "type": "object",
+            "properties": {},
             "additionalProperties": true
         },
         "required": [
@@ -251,6 +252,11 @@
                 },
                 "structure": {
                     "$ref": "#/$defs/metric_structure"
+                },
+                "extensions": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": true
                 }
             },
             "required": [

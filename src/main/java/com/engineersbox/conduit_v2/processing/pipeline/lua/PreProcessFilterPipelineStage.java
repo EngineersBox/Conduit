@@ -13,8 +13,8 @@ import java.util.function.Function;
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     public static final String FILTERED_COUNT_ATTRIBUTE = "pre_process_filtered_count";
-    public static final String LUA_HANDLER_DEFINITIONS = "lua_preprocess_handler_definitions";
-    public static final String LUA_HANDLER_NAME = "lua_preprocess_handler_name";
+    public static final String LUA_HANDLER_DEFINITIONS = "lua_pre_process_handler_definition";
+    public static final String LUA_HANDLER_NAME = "lua_pre_process_handler_name";
 
     private final Function<String, LuaContextHandler> contextHandlerRetriever;
     private final ContextTransformer.Builder contextBuilder;
