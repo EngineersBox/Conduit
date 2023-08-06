@@ -29,7 +29,7 @@ public class ExtensionProvider {
                 targetType = new TypeReference<T>() {};
             }
         }
-        registerExtensionsSchemaPatch(extension.name(), extension);
+        registerExtensionSchemaPatch(extension.name(), extension);
         registerExtensionDeserializer(
                 extension.name(),
                 deserializer,
@@ -52,8 +52,8 @@ public class ExtensionProvider {
         );
     }
 
-    public static synchronized void registerExtensionsSchemaPatch(final String name,
-                                                                  final ExtensionSchemaPatch schemaPatch) {
+    public static synchronized void registerExtensionSchemaPatch(final String name,
+                                                                 final ExtensionSchemaPatch schemaPatch) {
         SCHEMA_PATCHES.put(name, schemaPatch);
     }
 
@@ -65,7 +65,7 @@ public class ExtensionProvider {
         return SCHEMA_PATCHES.get(name);
     }
 
-    public static synchronized RichIterable<ExtensionSchemaPatch> getExtensionSchemaPatchView() {
+    public static synchronized RichIterable<ExtensionSchemaPatch> getExtensionSchemaPatchesView() {
         return SCHEMA_PATCHES.valuesView();
     }
 

@@ -26,7 +26,7 @@ public class Validator {
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
-        for (final ExtensionSchemaPatch patch : ExtensionProvider.getExtensionSchemaPatchView()) {
+        for (final ExtensionSchemaPatch patch : ExtensionProvider.getExtensionSchemaPatchesView()) {
             try {
                 node = applySchemaPatch(patch, node);
             } catch (final IOException | JsonPatchException e) {
