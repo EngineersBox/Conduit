@@ -19,7 +19,7 @@ public interface TaskBatchGenerator {
     ClientBoundWorkerTask generate(final RichIterable<Metric> metrics,
                                    final Proto.Event eventTemplate,
                                    final RetrievalHandler<Metric> retrieverReference,
-                                   final ImmutableMap<String, Extension> extensions,
+                                   final ImmutableMap<String, Object> extensions,
                                    final Consumer<ContextTransformer.Builder> contextInjector);
 
 }

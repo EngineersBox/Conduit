@@ -7,10 +7,9 @@ import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
-import com.engineersbox.conduit_v2.processing.pipeline.lua.HandlerSaturationPipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.lua.EventBatch;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
-import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
@@ -38,20 +37,18 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final EventTransformer transformer;
     private final RetrievalHandler<Metric> retriever;
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
-    private final ImmutableMap<String, Extension> schemaExtensions;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
                                 final RetrievalHandler<Metric> retriever,
-                                final ImmutableMap<String, Extension> schemaExtensions,
+                                final ImmutableMap<String, Object> schemaExtensions,
                                 final Consumer<ContextTransformer.Builder> contextInjector) {
         this.initialMetrics = metrics;
         this.transformer = new EventTransformer(eventTemplate);
         this.eventTemplate = eventTemplate;
         this.retriever = retriever;
-        this.schemaExtensions = schemaExtensions;
         this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
         LuaHandlerExtension luaHandlerExtension = null;
@@ -65,49 +62,63 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (handlerExtension != null) {
             pipelineBuilder.withStages(
-                    new HandlerSaturationPipelineStage(),
+//                    new HandlerSaturationPipelineStage(),
                     new PreProcessFilterPipelineStage(
-                            handlerExtension::getPreProcessHandler,
-                            this.contextBuilder,
-                            hasLuaHandlers
+                            handlerExtension::getPreProcessHandleDefinition,
+                            this.contextBuilder
                     ),
-            );
-        }
-        pipelineBuilder.withStage(
-                new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
-                    @Override
-                    public StageResult<Proto.Event[]> invoke(final Metric metric) {
-                        final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
-                                MetricProcessingTask.this.retriever.lookup(metric),
-                                metric.getStructure(),
-                                metric,
-                                0,
-                                ""
-                        ).toArray(Proto.Event[]::new);
-                        return new StageResult<>(
-                                StageResult.Type.COMBINE,
-                                (int) super.getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
-                                result,
-                                false
-                        );
-                    }
-                }
-        );
-        if (hasLuaHandlers) {
-            pipelineBuilder.withStages(
+                    new PipelineStage<Metric, EventBatch>("Parse metrics events") {
+                        @Override
+                        public StageResult<EventBatch> invoke(final Metric metric) {
+                            final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
+                                    MetricProcessingTask.this.retriever.lookup(metric),
+                                    metric.getStructure(),
+                                    metric,
+                                    0,
+                                    ""
+                            ).toArray(Proto.Event[]::new);
+                            return new StageResult<>(
+                                    StageResult.Type.COMBINE,
+                                    (int) super.getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
+                                    new EventBatch(
+                                            result,
+                                            metric.getExtensions()
+                                    ),
+                                    false
+                            );
+                        }
+                    },
                     new AdapterProcessPipelineStage(
+                            handlerExtension::getAdapterHandleDefinition,
                             this.contextBuilder,
-                            this.luaContextHandler,
                             this.eventTemplate
+                    ),
+                    new PostProcessFilterPipelineStage(
+                            handlerExtension::getPostProcessHandleDefinition,
+                            this.contextBuilder
                     )
             );
+        } else {
+            pipelineBuilder.withStage(new PipelineStage<Metric, Proto.Event[]>("Parse metrics events") {
+                @Override
+                public StageResult<Proto.Event[]> invoke(final Metric metric) {
+                    final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
+                            MetricProcessingTask.this.retriever.lookup(metric),
+                            metric.getStructure(),
+                            metric,
+                            0,
+                            ""
+                    ).toArray(Proto.Event[]::new);
+                    return new StageResult<>(
+                            StageResult.Type.COMBINE,
+                            (int) super.getContextAttribute(PreProcessFilterPipelineStage.FILTERED_COUNT_ATTRIBUTE),
+                            result,
+                            false
+                    );
+                }
+            });
         }
         return pipelineBuilder.withStages(
-                new PostProcessFilterPipelineStage(
-                        this.luaContextHandler,
-                        this.contextBuilder,
-                        hasLuaHandlers
-                ),
                 new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
                     @Override
                     public void accept(final Proto.Event[] events) {

@@ -10,7 +10,7 @@ import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
 public class ExtensionProvider {
 
-    private static final ConcurrentMutableMap<String, Pair<Class<? extends JsonDeserializer<? extends Extension>>, TypeReference<? extends Extension>>> DESERIALIZERS = ConcurrentHashMap.newMap();
+    private static final ConcurrentMutableMap<String, Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>>> DESERIALIZERS = ConcurrentHashMap.newMap();
 
     private ExtensionProvider() {}
 
@@ -20,26 +20,24 @@ public class ExtensionProvider {
             throw new IllegalArgumentException("Cannot register extension with blank name");
         }
         final boolean hasDeserializeAnnotation = extension.getClass().isAnnotationPresent(JsonDeserialize.class);
-        Class<? extends JsonDeserializer<? extends Extension>> deserializer = extension.deserializerClass();
-        TypeReference<? extends Extension> targetType = extension.targetType();
+        Class<? extends JsonDeserializer<?>> deserializer = extension.deserializerClass();
+        TypeReference<?> targetType = extension.targetType();
         if (hasDeserializeAnnotation) {
             deserializer = (Class<? extends JsonDeserializer<? extends Extension>>) JsonDeserializer.None.class;
             if (targetType == null) {
                 targetType = new TypeReference<T>() {};
             }
         }
-        DESERIALIZERS.put(
+        registerExtensionDeserializer(
                 extension.name(),
-                Pair.of(
-                        deserializer,
-                        targetType
-                )
+                deserializer,
+                targetType
         );
     }
 
-    public static synchronized <T extends Extension> void registerExtensionDeserializer(final String name,
-                                                                                        final Class<? extends JsonDeserializer<T>> deserializer,
-                                                                                        final TypeReference<T> targetType) {
+    public static synchronized void registerExtensionDeserializer(final String name,
+                                                                  final Class<? extends JsonDeserializer<?>> deserializer,
+                                                                  final TypeReference<?> targetType) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("Cannot register extension with blank name");
         }
@@ -52,7 +50,7 @@ public class ExtensionProvider {
         );
     }
 
-    public static synchronized Pair<Class<? extends JsonDeserializer<? extends Extension>>, TypeReference<? extends Extension>> getExtensionDeserializer(final String name) {
+    public static synchronized Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> getExtensionDeserializer(final String name) {
         return DESERIALIZERS.get(name);
     }
 

@@ -84,7 +84,7 @@ public class Conduit {
         final LazyIterable<RichIterable<Metric>> batchedMetricWorkloads = this.params.batcher.chunk(workload, this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
-        final ImmutableMap<String, Extension> extensions = schema.getExtensions();
+        final ImmutableMap<String, Object> extensions = schema.getExtensions();
         batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.params.workerTaskGenerator.generate(
                         metrics.asLazy(),
                         eventTemplate,

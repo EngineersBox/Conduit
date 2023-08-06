@@ -74,7 +74,7 @@ public class Schema {
     private ImmutableList<Metric> metrics;
     @JsonProperty("extensions")
     @JsonDeserialize(contentUsing = ExtensionDeserializer.class)
-    private ImmutableMap<String, Extension> extensions;
+    private ImmutableMap<String, Object> extensions;
 
     @JsonCreator
     public Schema() {}
@@ -111,7 +111,7 @@ public class Schema {
         return Path.of(this.handler);
     }
 
-    public ImmutableMap<String, Extension> getExtensions() {
+    public ImmutableMap<String, Object> getExtensions() {
         return this.extensions;
     }
 

@@ -16,13 +16,13 @@ public class Metric {
     private final String path;
     private final ParameterizedMetricType structure;
     private final DimensionallyIndexedRangeMap suffixes;
-    private final ImmutableMap<String, Extension> extensions;
+    private final ImmutableMap<String, Object> extensions;
 
     @JsonCreator
     public Metric(@JsonProperty("namespace") final String namespace,
                   @JsonProperty("path") final String path,
                   @JsonProperty("structure") final ParameterizedMetricType structure,
-                  @JsonProperty("extensions") @JsonDeserialize(contentUsing = ExtensionDeserializer.class) final ImmutableMap<String, Extension> extensions) {
+                  @JsonProperty("extensions") @JsonDeserialize(contentUsing = ExtensionDeserializer.class) final ImmutableMap<String, Object> extensions) {
         this.namespace = namespace;
         this.path = path;
         this.structure = structure;
@@ -67,7 +67,7 @@ public class Metric {
         return Maps.immutable.of();
     }
 
-    public ImmutableMap<String, Extension> getExtensions() {
+    public ImmutableMap<String, Object> getExtensions() {
         return this.extensions;
     }
 

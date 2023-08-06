@@ -27,33 +27,33 @@ public class LuaHandlerExtension implements Extension {
     @JsonProperty("handlers_definition")
     @JsonAlias("handlersDefinition")
     private Path handlersDefinition;
-    @JsonProperty("pre_process_handlers")
-    @JsonAlias("preProcessHandlers")
+    @JsonProperty("lua_pre_process_handler_definitions")
+    @JsonAlias("luaPreProcessHandlerDefinitions")
     @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
-    private ImmutableMap<String, LuaContextHandler> luaPreProcessHandlers;
-    @JsonProperty("adapter_handlers")
-    @JsonAlias("adapterHandlers")
+    private ImmutableMap<String, LuaContextHandler> luaPreProcessHandlerDefinitions;
+    @JsonProperty("lua_adapter_handler_definitions")
+    @JsonAlias("luaAdapterHandlers")
     @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
-    private ImmutableMap<String, LuaContextHandler> luaAdapterHandlers;
-    @JsonProperty("post_process_handlers")
-    @JsonAlias("postProcessHandlers")
+    private ImmutableMap<String, LuaContextHandler> luaAdapterHandlerDefinitions;
+    @JsonProperty("lua_post_process_handler_definitions")
+    @JsonAlias("luaPostProcessHandlerDefinitions")
     @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
-    private ImmutableMap<String, LuaContextHandler> luaPostProcessHandlers;
+    private ImmutableMap<String, LuaContextHandler> luaPostProcessHandlerDefinitions;
 
     public Path getHandlersDefinition() {
         return this.handlersDefinition;
     }
 
-    public LuaContextHandler getPreProcessHandler(final String name) {
-        return this.luaPreProcessHandlers.get(name);
+    public LuaContextHandler getPreProcessHandleDefinition(final String name) {
+        return this.luaPreProcessHandlerDefinitions.get(name);
     }
 
-    public LuaContextHandler getAdapterHandler(final String name) {
-        return this.luaAdapterHandlers.get(name);
+    public LuaContextHandler getAdapterHandleDefinition(final String name) {
+        return this.luaAdapterHandlerDefinitions.get(name);
     }
 
-    public LuaContextHandler getPostProcessHandler(final String name) {
-        return this.luaPostProcessHandlers.get(name);
+    public LuaContextHandler getPostProcessHandleDefinition(final String name) {
+        return this.luaPostProcessHandlerDefinitions.get(name);
     }
 
     @Override

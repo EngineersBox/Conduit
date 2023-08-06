@@ -7,40 +7,45 @@ import com.engineersbox.conduit_v2.processing.event.EventSerialiser;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import io.riemann.riemann.Proto;
+import org.eclipse.collections.api.map.ImmutableMap;
 
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class PostProcessFilterPipelineStage extends PipelineStage<Object[], Proto.Event[]> {
 
-    private final LuaContextHandler contextHandler;
-    private final ContextTransformer.Builder contextBuilder;
-    private final boolean hasLuaHandlers;
+    public static final String LUA_HANDLER_DEFINITION = "lua_post_process_handler_definition";
+    public static final String LUA_HANDLER_NAME = "lua_post_process_handler_name";
 
-    public PostProcessFilterPipelineStage(final LuaContextHandler contextHandler,
-                                          final ContextTransformer.Builder contextBuilder,
-                                          final boolean hasLuaHandlers) {
+    private final Function<String, LuaContextHandler> handlerRetriever;
+    private final ContextTransformer.Builder contextBuilder;
+
+    public PostProcessFilterPipelineStage(final Function<String, LuaContextHandler> handlerRetriever,
+                                          final ContextTransformer.Builder contextBuilder) {
         super("Post-process Lua filter");
-        this.contextHandler = contextHandler;
+        this.handlerRetriever = handlerRetriever;
         this.contextBuilder = contextBuilder;
-        this.hasLuaHandlers = hasLuaHandlers;
     }
 
-    public boolean test(final Proto.Event element) {
-        final Object handlerObj = getContextAttribute(HandlerSaturationPipelineStage.LUA_HANDLER_PREFIX + "post_process");
-        if (!(handlerObj instanceof String handler)) {
+    public boolean test(final EventBatch element) {
+        final ImmutableMap<String, Object> extensions = element.getMetricExtensions();
+        final String definition = getExtension(extensions, PostProcessFilterPipelineStage.LUA_HANDLER_DEFINITION);
+        final String handlerName = getExtension(extensions, PostProcessFilterPipelineStage.LUA_HANDLER_NAME);
+        if (definition == null || handlerName == null) {
             return true;
         }
+        final LuaContextHandler handler = this.handlerRetriever.apply(definition);
         this.contextBuilder.withReadOnly(
                 "events",
-                new Proto.Event[]{element},
+                element.getEvents(),
                 EventSerialiser.class
         ).withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT);
-        this.contextHandler.invoke(
-                handler,
+        handler.invoke(
+                handlerName,
                 this.contextBuilder.build().transform()
         );
-        return this.contextHandler.getFromResult(
+        return handler.getFromResult(
                 new String[]{
                         "executionContext",
                         "shouldRun"
@@ -51,16 +56,31 @@ public class PostProcessFilterPipelineStage extends PipelineStage<Object[], Prot
 
     @Override
     public StageResult<Proto.Event[]> invoke(final Object[] previousResult) {
-        Stream<Proto.Event> result = Arrays.stream(previousResult)
-                .map((final Object obj) -> (Proto.Event[]) obj)
+        Stream<EventBatch> result = Arrays.stream(previousResult)
+                .map((final Object obj) -> (EventBatch[]) obj)
                 .flatMap(Arrays::stream);
-        if (this.hasLuaHandlers) {
+        if (this.handlerRetriever != null) {
             result = result.filter(this::test);
         }
         return new StageResult<>(
                 StageResult.Type.SINGLETON,
-                result.toArray(Proto.Event[]::new),
+                result.map(EventBatch::getEvents)
+                        .flatMap(Arrays::stream)
+                        .toArray(Proto.Event[]::new),
                 false
         );
     }
+
+    private String getExtension(final ImmutableMap<String, Object> extensions,
+                                final String name) {
+        final Object extension = extensions.get(name);
+        if (extension == null) {
+            return null;
+        }
+        if (extension instanceof String stringExtension) {
+            return stringExtension;
+        }
+        return null;
+    }
+
 }

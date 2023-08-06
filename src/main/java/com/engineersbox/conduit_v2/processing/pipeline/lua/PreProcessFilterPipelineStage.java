@@ -6,42 +6,46 @@ import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import org.eclipse.collections.api.map.ImmutableMap;
 
 import java.util.function.Function;
 
 public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     public static final String FILTERED_COUNT_ATTRIBUTE = "pre_process_filtered_count";
+    public static final String LUA_HANDLER_DEFINITIONS = "lua_preprocess_handler_definitions";
+    public static final String LUA_HANDLER_NAME = "lua_preprocess_handler_name";
 
     private final Function<String, LuaContextHandler> contextHandlerRetriever;
     private final ContextTransformer.Builder contextBuilder;
-    private final boolean hasLuaHandlers;
 
     public PreProcessFilterPipelineStage(final Function<String, LuaContextHandler> contextHandlerRetriever,
-                                         final ContextTransformer.Builder contextBuilder,
-                                         final boolean hasLuaHandlers) {
+                                         final ContextTransformer.Builder contextBuilder) {
         super("Pre-process Lua filter");
         this.contextHandlerRetriever = contextHandlerRetriever;
         this.contextBuilder = contextBuilder;
-        this.hasLuaHandlers = hasLuaHandlers;
     }
 
     @Override
     public boolean test(final Metric metric) {
-        final LuaContextHandler handler = this.contextHandlerRetriever.apply(metric.getNamespace());
-        if (handler == null) {
-            return true;
-        }
         this.contextBuilder.withReadOnly(
                 "metric",
                 metric
                 // TODO: MetricSerializer.class
         ).withTable("executionContext", ContextBuiltins.EXECUTION_CONTEXT);
-        this.invoke(
-                handler,
+        final ImmutableMap<String, Object> extensions = metric.getExtensions();
+        if (!(extensions.get(LUA_HANDLER_DEFINITIONS) instanceof String handlerDefinition)) {
+            return true;
+        }
+        if (!(extensions.get(LUA_HANDLER_NAME) instanceof String handlerName)) {
+            return true;
+        }
+        final LuaContextHandler handler = this.contextHandlerRetriever.apply(handlerDefinition);
+        handler.invoke(
+                handlerName,
                 this.contextBuilder.build().transform()
         );
-        return this.contextHandler.getFromResult(
+        return handler.getFromResult(
                 new String[]{
                         "executionContext",
                         "shouldRun"
@@ -52,7 +56,7 @@ public class PreProcessFilterPipelineStage extends FilterPipelineStage<Metric> {
 
     @Override
     public StageResult<Iterable<Metric>> invoke(final Iterable<Metric> previousResult) {
-        if (!this.hasLuaHandlers) {
+        if (this.contextHandlerRetriever == null) {
             return new StageResult<>(
                     StageResult.Type.SPLIT,
                     previousResult,
