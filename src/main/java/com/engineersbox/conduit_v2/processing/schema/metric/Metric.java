@@ -2,6 +2,7 @@ package com.engineersbox.conduit_v2.processing.schema.metric;
 
 import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
+import com.engineersbox.conduit_v2.processing.schema.json.SuffixFormatDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -9,6 +10,8 @@ import com.google.common.collect.Range;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
+
+import java.util.Objects;
 
 public class Metric {
 
@@ -26,7 +29,7 @@ public class Metric {
         this.namespace = namespace;
         this.path = path;
         this.structure = structure;
-        this.extensions = extensions;
+        this.extensions = Objects.requireNonNullElseGet(extensions, Maps.immutable::empty);
         if (!structure.getSuffixes().isEmpty()) {
             this.suffixes = new DimensionallyIndexedRangeMap();
             extractSuffixesToMap(0, this.structure);
@@ -64,7 +67,9 @@ public class Metric {
     }
 
     public String getSuffix(final DimensionIndex query) {
-        return this.suffixes == null ? "/{index}" : this.suffixes.get(query);
+        return this.suffixes == null
+                ? SuffixFormatDeserializer.DEFAULT_SUFFIX_FORMAT
+                : this.suffixes.get(query);
     }
 
     public ImmutableMap<String, String> getHandlers() {

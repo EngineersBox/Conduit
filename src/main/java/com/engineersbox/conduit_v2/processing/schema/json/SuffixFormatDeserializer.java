@@ -13,12 +13,14 @@ import java.io.IOException;
 
 public class SuffixFormatDeserializer extends JsonDeserializer<Pair<Range<Integer>, String>> {
 
+    public static final String DEFAULT_SUFFIX_FORMAT = "/{name}{index}";
+
     @Override
     public Pair<Range<Integer>, String> deserialize(final JsonParser parser,
                                                     final DeserializationContext _context) throws IOException, JacksonException {
         final JsonNode suffixFormatNode = parser.getCodec().readTree(parser);
         if (nodeMissing(suffixFormatNode)) {
-            return ImmutablePair.of(Range.all(), "/{name}{index}");
+            return ImmutablePair.of(Range.all(), DEFAULT_SUFFIX_FORMAT);
         }
         final JsonNode fromJsonNode = suffixFormatNode.get("from");
         final JsonNode toJsonNode = suffixFormatNode.get("to");
