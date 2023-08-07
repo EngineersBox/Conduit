@@ -7,12 +7,14 @@ import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.Globals;
 import org.slf4j.event.Level;
 
 import java.io.InputStream;
+import java.util.Map;
 
 public class LuaHandlerExtension {
 
@@ -25,15 +27,12 @@ public class LuaHandlerExtension {
 
     @JsonProperty("lua_pre_process_handler_definitions")
     @JsonAlias("luaPreProcessHandlerDefinitions")
-    @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
     private ImmutableMap<String, LuaContextHandler> luaPreProcessHandlerDefinitions;
     @JsonProperty("lua_adapter_handler_definitions")
     @JsonAlias("luaAdapterHandlers")
-    @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
     private ImmutableMap<String, LuaContextHandler> luaAdapterHandlerDefinitions;
     @JsonProperty("lua_post_process_handler_definitions")
     @JsonAlias("luaPostProcessHandlerDefinitions")
-    @JsonDeserialize(contentUsing = LuaContextHandlerDeserializer.class)
     private ImmutableMap<String, LuaContextHandler> luaPostProcessHandlerDefinitions;
 
     public LuaContextHandler getPreProcessHandleDefinition(final String name) {

@@ -22,13 +22,17 @@ public class Metric {
     public Metric(@JsonProperty("namespace") final String namespace,
                   @JsonProperty("path") final String path,
                   @JsonProperty("structure") final ParameterizedMetricType structure,
-                  @JsonProperty("extensions") @JsonDeserialize(contentUsing = ExtensionDeserializer.class) final ImmutableMap<String, Object> extensions) {
+                  @JsonProperty("extensions") @JsonDeserialize(using = ExtensionDeserializer.class) final ImmutableMap<String, Object> extensions) {
         this.namespace = namespace;
         this.path = path;
         this.structure = structure;
-        this.suffixes = new DimensionallyIndexedRangeMap();
         this.extensions = extensions;
-        extractSuffixesToMap(0, this.structure);
+        if (!structure.getSuffixes().isEmpty()) {
+            this.suffixes = new DimensionallyIndexedRangeMap();
+            extractSuffixesToMap(0, this.structure);
+        } else {
+            this.suffixes = null;
+        }
     }
 
     private void extractSuffixesToMap(final int dimension,
@@ -60,7 +64,7 @@ public class Metric {
     }
 
     public String getSuffix(final DimensionIndex query) {
-        return this.suffixes.get(query);
+        return this.suffixes == null ? "/{index}" : this.suffixes.get(query);
     }
 
     public ImmutableMap<String, String> getHandlers() {

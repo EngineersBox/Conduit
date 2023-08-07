@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.collections.api.map.ImmutableMap;
 import org.eclipse.collections.api.map.MutableMap;
 import org.eclipse.collections.impl.factory.Maps;
 
@@ -18,67 +19,70 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.Map;
 
-public class ExtensionDeserializer extends StdDeserializer<Object> {
+public class ExtensionDeserializer extends StdDeserializer<ImmutableMap<String, Object>> {
+
+    private static final boolean ALLOW_ANONYMOUS_PRIMITIVE_DESERIALIZATION = true;
 
     protected ExtensionDeserializer() {
-        super(Object.class);
+        super(ImmutableMap.class);
     }
 
     @Override
-    public Object deserialize(final JsonParser parser,
-                                 final DeserializationContext context) throws IOException {
-//        final MutableMap<String, Object> extensions = Maps.mutable.empty();
-        final String name = parser.getParsingContext().getCurrentName();
+    public ImmutableMap<String, Object> deserialize(final JsonParser parser,
+                                                    final DeserializationContext context) throws IOException {
+        final MutableMap<String, Object> extensions = Maps.mutable.empty();
         final ObjectCodec codec = parser.getCodec();
-        final JsonNode extensionNode = codec.readTree(parser);
-        if (nodeMissing(extensionNode)) {
+        final JsonNode extensionsNode = codec.readTree(parser);
+        if (nodeMissing(extensionsNode)) {
             throw new JsonParseException(
                     parser,
-                    "Unable to parse extension node " + name
+                    "Unable to parse extensions node "
             );
         }
-        final Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> deserializerClass = ExtensionProvider.getExtensionDeserializer(name);
-        if (deserializerClass == null) {
-            throw new JsonParseException(parser, "No extension deserializer registered for name " + name);
-        } else if (deserializerClass.getLeft().equals(JsonDeserializer.None.class)) {
-            return codec.readValue(parser, deserializerClass.getRight());
+        for (Iterator<Map.Entry<String, JsonNode>> it = extensionsNode.fields(); it.hasNext();) {
+            final Map.Entry<String, JsonNode> field = it.next();
+            final String name = field.getKey();
+            final JsonNode node = field.getValue();
+            final Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> deserializerClass = ExtensionProvider.getExtensionDeserializer(name);
+            if (deserializerClass == null) {
+                if (ALLOW_ANONYMOUS_PRIMITIVE_DESERIALIZATION && !node.isContainerNode()) {
+                    extensions.put(
+                            name,
+                            codec.readValue(
+                                    node.traverse(codec),
+                                    Object.class
+                            )
+                    );
+                    continue;
+                }
+                throw new JsonParseException(parser, "No extension deserializer registered for name " + name);
+            } else if (deserializerClass.getLeft().equals(JsonDeserializer.None.class)) {
+                extensions.put(
+                        name,
+                        codec.readValue(
+                                node.traverse(codec),
+                                deserializerClass.getRight()
+                        )
+                );
+                continue;
+            }
+            try {
+                final JsonDeserializer<?> deserializer = instantiateDeserializer(
+                        deserializerClass.getLeft(),
+                        deserializerClass.getRight()
+                );
+                extensions.put(
+                        name,
+                        deserializer.deserialize(
+                                field.getValue().traverse(codec),
+                                context
+                        )
+                );
+            } catch (final InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
+                throw new JsonParseException(parser, "Unable to instantiate deserializer for " + name);
+            }
         }
-        try {
-            final JsonDeserializer<?> deserializer = instantiateDeserializer(
-                    deserializerClass.getLeft(),
-                    deserializerClass.getRight()
-            );
-            return deserializer.deserialize(
-                    parser,
-                    context
-            );
-        } catch (final InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
-            throw new JsonParseException(parser, "Unable to instantiate deserializer for " + name);
-        }
-//        for (Iterator<Map.Entry<String, JsonNode>> it = extensionsNode.fields(); it.hasNext();) {
-//            final Map.Entry<String, JsonNode> field = it.next();
-//            final String name = field.getKey();
-//            final Pair<Class<? extends JsonDeserializer<Object>>, Class<?>> deserializerClass = ExtensionProvider.getExtensionDeserializer(name);
-//            if (deserializerClass == null) {
-//                throw new JsonParseException(parser, "No extension deserializer registered for name " + name);
-//            }
-//            try {
-//                final JsonDeserializer<Object> deserializer = instantiateDeserializer(
-//                        deserializerClass.getLeft(),
-//                        deserializerClass.getRight()
-//                );
-//                extensions.put(
-//                        name,
-//                        deserializer.deserialize(
-//                                field.getValue().traverse(codec),
-//                                context
-//                        )
-//                );
-//            } catch (final InvocationTargetException | InstantiationException | NoSuchMethodException | IllegalAccessException e) {
-//                throw new JsonParseException(parser, "Unable to instantiate deserializer for " + name);
-//            }
-//        }
-//        return extensions;
+        return extensions.toImmutable();
     }
 
     private boolean nodeMissing(final JsonNode node) {

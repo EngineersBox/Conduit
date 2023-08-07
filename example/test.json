@@ -67,7 +67,7 @@
             "structure": {
                 "type": "LIST",
                 "structure": {
-                    "type": "INFER",
+                    "type": "MAP",
                     "structure": {
                         "type": "INFER"
                     },
@@ -124,7 +124,7 @@
         "lua_handlers": {
             "lua_pre_process_handler_definitions": {
                 "test1": "example/compiled/handler.class",
-                "other": "example/handler.lua"
+                "other": "example/compiled/handler.class"
             }
         }
     }

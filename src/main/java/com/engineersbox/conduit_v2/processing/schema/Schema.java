@@ -73,7 +73,7 @@ public class Schema {
     @JsonProperty("metrics")
     private ImmutableList<Metric> metrics;
     @JsonProperty("extensions")
-    @JsonDeserialize(contentUsing = ExtensionDeserializer.class)
+    @JsonDeserialize(using = ExtensionDeserializer.class)
     private ImmutableMap<String, Object> extensions;
 
     @JsonCreator

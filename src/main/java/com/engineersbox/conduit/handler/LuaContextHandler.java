@@ -2,6 +2,9 @@ package com.engineersbox.conduit.handler;
 
 import com.engineersbox.conduit.handler.globals.GlobalsProvider;
 import com.engineersbox.conduit.handler.loader.IsolatedLoader;
+import com.engineersbox.conduit_v2.processing.schema.extension.LuaContextHandlerDeserializer;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
@@ -13,6 +16,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 
+@JsonDeserialize(using = LuaContextHandlerDeserializer.class)
 public class LuaContextHandler {
 
     private static final ImmutableMap<Class<?>, Function<LuaValue, ?>> CONVERTERS = Maps.immutable.ofAll(Map.of(
@@ -30,6 +34,7 @@ public class LuaContextHandler {
     private final IsolatedLoader loader;
     private LuaTable result;
 
+    @JsonCreator
     public LuaContextHandler(final String path,
                              final GlobalsProvider globalsProvider) {
         this.loader = new IsolatedLoader(path);
