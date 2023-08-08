@@ -40,14 +40,6 @@ public class Conduit {
     private ContentManager<?, ?, ? ,?> contentManager;
 
     public Conduit(final Parameters params,
-                   final String configPath) {
-        this(
-                params,
-                ConfigFactory.create(configPath)
-        );
-    }
-
-    public Conduit(final Parameters params,
                    final ConduitConfig config) {
         this.params = params;
         this.config = config;

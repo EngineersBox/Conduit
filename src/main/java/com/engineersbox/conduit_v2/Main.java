@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
@@ -55,7 +56,7 @@ public class Main {
 							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 							.setBatcher(WorkloadBatcher.defaultbatcher())
 							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
-					ConfigFactory.create("./example/config.conf")
+					ConfigFactory.create(Path.of("./example/config.conf"))
 			);
 			conduit.execute(null, Source.singleConfigurable());
 		} catch (final Exception e) {

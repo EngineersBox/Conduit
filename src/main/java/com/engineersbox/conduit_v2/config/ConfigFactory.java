@@ -3,6 +3,7 @@ package com.engineersbox.conduit_v2.config;
 import com.typesafe.config.Config;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public abstract class ConfigFactory {
 
@@ -10,9 +11,14 @@ public abstract class ConfigFactory {
         throw new UnsupportedOperationException("Factory class");
     }
 
-    public static ConduitConfig create(final String path) {
-        final File file = new File(path);
+    public static ConduitConfig create(final Path path) {
+        final File file = path.toFile();
         final Config typesafeConfig = com.typesafe.config.ConfigFactory.parseFile(file).resolve();
+        return new ConduitConfig(typesafeConfig);
+    }
+
+    public static ConduitConfig create(final String literal) {
+        final Config typesafeConfig = com.typesafe.config.ConfigFactory.parseString(literal);
         return new ConduitConfig(typesafeConfig);
     }
 
