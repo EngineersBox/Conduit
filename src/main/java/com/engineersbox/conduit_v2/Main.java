@@ -1,6 +1,7 @@
 package com.engineersbox.conduit_v2;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
+import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;

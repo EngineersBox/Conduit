@@ -14,7 +14,7 @@ import java.util.function.Function;
 public abstract class ContentManagerFactory {
 
     private ContentManagerFactory() {
-        throw new IllegalStateException("Factory class");
+        throw new UnsupportedOperationException("Factory class");
     }
 
     public static <

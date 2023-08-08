@@ -81,7 +81,7 @@ public class Conduit {
                         eventTemplate,
                         this.contentManager,
                         extensions,
-                        this.params.contextInjector
+                        this.params.contextInjector // TODO: Add support for supplying extension contexts and make this one that is provided
                 )).forEach(this.params.executor::submit);
         LOGGER.debug("Submitted workloads to conduit executor");
         if (!this.config.ingest.async) {
