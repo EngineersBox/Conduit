@@ -11,7 +11,7 @@ public abstract class IngesterFactory {
             E extends ConnectorConfiguration,
             C extends Connector<T, E>
         > Ingester<T, E, C> construct(final Schema schema,
-                                         final Source<T> source);
+                                      final Source<T> source);
 
     public static IngesterFactory defaultFactory() {
         return new IngesterFactory() {
