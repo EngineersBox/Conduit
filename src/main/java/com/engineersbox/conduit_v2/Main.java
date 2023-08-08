@@ -1,7 +1,6 @@
 package com.engineersbox.conduit_v2;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
-import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
@@ -56,7 +55,7 @@ public class Main {
 							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 							.setBatcher(WorkloadBatcher.defaultbatcher())
 							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
-					ConfigFactory.create(Path.of("./example/config.conf"))
+					ConfigFactory.load(Path.of("./example/config.conf"))
 			);
 			conduit.execute(null, Source.singleConfigurable());
 		} catch (final Exception e) {

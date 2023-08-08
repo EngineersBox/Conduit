@@ -11,14 +11,14 @@ public abstract class ConfigFactory {
         throw new UnsupportedOperationException("Factory class");
     }
 
-    public static ConduitConfig create(final Path path) {
+    public static ConduitConfig load(final Path path) {
         final File file = path.toFile();
         final Config typesafeConfig = com.typesafe.config.ConfigFactory.parseFile(file).resolve();
         return new ConduitConfig(typesafeConfig);
     }
 
     public static ConduitConfig create(final String literal) {
-        final Config typesafeConfig = com.typesafe.config.ConfigFactory.parseString(literal);
+        final Config typesafeConfig = com.typesafe.config.ConfigFactory.parseString(literal).resolve();
         return new ConduitConfig(typesafeConfig);
     }
 
