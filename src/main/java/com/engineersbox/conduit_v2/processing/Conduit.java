@@ -49,10 +49,7 @@ public class Conduit {
     public void execute(final IngestionContext context,
                         final Source<?> source) throws Exception {
         this.executing = true;
-        final Schema schema = this.params.schemaProvider.provide();
-        if (this.config.ingest.schema_provider_locking) {
-            this.params.schemaProvider.lock();
-        }
+        final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
         if (this.params.schemaProvider.instanceRefreshed()) {
             LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
             this.contentManager = ContentManagerFactory.construct(

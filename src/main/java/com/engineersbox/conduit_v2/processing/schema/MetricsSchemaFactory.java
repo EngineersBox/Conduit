@@ -17,7 +17,13 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
     private static final int CHUNK_SIZE_BYTES_DEFAULT = 4096;
     private static final int CHUNK_COUNT_DEFAULT = -1;
 
-    public abstract Schema provide();
+    public Schema provide(final boolean lock) {
+        if (lock) {
+            super.lock();
+        }
+        return provide();
+    }
+    protected abstract Schema provide();
     public abstract void refresh();
 
     public boolean instanceRefreshed() {
@@ -27,7 +33,7 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
     public static MetricsSchemaFactory singleton(final Schema schema) {
         return new MetricsSchemaFactory() {
             @Override
-            public Schema provide() {
+            protected Schema provide() {
                 return schema;
             }
 
@@ -79,7 +85,7 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
             private final long[] chunkHashes = new long[this.chunkCount];
 
             @Override
-            public Schema provide() {
+            protected Schema provide() {
                 if (super.isLocked()) {
                     return this.schema;
                 }
