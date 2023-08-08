@@ -65,6 +65,7 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
 
             private static final Logger LOGGER = LoggerFactory.getLogger(MetricsSchemaFactory.class);
 
+            private final ReentrantLock lock = new ReentrantLock(true);
             private Schema schema;
             private long fileSize;
             private long fileLastModifiedTime;
@@ -86,7 +87,7 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
 
             @Override
             protected Schema provide() {
-                if (super.isLocked()) {
+                if (!this.lock.tryLock()) {
                     return this.schema;
                 }
                 final File schemaFile = Path.of(schemaPath).toFile();
@@ -145,6 +146,9 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
 
             @Override
             public void refresh() {
+                if (!this.lock.isLocked()) {
+                    return;
+                }
                 if (!compareHashes || !this.updateHashes) {
                     this.lastComputedChunkHashIndex = 0;
                     return;
@@ -156,11 +160,18 @@ public abstract class MetricsSchemaFactory extends ReentrantLock {
                 }
                 this.lastComputedChunkHashIndex = 0;
                 this.updateHashes = false;
+                this.lock.unlock();
             }
+
+            private boolean refreshFlag = false;
 
             @Override
             public boolean instanceRefreshed() {
-                return this.updateHashes;
+                if (!refreshFlag) {
+                    this.refreshFlag = true;
+                    return true;
+                }
+                return false;//this.updateHashes;
             }
         };
     }
