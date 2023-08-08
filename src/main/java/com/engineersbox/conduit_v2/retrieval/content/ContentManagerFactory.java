@@ -9,44 +9,36 @@ import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfigur
 import com.engineersbox.conduit_v2.retrieval.path.PathTraversalHandler;
 import com.jayway.jsonpath.Configuration;
 
-import java.util.function.Function;
-
 public abstract class ContentManagerFactory {
 
-    private ContentManagerFactory() {
-        throw new UnsupportedOperationException("Factory class");
-    }
-
-    public static <
-            T,
-            R,
-            E extends ConnectorConfiguration,
-            C extends Connector<R, E>
-        > ContentManager<T, R, E, C> construct(final Schema schema,
-                                               final Source<R> source,
-                                               final IngestionContext context,
-                                               final Function<R, T> converter) {
-        final Configuration jsonPathConfig = schema.getJsonPathConfiguration();
-        return new ContentManager<>(
-                IngesterFactory.construct(schema, source, converter),
-                context,
-                new PathTraversalHandler<>(jsonPathConfig)
-        );
-    }
-
-    public static <
+    public abstract <
             T,
             E extends ConnectorConfiguration,
             C extends Connector<T, E>
-        > ContentManager<T, T, E, C> construct(final Schema schema,
-                                               final Source<T> source,
-                                               final IngestionContext context) {
-        return ContentManagerFactory.construct(
-                schema,
-                source,
-                context,
-                Function.identity()
-        );
+        > ContentManager<T, E, C> construct(final Schema schema,
+                                            final Source<T> source,
+                                            final IngestionContext context,
+                                            final IngesterFactory ingesterFactory);
+
+    public static ContentManagerFactory defaultFactory() {
+        return new ContentManagerFactory() {
+            @Override
+            public <
+                    T,
+                    E extends ConnectorConfiguration,
+                    C extends Connector<T, E>
+                > ContentManager<T, E, C> construct(final Schema schema,
+                                                    final Source<T> source,
+                                                    final IngestionContext context,
+                                                    final IngesterFactory ingesterFactory) {
+                final Configuration jsonPathConfig = schema.getJsonPathConfiguration();
+                return new ContentManager<>(
+                        ingesterFactory.construct(schema, source),
+                        context,
+                        new PathTraversalHandler<>(jsonPathConfig)
+                );
+            }
+        };
     }
 
 }

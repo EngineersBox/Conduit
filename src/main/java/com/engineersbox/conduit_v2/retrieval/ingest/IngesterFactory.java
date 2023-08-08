@@ -4,32 +4,22 @@ import com.engineersbox.conduit_v2.processing.schema.Schema;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 
-import java.util.function.Function;
+public abstract class IngesterFactory {
 
-public class IngesterFactory {
-
-    public static <
-            T,
-            R,
-            E extends ConnectorConfiguration,
-            C extends Connector<R, E>
-        > Ingester<T, R, E, C> construct(final Schema schema,
-                                         final Source<R> source,
-                                         final Function<R, T> converter) {
-        return new Ingester<>(
-                source,
-                (C) schema.getConnector(),
-                converter
-        );
-    }
-
-    public static <
+    public abstract <
             T,
             E extends ConnectorConfiguration,
             C extends Connector<T, E>
-        > Ingester<T, T, E, C> construct(final Schema schema,
-                                         final Source<T> source) {
-        return IngesterFactory.construct(schema, source, Function.identity());
+        > Ingester<T, E, C> construct(final Schema schema,
+                                         final Source<T> source);
+
+    public static IngesterFactory defaultFactory() {
+        return new IngesterFactory() {
+            @Override
+            public <T, E extends ConnectorConfiguration, C extends Connector<T, E>> Ingester<T, E, C> construct(Schema schema, Source<T> source) {
+                return new Ingester<>(source, (C) schema.getConnector());
+            }
+        };
     }
 
 }

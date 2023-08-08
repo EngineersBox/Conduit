@@ -2,7 +2,6 @@ package com.engineersbox.conduit_v2.processing;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
-import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.schema.MetricsSchemaFactory;
@@ -13,6 +12,7 @@ import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
+import com.engineersbox.conduit_v2.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
 import io.riemann.riemann.Proto;
@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Conduit {
@@ -37,7 +36,7 @@ public class Conduit {
     private final Parameters params;
     private final ConduitConfig config;
     private boolean executing = false;
-    private ContentManager<?, ?, ? ,?> contentManager;
+    private ContentManager<?, ? ,?> contentManager;
 
     public Conduit(final Parameters params,
                    final ConduitConfig config) {
@@ -52,11 +51,11 @@ public class Conduit {
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
         if (this.params.schemaProvider.instanceRefreshed()) {
             LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
-            this.contentManager = ContentManagerFactory.construct(
+            this.contentManager = this.params.contentManagerFactory.construct(
                     schema,
                     source,
                     context,
-                    Function.identity() // TODO: allow customisation via config
+                    this.params.ingesterFactory
             );
         }
         final LazyIterable<Metric> workload = schema.lazyMetricsView();
@@ -102,11 +101,15 @@ public class Conduit {
         private TaskBatchGenerator workerTaskGenerator;
         private WorkloadBatcher batcher;
         private Consumer<ContextTransformer.Builder> contextInjector;
+        private IngesterFactory ingesterFactory;
+        private ContentManagerFactory contentManagerFactory;
 
         public Parameters() {
             this.workerTaskGenerator = TaskBatchGeneratorFactory.defaultGenerator();
             this.batcher = WorkloadBatcher.defaultbatcher();
             this.contextInjector = (_b) -> {};
+            this.ingesterFactory = IngesterFactory.defaultFactory();
+            this.contentManagerFactory = ContentManagerFactory.defaultFactory();
         }
 
         public Parameters setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
@@ -139,6 +142,16 @@ public class Conduit {
 
         public Parameters setContextInjector(final Consumer<ContextTransformer.Builder> contextInjector) {
             this.contextInjector = contextInjector;
+            return this;
+        }
+
+        public Parameters setIngesterFactory(final IngesterFactory ingesterFactory) {
+            this.ingesterFactory = ingesterFactory;
+            return this;
+        }
+
+        public Parameters setContentManagerFactory(ContentManagerFactory contentManagerFactory) {
+            this.contentManagerFactory = contentManagerFactory;
             return this;
         }
 
