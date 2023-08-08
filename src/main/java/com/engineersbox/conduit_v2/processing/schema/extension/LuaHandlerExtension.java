@@ -7,14 +7,11 @@ import com.engineersbox.conduit.handler.globals.LazyLoadedGlobalsProvider;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.luaj.vm2.Globals;
 import org.slf4j.event.Level;
 
 import java.io.InputStream;
-import java.util.Map;
 
 public class LuaHandlerExtension {
 
@@ -63,13 +60,13 @@ public class LuaHandlerExtension {
         return standard;
     }
 
-    public static Extension getExtensionMetadata() {
-        return new ExtensionMetadata();
+    public static ExtensionMetadata getExtensionMetadata() {
+        return new LuaHandlerExtensionMetadata();
     }
 
-    private static class ExtensionMetadata implements Extension {
+    private static class LuaHandlerExtensionMetadata implements ExtensionMetadata {
 
-        private ExtensionMetadata() {}
+        private LuaHandlerExtensionMetadata() {}
 
         @Override
         public String name() {

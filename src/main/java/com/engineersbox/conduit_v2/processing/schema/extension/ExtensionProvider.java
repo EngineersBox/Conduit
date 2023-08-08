@@ -15,11 +15,11 @@ public class ExtensionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionProvider.class);
     private static final ConcurrentMutableMap<String, Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>>> DESERIALIZERS = ConcurrentHashMap.newMap();
-    private static final ConcurrentMutableMap<String, ExtensionSchemaPatch> SCHEMA_PATCHES = ConcurrentHashMap.newMap();
+    private static final ConcurrentMutableMap<String, ExtensionMetadata> SCHEMA_METADATA = ConcurrentHashMap.newMap();
 
     private ExtensionProvider() {}
 
-    public static synchronized <T extends Extension> void registerExtension(final T extension) {
+    public static synchronized <T extends ExtensionMetadata> void registerExtension(final T extension) {
         if (StringUtils.isBlank(extension.name())) {
             throw new IllegalArgumentException("Cannot register extension with blank name");
         }
@@ -30,7 +30,7 @@ public class ExtensionProvider {
         } else {
             LOGGER.trace("Target type was null or no @JsonDeserialize annotation present, defaulting to provided JsonDeserializer<?> implementation for \"{}\"", extension.name());
         }
-        registerExtensionSchemaPatch(extension.name(), extension);
+        registerExtensionMetadata(extension.name(), extension);
         registerExtensionDeserializer(
                 extension.name(),
                 deserializer,
@@ -42,7 +42,7 @@ public class ExtensionProvider {
                                                                   final Class<? extends JsonDeserializer<?>> deserializer,
                                                                   final TypeReference<?> targetType) {
         if (StringUtils.isBlank(name)) {
-            throw new IllegalArgumentException("Cannot register extension with blank name");
+            throw new IllegalArgumentException("Cannot register extension deserializer with blank name");
         }
         DESERIALIZERS.put(
                 name,
@@ -53,21 +53,24 @@ public class ExtensionProvider {
         );
     }
 
-    public static synchronized void registerExtensionSchemaPatch(final String name,
-                                                                 final ExtensionSchemaPatch schemaPatch) {
-        SCHEMA_PATCHES.put(name, schemaPatch);
+    public static synchronized void registerExtensionMetadata(final String name,
+                                                              final ExtensionMetadata metadata) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("Cannot register extension metadata with blank name");
+        }
+        SCHEMA_METADATA.put(name, metadata);
     }
 
     public static synchronized Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> getExtensionDeserializer(final String name) {
         return DESERIALIZERS.get(name);
     }
 
-    public static synchronized ExtensionSchemaPatch getExtensionSchemaPatch(final String name) {
-        return SCHEMA_PATCHES.get(name);
+    public static synchronized ExtensionMetadata getExtensionMetadata(final String name) {
+        return SCHEMA_METADATA.get(name);
     }
 
-    public static synchronized RichIterable<ExtensionSchemaPatch> getExtensionSchemaPatchesView() {
-        return SCHEMA_PATCHES.valuesView();
+    public static synchronized RichIterable<ExtensionMetadata> getExtensionMetadataView() {
+        return SCHEMA_METADATA.valuesView();
     }
 
 }

@@ -1,8 +1,9 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
 import com.engineersbox.conduit.util.ObjectMapperModule;
-import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionProvider;
+import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionMetadata;
 import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionSchemaPatch;
+import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -11,10 +12,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 public class Validator {
 
+    private static final String SCHEMA_PATCH_TEMPLATE = """
+            [
+                {
+                    "op": "add",
+                    "path": "/properties/extensions/properties/%s",
+                    "value": %s
+                }
+            ]
+            """;
     private static final JsonSchema SCHEMA;
 
     static {
@@ -26,9 +37,9 @@ public class Validator {
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
-        for (final ExtensionSchemaPatch patch : ExtensionProvider.getExtensionSchemaPatchesView()) {
+        for (final ExtensionMetadata extensionMetadata : ExtensionProvider.getExtensionMetadataView()) {
             try {
-                node = applySchemaPatch(patch, node);
+                node = applySchemaPatch(extensionMetadata, node);
             } catch (final IOException | JsonPatchException e) {
                 throw new IllegalStateException(e);
             }
@@ -40,14 +51,34 @@ public class Validator {
         SCHEMA.initializeValidators();
     }
 
-    private static JsonNode applySchemaPatch(final ExtensionSchemaPatch extensionSchemaPatch,
+    private static JsonNode applySchemaPatch(final ExtensionMetadata extensionMetadata,
                                              final JsonNode schemaNode) throws IOException, JsonPatchException {
-        final String literalPatch = extensionSchemaPatch.schemaPatchLiteral();
+        final String literal = extensionMetadata.schemaLiteral();
+        if (StringUtils.isNotBlank(literal)) {
+            final String schemaPatch = String.format(
+                    SCHEMA_PATCH_TEMPLATE,
+                    extensionMetadata.name(),
+                    literal
+            );
+            final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(schemaPatch, JsonPatch.class);
+            return patch.apply(schemaNode);
+        }
+        final InputStream stream = extensionMetadata.schemaStream();
+        if (stream != null) {
+            final String schemaPatch = String.format(
+                    SCHEMA_PATCH_TEMPLATE,
+                    extensionMetadata.name(),
+                    new String(stream.readAllBytes(), StandardCharsets.UTF_8)
+            );
+            final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(schemaPatch, JsonPatch.class);
+            return patch.apply(schemaNode);
+        }
+        final String literalPatch = extensionMetadata.schemaPatchLiteral();
         if (StringUtils.isNotBlank(literalPatch)) {
             final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(literalPatch, JsonPatch.class);
             return patch.apply(schemaNode);
         }
-        final InputStream streamPatch = extensionSchemaPatch.schemaPatchStream();
+        final InputStream streamPatch = extensionMetadata.schemaPatchStream();
         if (streamPatch != null) {
             final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(streamPatch, JsonPatch.class);
             return patch.apply(schemaNode);

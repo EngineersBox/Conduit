@@ -1,6 +1,5 @@
 package com.engineersbox.conduit_v2.processing.schema;
 
-import com.engineersbox.conduit_v2.processing.schema.extension.Extension;
 import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
