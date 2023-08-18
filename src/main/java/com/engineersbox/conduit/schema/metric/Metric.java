@@ -1,8 +1,8 @@
 package com.engineersbox.conduit.schema.metric;
 
 import com.engineersbox.conduit.handler.ContextBuiltins;
-import com.engineersbox.conduit_v2.processing.schema.metric.DimensionIndex;
-import com.engineersbox.conduit_v2.processing.schema.metric.DimensionallyIndexedRangeMap;
+import com.engineersbox.conduit_v2.schema.metric.DimensionIndex;
+import com.engineersbox.conduit_v2.schema.metric.DimensionallyIndexedRangeMap;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;

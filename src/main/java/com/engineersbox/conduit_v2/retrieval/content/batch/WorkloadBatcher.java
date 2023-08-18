@@ -1,6 +1,6 @@
 package com.engineersbox.conduit_v2.retrieval.content.batch;
 
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 

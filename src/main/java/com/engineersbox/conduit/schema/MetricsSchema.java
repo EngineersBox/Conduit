@@ -6,7 +6,7 @@ import com.engineersbox.conduit.schema.metric.MetricType;
 import com.engineersbox.conduit.schema.metric.MetricValueType;
 import com.engineersbox.conduit.schema.provider.JsonProvider;
 import com.engineersbox.conduit.schema.provider.MappingProvider;
-import com.engineersbox.conduit_v2.processing.schema.Validator;
+import com.engineersbox.conduit_v2.schema.Validator;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorType;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.builtin.http.*;

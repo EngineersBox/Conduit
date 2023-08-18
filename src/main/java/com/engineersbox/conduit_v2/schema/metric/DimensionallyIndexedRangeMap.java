@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.metric;
+package com.engineersbox.conduit_v2.schema.metric;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;

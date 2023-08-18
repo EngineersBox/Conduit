@@ -1,19 +1,15 @@
 package com.engineersbox.conduit_v2.processing.event;
 
-import com.engineersbox.conduit_v2.processing.schema.metric.DimensionIndex;
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
-import com.engineersbox.conduit_v2.processing.schema.metric.MetricKind;
-import com.engineersbox.conduit_v2.processing.schema.metric.MetricType;
-import com.google.common.base.Strings;
+import com.engineersbox.conduit_v2.schema.metric.DimensionIndex;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
+import com.engineersbox.conduit_v2.schema.metric.MetricKind;
+import com.engineersbox.conduit_v2.schema.metric.MetricType;
 import io.riemann.riemann.Proto;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;

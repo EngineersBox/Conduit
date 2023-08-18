@@ -10,8 +10,8 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.EventBatch;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
-import com.engineersbox.conduit_v2.processing.schema.extension.LuaHandlerExtension;
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
@@ -28,6 +28,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask {
+
+    /* TODO: Refactor usage of Pipeline to use EasyBatch library
+     *       to use a more effective and standardised interface
+     *       including fork-join-esque queued parallel pipeline
+     *       structures as exemplified by the parallel tutorial
+     *       https://github.com/j-easy/easy-batch/tree/master/easy-batch-tutorials/src/main/java/org/jeasy/batch/tutorials/advanced/parallel
+     */
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricProcessingTask.class);
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";

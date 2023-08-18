@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema;
+package com.engineersbox.conduit_v2.schema;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;

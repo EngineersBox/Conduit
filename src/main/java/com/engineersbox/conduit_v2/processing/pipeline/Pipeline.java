@@ -7,6 +7,7 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.MutableMap;
+import org.jeasy.batch.core.job.JobExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +33,12 @@ public class Pipeline<T> implements Consumer<T> {
 
     private final MutableMap<String, Object> context;
     private final MutableList<PipelineStage<?, ?>> stageQueue;
+    private final JobExecutor executor;
 
     private Pipeline() {
         this.stageQueue = Lists.mutable.empty();
         this.context = Maps.mutable.empty();
+        this.executor = new JobExecutor();
     }
 
     @Override

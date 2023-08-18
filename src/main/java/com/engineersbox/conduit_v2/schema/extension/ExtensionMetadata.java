@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.extension;
+package com.engineersbox.conduit_v2.schema.extension;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonDeserializer;

@@ -1,8 +1,8 @@
-package com.engineersbox.conduit_v2.processing.schema;
+package com.engineersbox.conduit_v2.schema;
 
-import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionDeserializer;
-import com.engineersbox.conduit_v2.processing.schema.json.JsonPathConfigDeserializer;
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.schema.extension.ExtensionDeserializer;
+import com.engineersbox.conduit_v2.schema.json.JsonPathConfigDeserializer;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -112,10 +112,6 @@ public class Schema {
 
     public ImmutableMap<String, Object> getExtensions() {
         return this.extensions;
-    }
-
-    public boolean requiresJseGlobals() {
-        return this.handler != null;
     }
 
     public static Schema from(final String raw) throws IOException {

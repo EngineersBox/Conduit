@@ -1,6 +1,6 @@
-package com.engineersbox.conduit_v2.processing.schema.metric;
+package com.engineersbox.conduit_v2.schema.metric;
 
-import com.engineersbox.conduit_v2.processing.schema.json.SuffixFormatDeserializer;
+import com.engineersbox.conduit_v2.schema.json.SuffixFormatDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

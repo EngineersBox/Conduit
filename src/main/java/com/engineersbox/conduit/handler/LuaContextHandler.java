@@ -2,7 +2,7 @@ package com.engineersbox.conduit.handler;
 
 import com.engineersbox.conduit.handler.globals.GlobalsProvider;
 import com.engineersbox.conduit.handler.loader.IsolatedLoader;
-import com.engineersbox.conduit_v2.processing.schema.extension.LuaContextHandlerDeserializer;
+import com.engineersbox.conduit_v2.schema.extension.LuaContextHandlerDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.ArrayUtils;

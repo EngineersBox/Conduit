@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.json.path;
+package com.engineersbox.conduit_v2.schema.json.path;
 
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.internal.function.PathFunction;

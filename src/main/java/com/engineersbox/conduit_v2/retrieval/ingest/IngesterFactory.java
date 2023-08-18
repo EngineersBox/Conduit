@@ -1,6 +1,6 @@
 package com.engineersbox.conduit_v2.retrieval.ingest;
 
-import com.engineersbox.conduit_v2.processing.schema.Schema;
+import com.engineersbox.conduit_v2.schema.Schema;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit_v2.retrieval.ingest.connection.ConnectorConfiguration;
 

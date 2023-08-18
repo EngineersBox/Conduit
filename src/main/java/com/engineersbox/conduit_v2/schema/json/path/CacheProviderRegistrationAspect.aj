@@ -1,14 +1,14 @@
-package com.engineersbox.conduit_v2.processing.schema.json.path;
+package com.engineersbox.conduit_v2.schema.json.path;
 
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundForkJoinWorkerThead;
 import com.jayway.jsonpath.spi.cache.Cache;
 
 public aspect CacheProviderRegistrationAspect {
 
-    pointcut pathFuncInstantiationVisit():
+    pointcut cacheProviderInstantiationVisit():
             execution(public static com.jayway.jsonpath.spi.cache.Cache com.jayway.com.jayway.jsonpath.spi.cache.CacheProvider.getCache());
 
-    Cache around(): pathFuncInstantiationVisit() {
+    Cache around(): cacheProviderInstantiationVisit() {
         final Cache cache;
         if (!(Thread.currentThread() instanceof ClientBoundForkJoinWorkerThead cbfjwThread)
             || (cache = AffinityCacheProvider.getCacheInstance(cbfjwThread.getAffinityId())) == null) {

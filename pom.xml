@@ -50,6 +50,8 @@
         <jackson-protobuf.version>0.9.14</jackson-protobuf.version>
         <aspectj.version>1.9.19</aspectj.version>
         <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
+        <typetools.version>0.6.3</typetools.version>
+        <easy-batch.version>7.0.2</easy-batch.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -70,6 +72,23 @@
     </properties>
 
 	<dependencies>
+        <!-- EasyBatch -->
+        <dependency>
+            <groupId>org.jeasy</groupId>
+            <artifactId>easy-batch-core</artifactId>
+            <version>${easy-batch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jeasy</groupId>
+            <artifactId>easy-batch-extensions</artifactId>
+            <version>${easy-batch.version}</version>
+        </dependency>
+        <!-- Type Tools -->
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>typetools</artifactId>
+            <version>${typetools.version}</version>
+        </dependency>
         <!-- AspectJ -->
         <dependency>
             <groupId>org.aspectj</groupId>

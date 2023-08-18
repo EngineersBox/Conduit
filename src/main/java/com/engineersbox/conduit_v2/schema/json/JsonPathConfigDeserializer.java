@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.json;
+package com.engineersbox.conduit_v2.schema.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.extension;
+package com.engineersbox.conduit_v2.schema.extension;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -19,7 +19,7 @@ public class ExtensionProvider {
 
     private ExtensionProvider() {}
 
-    public static synchronized <T extends ExtensionMetadata> void registerExtension(final T extension) {
+    public static <T extends ExtensionMetadata> void registerExtension(final T extension) {
         if (StringUtils.isBlank(extension.name())) {
             throw new IllegalArgumentException("Cannot register extension with blank name");
         }
@@ -38,39 +38,49 @@ public class ExtensionProvider {
         );
     }
 
-    public static synchronized void registerExtensionDeserializer(final String name,
+    public static void registerExtensionDeserializer(final String name,
                                                                   final Class<? extends JsonDeserializer<?>> deserializer,
                                                                   final TypeReference<?> targetType) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("Cannot register extension deserializer with blank name");
         }
-        DESERIALIZERS.put(
-                name,
-                Pair.of(
-                        deserializer,
-                        targetType
-                )
-        );
+        synchronized (DESERIALIZERS) {
+            DESERIALIZERS.put(
+                    name,
+                    Pair.of(
+                            deserializer,
+                            targetType
+                    )
+            );
+        }
     }
 
-    public static synchronized void registerExtensionMetadata(final String name,
+    public static void registerExtensionMetadata(final String name,
                                                               final ExtensionMetadata metadata) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("Cannot register extension metadata with blank name");
         }
-        SCHEMA_METADATA.put(name, metadata);
+        synchronized (SCHEMA_METADATA) {
+            SCHEMA_METADATA.put(name, metadata);
+        }
     }
 
-    public static synchronized Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> getExtensionDeserializer(final String name) {
-        return DESERIALIZERS.get(name);
+    public static Pair<Class<? extends JsonDeserializer<?>>, TypeReference<?>> getExtensionDeserializer(final String name) {
+        synchronized (DESERIALIZERS) {
+            return DESERIALIZERS.get(name);
+        }
     }
 
-    public static synchronized ExtensionMetadata getExtensionMetadata(final String name) {
-        return SCHEMA_METADATA.get(name);
+    public static ExtensionMetadata getExtensionMetadata(final String name) {
+        synchronized (SCHEMA_METADATA) {
+            return SCHEMA_METADATA.get(name);
+        }
     }
 
-    public static synchronized RichIterable<ExtensionMetadata> getExtensionMetadataView() {
-        return SCHEMA_METADATA.valuesView();
+    public static RichIterable<ExtensionMetadata> getExtensionMetadataView() {
+        synchronized (SCHEMA_METADATA) {
+            return SCHEMA_METADATA.valuesView();
+        }
     }
 
 }

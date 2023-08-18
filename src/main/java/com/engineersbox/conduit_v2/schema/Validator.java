@@ -1,9 +1,8 @@
-package com.engineersbox.conduit_v2.processing.schema;
+package com.engineersbox.conduit_v2.schema;
 
 import com.engineersbox.conduit.util.ObjectMapperModule;
-import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionMetadata;
-import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionSchemaPatch;
-import com.engineersbox.conduit_v2.processing.schema.extension.ExtensionProvider;
+import com.engineersbox.conduit_v2.schema.extension.ExtensionMetadata;
+import com.engineersbox.conduit_v2.schema.extension.ExtensionProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -70,6 +69,7 @@ public class Validator {
                     extensionMetadata.name(),
                     new String(stream.readAllBytes(), StandardCharsets.UTF_8)
             );
+            stream.close();
             final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(schemaPatch, JsonPatch.class);
             return patch.apply(schemaNode);
         }
@@ -81,6 +81,7 @@ public class Validator {
         final InputStream streamPatch = extensionMetadata.schemaPatchStream();
         if (streamPatch != null) {
             final JsonPatch patch = ObjectMapperModule.OBJECT_MAPPER.readValue(streamPatch, JsonPatch.class);
+            streamPatch.close();
             return patch.apply(schemaNode);
         }
         return schemaNode;

@@ -1,6 +1,6 @@
 package com.engineersbox.conduit_v2.retrieval.content;
 
-import com.engineersbox.conduit_v2.processing.schema.Schema;
+import com.engineersbox.conduit_v2.schema.Schema;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;

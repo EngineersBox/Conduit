@@ -5,7 +5,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit.handler.LuaContextHandler;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.FilterPipelineStage;
-import com.engineersbox.conduit_v2.processing.schema.metric.Metric;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import org.eclipse.collections.api.map.ImmutableMap;
 
 import java.util.function.Function;

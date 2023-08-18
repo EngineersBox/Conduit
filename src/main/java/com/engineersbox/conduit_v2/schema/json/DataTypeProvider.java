@@ -1,4 +1,4 @@
-package com.engineersbox.conduit_v2.processing.schema.json;
+package com.engineersbox.conduit_v2.schema.json;
 
 import com.jayway.jsonpath.spi.json.*;
 import com.jayway.jsonpath.spi.mapper.*;
@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public final class DataTypeProvider {
 
-    // Make these atomic updates using the same method the CacheProvider from jsonpath uses
+    // Make these thread safe with RW locks
     static final MutableMap<String, Supplier<? extends JsonProvider>> JSON_PROVIDERS;
     static final MutableMap<String, Supplier<? extends MappingProvider>> MAPPING_PROVIDERS;
 
