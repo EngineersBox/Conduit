@@ -67,7 +67,7 @@ public class Schema {
     @JsonAlias("event_template")
     private Proto.Event eventTemplate;
     @JsonProperty("handler")
-    private String handler;
+    private String handler; // TODO: Remove this, only used with Lua extension
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     @JsonProperty("metrics")
     private ImmutableList<Metric> metrics;

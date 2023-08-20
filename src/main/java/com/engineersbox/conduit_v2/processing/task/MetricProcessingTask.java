@@ -18,11 +18,20 @@ import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
+import org.jeasy.batch.core.job.JobBuilder;
+import org.jeasy.batch.core.job.JobExecutor;
+import org.jeasy.batch.core.job.JobReport;
+import org.jeasy.batch.core.processor.RecordProcessor;
+import org.jeasy.batch.core.reader.IterableRecordReader;
+import org.jeasy.batch.core.record.GenericRecord;
+import org.jeasy.batch.core.record.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -46,6 +55,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
+    private final JobExecutor executor;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
@@ -63,6 +73,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
             luaHandlerExtension = extension;
         }
         this.pipeline = createPipeline(luaHandlerExtension);
+        this.executor = new JobExecutor();
     }
 
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final LuaHandlerExtension handlerExtension) {
@@ -167,6 +178,17 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
 
     @Override
     public void accept(final IRiemannClient riemannClient) {
+        final JobBuilder<String,Integer> builder = new JobBuilder<String, Integer>()
+                .named("String to Integer")
+                .reader(new IterableRecordReader<>(List.of("1234")))
+                .processor((RecordProcessor<String, Integer>) (final Record<String> record) -> new GenericRecord<>(
+                        record.getHeader(),
+                        Integer.valueOf(record.getPayload())
+                ));
+        final List<Future<JobReport>> reports = this.executor.submitAll(
+            builder.build()
+        );
+
         this.contextInjector.accept(this.contextBuilder);
         try {
             this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
