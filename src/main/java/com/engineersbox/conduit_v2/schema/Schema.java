@@ -66,8 +66,6 @@ public class Schema {
     @JsonProperty("eventTemplate")
     @JsonAlias("event_template")
     private Proto.Event eventTemplate;
-    @JsonProperty("handler")
-    private String handler; // TODO: Remove this, only used with Lua extension
     // NOTE: Collection deserialized via com.fasterxml.jackson.datatype.eclipsecollections.EclipseCollectionsModule
     @JsonProperty("metrics")
     private ImmutableList<Metric> metrics;
@@ -81,12 +79,10 @@ public class Schema {
     public Schema(final Connector<?, ?> source,
                   final Configuration jsonPathConfiguration,
                   final Proto.Event eventTemplate,
-                  final String handler,
                   final ImmutableList<Metric> metrics) {
         this.source = source;
         this.jsonPathConfiguration = jsonPathConfiguration;
         this.eventTemplate = eventTemplate;
-        this.handler = handler;
         this.metrics = metrics;
     }
 
@@ -104,10 +100,6 @@ public class Schema {
 
     public Proto.Event getEventTemplate() {
         return this.eventTemplate;
-    }
-
-    public Path getHandler() {
-        return Path.of(this.handler);
     }
 
     public ImmutableMap<String, Object> getExtensions() {
