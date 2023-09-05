@@ -4,6 +4,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
+import com.engineersbox.conduit_v2.processing.task.worker.executor.JobExecutorPool;
 import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.schema.Schema;
 import com.engineersbox.conduit_v2.schema.metric.Metric;
@@ -19,13 +20,17 @@ import io.riemann.riemann.Proto;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
+import org.jeasy.batch.core.job.JobExecutor;
+import org.jeasy.batch.core.job.JobReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -37,12 +42,14 @@ public class Conduit {
     private final ConduitConfig config;
     private boolean executing = false;
     private ContentManager<?, ? ,?> contentManager;
+    private final JobExecutor executor;
 
     public Conduit(final Parameters params,
                    final ConduitConfig config) {
         this.params = params;
         this.config = config;
         this.params.validate();
+        this.executor = new JobExecutor();
     }
 
     public void execute(final IngestionContext context,
@@ -86,11 +93,11 @@ public class Conduit {
         return this.executing;
     }
 
-    public RichIterable<? super ForkJoinTask<?>> getTasksView() {
+    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView() {
         return this.params.executor.getTasksView();
     }
 
-    public RichIterable<? super ForkJoinTask<?>> getTasksView(final long origin) {
+    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView(final long origin) {
         return this.params.executor.getTasksView(origin);
     }
 
@@ -117,12 +124,23 @@ public class Conduit {
             return this;
         }
 
-        public Parameters setExecutor(final ClientPool clientProvider) {
-            return setExecutor(clientProvider, Runtime.getRuntime().availableProcessors());
+        public Parameters setExecutor(final ClientPool clientProvider,
+                                      final JobExecutorPool jobExecutorPool) {
+            return setExecutor(
+                    clientProvider,
+                    jobExecutorPool,
+                    Runtime.getRuntime().availableProcessors()
+            );
         }
 
-        public Parameters setExecutor(final ClientPool clientProvider, final int threadCount) {
-            return setExecutor(new WaitableTaskExecutorPool(clientProvider, threadCount));
+        public Parameters setExecutor(final ClientPool clientProvider,
+                                      final JobExecutorPool jobExecutorPool,
+                                      final int threadCount) {
+            return setExecutor(new WaitableTaskExecutorPool(
+                    clientProvider,
+                    jobExecutorPool,
+                    threadCount
+            ));
         }
 
         public Parameters setExecutor(final WaitableTaskExecutorPool executor) {

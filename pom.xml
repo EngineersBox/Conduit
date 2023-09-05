@@ -80,7 +80,7 @@
         </dependency>
         <dependency>
             <groupId>org.jeasy</groupId>
-            <artifactId>easy-batch-extensions</artifactId>
+            <artifactId>easy-batch-integration</artifactId>
             <version>${easy-batch.version}</version>
         </dependency>
         <!-- Type Tools -->

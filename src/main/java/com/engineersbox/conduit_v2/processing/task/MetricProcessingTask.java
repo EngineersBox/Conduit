@@ -17,7 +17,11 @@ import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
+import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.ImmutableMap;
+import org.jeasy.batch.core.job.Job;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
@@ -176,8 +180,15 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         );
     }
 
+    private ImmutableList<Job> constructExecutorModel() {
+        final MutableList<Job> jobs = Lists.mutable.empty();
+        // TODO: Implement here
+
+        return jobs.toImmutable();
+    }
+
     @Override
-    public void accept(final IRiemannClient riemannClient) {
+    public List<Job> apply(final IRiemannClient riemannClient) {
         final JobBuilder<String,Integer> builder = new JobBuilder<String, Integer>()
                 .named("String to Integer")
                 .reader(new IterableRecordReader<>(List.of("1234")))
@@ -185,6 +196,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
                         record.getHeader(),
                         Integer.valueOf(record.getPayload())
                 ));
+
         final List<Future<JobReport>> reports = this.executor.submitAll(
             builder.build()
         );
@@ -197,6 +209,9 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         } catch (final Exception e) {
             LOGGER.error("Exception during metric processing pipeline invocation:", e);
         }
+        return List.of(
+                builder.build()
+        );
     }
 
 }

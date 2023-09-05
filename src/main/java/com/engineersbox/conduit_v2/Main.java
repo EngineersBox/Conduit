@@ -4,6 +4,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
+import com.engineersbox.conduit_v2.processing.task.worker.executor.DirectSupplierJobExecutorPool;
 import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
@@ -18,6 +19,7 @@ import com.jayway.jsonpath.internal.function.Parameter;
 import com.jayway.jsonpath.internal.function.PathFunction;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.client.RiemannClient;
+import org.jeasy.batch.core.job.JobExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +48,21 @@ public class Main {
 		CacheProvider.setCache(new LRUCache(10));
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
-		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555)) {
+		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
+			 final JobExecutor jobExecutor = new JobExecutor()) {
 			client.connect();
 			final Conduit conduit = new Conduit(
 					new Conduit.Parameters()
 							.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
-							.setExecutor(new QueueSuppliedClientPool(() -> client, 5))
-							.setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
+							.setExecutor(
+									new QueueSuppliedClientPool(
+											() -> client,
+											5
+									),
+									new DirectSupplierJobExecutorPool(
+											() -> jobExecutor
+									)
+							).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 							.setBatcher(WorkloadBatcher.defaultbatcher())
 							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
 					ConfigFactory.load(Path.of("./example/config.conf"))
