@@ -4,23 +4,22 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.config.ConduitConfig;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGenerator;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
-import com.engineersbox.conduit_v2.processing.task.worker.executor.JobExecutorPool;
-import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
-import com.engineersbox.conduit_v2.schema.Schema;
-import com.engineersbox.conduit_v2.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
+import com.engineersbox.conduit_v2.processing.task.worker.executor.JobExecutorPool;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManager;
 import com.engineersbox.conduit_v2.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
+import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
+import com.engineersbox.conduit_v2.schema.Schema;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import io.riemann.riemann.Proto;
 import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +41,12 @@ public class Conduit {
     private final ConduitConfig config;
     private boolean executing = false;
     private ContentManager<?, ? ,?> contentManager;
-    private final JobExecutor executor;
 
     public Conduit(final Parameters params,
                    final ConduitConfig config) {
         this.params = params;
         this.config = config;
         this.params.validate();
-        this.executor = new JobExecutor();
     }
 
     public void execute(final IngestionContext context,

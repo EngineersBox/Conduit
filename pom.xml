@@ -52,6 +52,7 @@
         <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
         <typetools.version>0.6.3</typetools.version>
         <easy-batch.version>7.0.2</easy-batch.version>
+        <jgrapht.version>1.5.2</jgrapht.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -72,6 +73,12 @@
     </properties>
 
 	<dependencies>
+        <!-- JGraphT -->
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>${jgrapht.version}</version>
+        </dependency>
         <!-- EasyBatch -->
         <dependency>
             <groupId>org.jeasy</groupId>
