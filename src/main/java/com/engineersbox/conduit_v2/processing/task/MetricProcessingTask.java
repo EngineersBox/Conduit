@@ -2,10 +2,7 @@ package com.engineersbox.conduit_v2.processing.task;
 
 import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
-import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
-import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
-import com.engineersbox.conduit_v2.processing.pipeline.ProcessingModel;
-import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
+import com.engineersbox.conduit_v2.processing.pipeline.*;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.EventBatch;
@@ -190,13 +187,14 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
 
     @Override
     public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
-        final JobBuilder<String,Integer> builder = new JobBuilder<String, Integer>()
-                .named("String to Integer")
-                .reader(new IterableRecordReader<>(List.of("1234")))
-                .processor((RecordProcessor<String, Integer>) (final Record<String> record) -> new GenericRecord<>(
-                        record.getHeader(),
-                        Integer.valueOf(record.getPayload())
-                ));
+        final PipelineProcessingModel model = new PipelineProcessingModel();
+        final JobBuilder<String, Integer> builder = model.addVertex(
+                        "String to integer",
+                        (final Record<String> record) -> new GenericRecord<>(
+                                record.getHeader(),
+                                Integer.valueOf(record.getPayload())
+                        )
+                ).reader(new IterableRecordReader<>(List.of("1234")));
 
         final List<Future<JobReport>> reports = this.executor.submitAll(
             builder.build()
@@ -210,9 +208,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         } catch (final Exception e) {
             LOGGER.error("Exception during metric processing pipeline invocation:", e);
         }
-        return (final JobExecutor jobExecutor) -> jobExecutor.submitAll(List.of(
-                builder.build()
-        ));
+        return model;
     }
 
 }
