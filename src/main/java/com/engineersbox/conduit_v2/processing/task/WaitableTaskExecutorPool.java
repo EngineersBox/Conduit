@@ -58,11 +58,11 @@ public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
         taskMap.clear();
     }
 
-    public RichIterable<? super ForkJoinTask<T>> getTasksView() {
+    public RichIterable<ForkJoinTask<T>> getTasksView() {
         return getTasksView(Thread.currentThread().threadId());
     }
 
-    public RichIterable<? super ForkJoinTask<T>> getTasksView(final long origin) {
+    public RichIterable<ForkJoinTask<T>> getTasksView(final long origin) {
         return this.threadTaskMaps.get(origin).valuesView();
     }
 

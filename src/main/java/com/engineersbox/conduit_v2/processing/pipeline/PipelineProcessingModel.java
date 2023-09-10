@@ -9,13 +9,19 @@ import org.jeasy.batch.core.reader.RecordReader;
 import org.jeasy.batch.core.writer.RecordWriter;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Spliterators;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
 
-public class PipelineProcessingModel implements ProcessingModel<List<Future<JobReport>>, JobExecutor> {
+public class PipelineProcessingModel implements ProcessingModel<List<JobReport>, JobExecutor> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipelineProcessingModel.class);
 
     private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue<?>> graph;
 
@@ -33,14 +39,9 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <T> MessagePassingQueue<?> bindJobsWithQueue(final JobBuilder<?, T> source,
-                                                        final JobBuilder<T, ?> destination) {
-        return this.graph.addEdge(source, destination);
-    }
-
-    public <T, Q extends MessagePassingQueue<?>> boolean bindJobsWithQueue(final JobBuilder<?, T> source,
-                                                                           final JobBuilder<T, ?> destination,
-                                                                           final Q queue) {
+    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(final JobBuilder<?, T> source,
+                                                                        final JobBuilder<T, ?> destination,
+                                                                        final Q queue) {
         return this.graph.addEdge(
                 source,
                 destination,
@@ -49,11 +50,19 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
     }
 
     @Override
-    public List<Future<JobReport>> submitAll(final JobExecutor executor) {
+    public List<JobReport> submitAll(final JobExecutor executor) {
         final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue<?>> iterator = new TopologicalOrderIterator<>(this.graph);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit)
+                .map((final Future<JobReport> future) -> {
+                    try {
+                        return future.get();
+                    } catch (final InterruptedException | ExecutionException e) {
+                        LOGGER.error("Failed while waiting for job to complete", e);
+                        return null;
+                    }
+                }).filter(Objects::nonNull)
                 .toList();
     }
 

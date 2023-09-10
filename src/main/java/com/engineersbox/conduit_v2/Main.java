@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
 
 public class Main {
@@ -45,33 +47,42 @@ public class Main {
 		}
 	}
 
-    public static void main(final String[] args) throws IOException {
+    public static void main(final String[] args) throws Exception {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
 		CacheProvider.setCache(new LRUCache(10));
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
-			 final JobExecutor jobExecutor = new JobExecutor()) {
+			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
-			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
-                    new Conduit.Parameters<List<Future<JobReport>>, JobExecutor>()
-                            .setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
-                            .setExecutor(
-                                    new QueueSuppliedClientPool(
-                                            () -> client,
-                                            5
-                                    ),
-                                    new DirectSupplierJobExecutorPool<>(
-                                            () -> jobExecutor
-                                    )
-                            ).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
-                            .setBatcher(WorkloadBatcher.defaultbatcher())
-                            .setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
+			final Conduit.Parameters<List<JobReport>, JobExecutor> params = new Conduit.Parameters<List<JobReport>, JobExecutor>()
+					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
+					.setExecutor(
+							new QueueSuppliedClientPool(
+									() -> client,
+									5
+							),
+							new DirectSupplierJobExecutorPool<>(
+									() -> jobExecutor
+							)
+					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
+					.setBatcher(WorkloadBatcher.defaultbatcher())
+					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3));
+			final Conduit<List<JobReport>, JobExecutor> conduit = new Conduit<>(
+                    params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
 			conduit.execute(null, Source.singleConfigurable());
-		} catch (final Exception e) {
-			LOGGER.error("EXCEPTION IN MAIN:", e);
+			conduit.getTasksView().forEach((final ForkJoinTask<List<JobReport>> task) -> {
+				try {
+					task.get().forEach((final JobReport report) -> LOGGER.info(
+							"[JOB REPORT]: {}",
+							report
+					));
+				} catch (final InterruptedException | ExecutionException e) {
+					throw new RuntimeException(e);
+				}
+			});
 		}
     }
 

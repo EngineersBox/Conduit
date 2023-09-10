@@ -90,11 +90,11 @@ public class Conduit<T, E> {
         return this.executing;
     }
 
-    public RichIterable<? super ForkJoinTask<T>> getTasksView() {
+    public RichIterable<ForkJoinTask<T>> getTasksView() {
         return this.params.executor.getTasksView();
     }
 
-    public RichIterable<? super ForkJoinTask<T>> getTasksView(final long origin) {
+    public RichIterable<ForkJoinTask<T>> getTasksView(final long origin) {
         return this.params.executor.getTasksView(origin);
     }
 
@@ -102,14 +102,13 @@ public class Conduit<T, E> {
 
         private MetricsSchemaFactory schemaProvider;
         private WaitableTaskExecutorPool<T, E> executor;
-        private TaskBatchGenerator workerTaskGenerator;
+        private TaskBatchGenerator<T, E> workerTaskGenerator;
         private WorkloadBatcher batcher;
         private Consumer<ContextTransformer.Builder> contextInjector;
         private IngesterFactory ingesterFactory;
         private ContentManagerFactory contentManagerFactory;
 
         public Parameters() {
-            this.workerTaskGenerator = TaskBatchGeneratorFactory.defaultGenerator();
             this.batcher = WorkloadBatcher.defaultbatcher();
             this.contextInjector = (_b) -> {};
             this.ingesterFactory = IngesterFactory.defaultFactory();
@@ -145,7 +144,7 @@ public class Conduit<T, E> {
             return this;
         }
 
-        public Parameters<T, E> setWorkerTaskGenerator(final TaskBatchGenerator workerTaskGenerator) {
+        public Parameters<T, E> setWorkerTaskGenerator(final TaskBatchGenerator<T, E> workerTaskGenerator) {
             this.workerTaskGenerator = workerTaskGenerator;
             return this;
         }

@@ -5,6 +5,8 @@ import com.engineersbox.conduit_v2.processing.task.worker.executor.JobExecutorPo
 import org.jeasy.batch.core.job.Job;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serial;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RunnableFuture;
 
 public class ClientBoundForkJoinTask<T, E> extends ForkJoinTask<T> implements RunnableFuture<T> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientBoundForkJoinTask.class);
 
     @Serial
     private static final long serialVersionUID = 2988328017776527845L;
@@ -47,6 +51,9 @@ public class ClientBoundForkJoinTask<T, E> extends ForkJoinTask<T> implements Ru
             final ProcessingModel<T, E> model = runnable.apply(workerThread.getClient());
             try (final JobExecutorPool.ClosableJobExecutor<E> jobExecutor = JobExecutorPool.acquireClosable(this.jobExecutorPool)) {
                 setRawResult(model.submitAll(jobExecutor.getJobExecutor()));
+            } catch (final Exception e) {
+                LOGGER.error("Exception encountered during job submission", e);
+                return false;
             }
             return true;
         }
