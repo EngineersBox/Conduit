@@ -26,11 +26,8 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
     }
 
-    public <I,O> JobBuilder<I, O> addVertex(final String name,
-                                            final RecordProcessor<I, O> task) {
-        final JobBuilder<I, O> builder = new JobBuilder<I, O>()
-                .named(name)
-                .processor(task);
+    public <I,O> JobBuilder<I, O> addVertex(final String name) {
+        final JobBuilder<I, O> builder = new JobBuilder<I, O>().named(name);
         return this.graph.addVertex(builder) ? builder : null;
     }
 

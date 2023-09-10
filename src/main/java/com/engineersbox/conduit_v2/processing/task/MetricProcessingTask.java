@@ -23,7 +23,6 @@ import org.jeasy.batch.core.job.Job;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
-import org.jeasy.batch.core.processor.RecordProcessor;
 import org.jeasy.batch.core.reader.IterableRecordReader;
 import org.jeasy.batch.core.record.GenericRecord;
 import org.jeasy.batch.core.record.Record;
@@ -40,13 +39,6 @@ import java.util.stream.Collectors;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<JobReport>>, JobExecutor> {
 
-    /* TODO: Refactor usage of Pipeline to use EasyBatch library
-     *       to use a more effective and standardised interface
-     *       including fork-join-esque queued parallel pipeline
-     *       structures as exemplified by the parallel tutorial
-     *       https://github.com/j-easy/easy-batch/tree/master/easy-batch-tutorials/src/main/java/org/jeasy/batch/tutorials/advanced/parallel
-     */
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricProcessingTask.class);
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
 
@@ -57,7 +49,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
     private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
-    private final JobExecutor executor;
 
     public MetricProcessingTask(final RichIterable<Metric> metrics,
                                 final Proto.Event eventTemplate,
@@ -75,7 +66,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
             luaHandlerExtension = extension;
         }
         this.pipeline = createPipeline(luaHandlerExtension);
-        this.executor = new JobExecutor();
     }
 
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final LuaHandlerExtension handlerExtension) {
@@ -178,28 +168,16 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         );
     }
 
-    private ImmutableList<Job> constructExecutorModel() {
-        final MutableList<Job> jobs = Lists.mutable.empty();
-        // TODO: Implement here
-
-        return jobs.toImmutable();
-    }
-
     @Override
     public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
         final PipelineProcessingModel model = new PipelineProcessingModel();
-        final JobBuilder<String, Integer> builder = model.addVertex(
-                        "String to integer",
-                        (final Record<String> record) -> new GenericRecord<>(
-                                record.getHeader(),
-                                Integer.valueOf(record.getPayload())
-                        )
-                ).reader(new IterableRecordReader<>(List.of("1234")));
-
-        final List<Future<JobReport>> reports = this.executor.submitAll(
-            builder.build()
-        );
-
+        final JobBuilder<String, Integer> builder = model.<String, Integer>addVertex(
+                        "String to integer"
+                ).reader(new IterableRecordReader<>(List.of("1234")))
+                .processor((final Record<String> record) -> new GenericRecord<>(
+                        record.getHeader(),
+                        Integer.valueOf(record.getPayload())
+                ));
         this.contextInjector.accept(this.contextBuilder);
         try {
             this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
