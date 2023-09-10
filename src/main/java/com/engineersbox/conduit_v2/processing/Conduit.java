@@ -58,7 +58,10 @@ public class Conduit<T, E> {
                     this.params.ingesterFactory
             );
         }
-        final RichIterable<Metric> workload = schema.metricsView();
+        RichIterable<Metric> workload = schema.metricsView();
+        if (this.config.executor.lazy) {
+            workload = workload.asLazy();
+        }
         this.contentManager.poll();
         final RichIterable<RichIterable<Metric>> batchedMetricWorkloads = this.params.batcher.chunk(workload, this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);

@@ -14,6 +14,7 @@ public class ConduitConfig {
   }
 
   public static class Executor {
+    public final boolean lazy;
     public final int task_batch_size;
     public final java.util.Optional<java.lang.Integer> task_pool_size;
 
@@ -21,6 +22,7 @@ public class ConduitConfig {
         com.typesafe.config.Config c,
         java.lang.String parentPath,
         $TsCfgValidator $tsCfgValidator) {
+      this.lazy = c.hasPathOrNull("lazy") && c.getBoolean("lazy");
       this.task_batch_size = c.hasPathOrNull("task_batch_size") ? c.getInt("task_batch_size") : 10;
       this.task_pool_size =
           c.hasPathOrNull("task_pool_size")
