@@ -15,15 +15,12 @@ import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
-import org.eclipse.collections.api.factory.Lists;
-import org.eclipse.collections.api.list.ImmutableList;
-import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.jeasy.batch.core.job.Job;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
 import org.jeasy.batch.core.reader.IterableRecordReader;
+import org.jeasy.batch.core.record.Batch;
 import org.jeasy.batch.core.record.GenericRecord;
 import org.jeasy.batch.core.record.Record;
 import org.slf4j.Logger;
@@ -168,16 +165,57 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         );
     }
 
+    private JobBuilder<Proto.Event[], Proto.Event[]> createRiemannSendJob(final PipelineProcessingModel model,
+                                      final IRiemannClient riemannClient) {
+        return model.<Proto.Event[], Proto.Event[]>addJob("Send Riemann Events")
+                .writer((final Batch<Proto.Event[]> batch) -> {
+                    try {
+                        for (final Record<Proto.Event[]> eventsRecord : batch) {
+                            final Proto.Event[] events = eventsRecord.getPayload();
+                            LOGGER.info(
+                                    "Sending events: {}",
+                                    Arrays.stream(events)
+                                            .map((final Proto.Event event) -> String.format(
+                                                    "%n - [Host: %s] [Description: %s] [Service: %s] [State: '%s'] [Float: %f] [Double: %f] [Int: %d] [Time: %d] [TTL: %f] [Tags: %s] [Attributes: %s]",
+                                                    event.getHost(),
+                                                    event.getDescription(),
+                                                    event.getService(),
+                                                    event.getState(),
+                                                    event.getMetricF(),
+                                                    event.getMetricD(),
+                                                    event.getMetricSint64(),
+                                                    event.getTimeMicros(),
+                                                    event.getTtl(),
+                                                    String.join(", ", event.getTagsList()),
+                                                    event.getAttributesList()
+                                                            .stream()
+                                                            .map((final Proto.Attribute attr) -> String.format(
+                                                                    "{ key: \"%s\", value: \"%s\" }",
+                                                                    attr.getKey(),
+                                                                    attr.getValue()
+                                                            ))
+                                                            .collect(Collectors.joining(", "))
+                                            )).collect(Collectors.joining())
+                            );
+                            riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
+                        }
+                    } catch (final IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+    }
+
     @Override
     public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
         final PipelineProcessingModel model = new PipelineProcessingModel();
-        final JobBuilder<String, Integer> builder = model.<String, Integer>addVertex(
-                        "String to integer"
-                ).reader(new IterableRecordReader<>(List.of("1234")))
-                .processor((final Record<String> record) -> new GenericRecord<>(
-                        record.getHeader(),
-                        Integer.valueOf(record.getPayload())
-                ));
+//        final JobBuilder<String, Integer> builder = model.<String, Integer>addJob(
+//                        "String to integer"
+//                ).reader(new IterableRecordReader<>(List.of("1234")))
+//                .processor((final Record<String> record) -> new GenericRecord<>(
+//                        record.getHeader(),
+//                        Integer.valueOf(record.getPayload())
+//                ));
+        final JobBuilder<Proto.Event[], Proto.Event[]> riemannSendJob = createRiemannSendJob(model, riemannClient);
         this.contextInjector.accept(this.contextBuilder);
         try {
             this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)

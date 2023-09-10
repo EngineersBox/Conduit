@@ -5,7 +5,8 @@ import io.netty.util.internal.shaded.org.jctools.queues.atomic.MpscAtomicArrayQu
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
-import org.jeasy.batch.core.processor.RecordProcessor;
+import org.jeasy.batch.core.reader.RecordReader;
+import org.jeasy.batch.core.writer.RecordWriter;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
@@ -16,29 +17,30 @@ import java.util.stream.StreamSupport;
 
 public class PipelineProcessingModel implements ProcessingModel<List<Future<JobReport>>, JobExecutor> {
 
-    private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue> graph;
+    private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue<?>> graph;
 
+    @SuppressWarnings("unchecked")
     public PipelineProcessingModel() {
-        this(MpscAtomicArrayQueue.class);
+        this((Class<? extends MessagePassingQueue<?>>) MpscAtomicArrayQueue.class);
     }
 
-    public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass) {
+    public PipelineProcessingModel(final Class<? extends MessagePassingQueue<?>> edgeClass) {
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
     }
 
-    public <I,O> JobBuilder<I, O> addVertex(final String name) {
+    public <I,O> JobBuilder<I, O> addJob(final String name) {
         final JobBuilder<I, O> builder = new JobBuilder<I, O>().named(name);
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <SO, DI> MessagePassingQueue<?> addEdge(final JobBuilder<?, SO> source,
-                                                   final JobBuilder<DI, ?> destination) {
+    public <T> MessagePassingQueue<?> bindJobsWithQueue(final JobBuilder<?, T> source,
+                                                        final JobBuilder<T, ?> destination) {
         return this.graph.addEdge(source, destination);
     }
 
-    public <SO, DI, Q extends MessagePassingQueue> boolean addEdge(final JobBuilder<?, SO> source,
-                                                                   final JobBuilder<DI, ?> destination,
-                                                                   final Q queue) {
+    public <T, Q extends MessagePassingQueue<?>> boolean bindJobsWithQueue(final JobBuilder<?, T> source,
+                                                                           final JobBuilder<T, ?> destination,
+                                                                           final Q queue) {
         return this.graph.addEdge(
                 source,
                 destination,
@@ -48,7 +50,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
 
     @Override
     public List<Future<JobReport>> submitAll(final JobExecutor executor) {
-        final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
+        final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue<?>> iterator = new TopologicalOrderIterator<>(this.graph);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit)
