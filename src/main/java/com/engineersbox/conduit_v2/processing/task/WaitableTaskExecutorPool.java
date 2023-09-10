@@ -48,12 +48,15 @@ public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
         return forkJoinTask;
     }
 
-    public void resettingBarrier() {
-        resettingBarrier(Thread.currentThread().threadId());
+    public void resettingBarrier(final boolean ignoreNull) {
+        resettingBarrier(ignoreNull, Thread.currentThread().threadId());
     }
 
-    public void resettingBarrier(final long origin) {
+    public void resettingBarrier(final boolean ignoreNull, final long origin) {
         final MutableMap<Integer, ForkJoinTask<T>> taskMap = this.threadTaskMaps.get(origin);
+        if (ignoreNull && taskMap == null) {
+            return;
+        }
         taskMap.forEachValue(ForkJoinTask::quietlyJoin);
         taskMap.clear();
     }

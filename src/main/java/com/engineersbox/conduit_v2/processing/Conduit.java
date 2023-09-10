@@ -76,7 +76,7 @@ public class Conduit<T, E> {
                 )).collect(this.params.executor::submit);
         LOGGER.debug("Submitted workloads to conduit executor");
         if (!this.config.ingest.async) {
-            this.params.executor.resettingBarrier();
+            this.params.executor.resettingBarrier(this.config.executor.lazy);
         }
         this.params.schemaProvider.refresh();
         if (this.config.ingest.schema_provider_locking) {
