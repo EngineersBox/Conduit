@@ -23,14 +23,13 @@ public class PipelineProcessingModel implements ProcessingModel<List<JobReport>,
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineProcessingModel.class);
 
-    private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue<?>> graph;
+    private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue> graph;
 
-    @SuppressWarnings("unchecked")
     public PipelineProcessingModel() {
-        this((Class<? extends MessagePassingQueue<?>>) MpscAtomicArrayQueue.class);
+        this(MpscAtomicArrayQueue.class);
     }
 
-    public PipelineProcessingModel(final Class<? extends MessagePassingQueue<?>> edgeClass) {
+    public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass) {
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
     }
 
@@ -51,7 +50,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<JobReport>,
 
     @Override
     public List<JobReport> submitAll(final JobExecutor executor) {
-        final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue<?>> iterator = new TopologicalOrderIterator<>(this.graph);
+        final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit)

@@ -74,7 +74,7 @@ public class Main {
 					.forEach((final ForkJoinTask<List<JobReport>> task) -> {
 				try {
 					task.get().forEach((final JobReport report) -> LOGGER.info(
-							"[JOB REPORT]: {}",
+							"[JOB REPORT]: {}", // FIXME: Logs are not appearing on STDOUT
 							report
 					));
 				} catch (final InterruptedException | ExecutionException e) {
