@@ -10,13 +10,13 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class ClientBoundForkJoinPool extends ForkJoinPool {
+public class ClientBoundForkJoinPool<T, E> extends ForkJoinPool {
 
-    private final JobExecutorPool jobExecutorPool;
+    private final JobExecutorPool<E> jobExecutorPool;
 
     public ClientBoundForkJoinPool(final int parallelism,
                                    final ForkJoinWorkerThreadFactory factory,
-                                   final JobExecutorPool jobExecutorPool,
+                                   final JobExecutorPool<E> jobExecutorPool,
                                    final Thread.UncaughtExceptionHandler handler,
                                    final boolean asyncMode) {
         super(parallelism, factory, handler, asyncMode);
@@ -25,7 +25,7 @@ public class ClientBoundForkJoinPool extends ForkJoinPool {
 
     public ClientBoundForkJoinPool(final int parallelism,
                                    final ForkJoinWorkerThreadFactory factory,
-                                   final JobExecutorPool jobExecutorPool,
+                                   final JobExecutorPool<E> jobExecutorPool,
                                    final Thread.UncaughtExceptionHandler handler,
                                    final boolean asyncMode,
                                    final int corePoolSize,
@@ -38,24 +38,24 @@ public class ClientBoundForkJoinPool extends ForkJoinPool {
         this.jobExecutorPool = jobExecutorPool;
     }
 
-    public ForkJoinTask<List<Future<JobReport>>> submit(final ClientBoundWorkerTask task) {
-        return super.submit((ForkJoinTask<List<Future<JobReport>>>) new ClientBoundForkJoinTask(task, this.jobExecutorPool));
+    public ForkJoinTask<T> submit(final ClientBoundWorkerTask<T, E> task) {
+        return super.submit((ForkJoinTask<T>) new ClientBoundForkJoinTask<>(task, this.jobExecutorPool));
     }
 
-    public List<? extends ForkJoinTask<List<Future<JobReport>>>> invokeAll(final ClientBoundWorkerTask ...tasks) {
+    public List<? extends ForkJoinTask<T>> invokeAll(final ClientBoundWorkerTask<T, E> ...tasks) {
         return Stream.of(tasks)
                 .map(this::submit)
                 .toList();
     }
 
-    public void invokeAll(final Consumer<? super ForkJoinTask<List<Future<JobReport>>>> appender,
-                          final ClientBoundWorkerTask ...tasks) {
+    public void invokeAll(final Consumer<? super ForkJoinTask<T>> appender,
+                          final ClientBoundWorkerTask<T, E> ...tasks) {
         Stream.of(tasks)
                 .map(this::submit)
                 .forEach(appender);
     }
 
-    public void waitAll(final ClientBoundWorkerTask ...tasks) {
+    public void waitAll(final ClientBoundWorkerTask<T, E> ...tasks) {
         final List<? extends ForkJoinTask<?>> submittedTasks = invokeAll(tasks);
         submittedTasks.forEach(ForkJoinTask::quietlyJoin);
     }

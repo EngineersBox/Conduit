@@ -1,24 +1,22 @@
 package com.engineersbox.conduit_v2.processing.task.worker.executor;
 
-import org.jeasy.batch.core.job.JobExecutor;
-
 import java.util.function.Supplier;
 
-public class DirectSupplierJobExecutorPool implements JobExecutorPool {
+public class DirectSupplierJobExecutorPool<E> implements JobExecutorPool<E> {
 
-    private final Supplier<JobExecutor> jobExecutorSupplier;
+    private final Supplier<E> jobExecutorSupplier;
 
-    public DirectSupplierJobExecutorPool(final Supplier<JobExecutor> jobExecutorSupplier) {
+    public DirectSupplierJobExecutorPool(final Supplier<E> jobExecutorSupplier) {
         this.jobExecutorSupplier = jobExecutorSupplier;
     }
 
     @Override
-    public JobExecutor acquire() {
+    public E acquire() {
         return this.jobExecutorSupplier.get();
     }
 
     @Override
-    public void release(JobExecutor jobExecutor) {
+    public void release(final E jobExecutor) {
 
     }
 }

@@ -9,39 +9,36 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.MutableMap;
-import org.jeasy.batch.core.job.JobReport;
 
-import java.util.List;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.Future;
 
-public class WaitableTaskExecutorPool extends TaskExecutorPool {
+public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
 
-    private final MutableMap<Long, MutableMap<Integer, ForkJoinTask<List<Future<JobReport>>>>> threadTaskMaps;
+    private final MutableMap<Long, MutableMap<Integer, ForkJoinTask<T>>> threadTaskMaps;
 
     public WaitableTaskExecutorPool(final ClientPool clientProvider,
-                                    final JobExecutorPool jobExecutorPool,
+                                    final JobExecutorPool<E> jobExecutorPool,
                                     final int parallelism) {
         super(clientProvider, jobExecutorPool, parallelism);
         this.threadTaskMaps = Maps.mutable.withInitialCapacity(parallelism);
     }
 
     @Override
-    public ForkJoinTask<List<Future<JobReport>>> submit(final ClientBoundWorkerTask task) {
+    public ForkJoinTask<T> submit(final ClientBoundWorkerTask<T, E> task) {
         return submit(
                 task,
                 Thread.currentThread().threadId()
         );
     }
 
-    public ForkJoinTask<List<Future<JobReport>>> submit(final ClientBoundWorkerTask task,
+    public ForkJoinTask<T> submit(final ClientBoundWorkerTask<T, E> task,
                                   final long origin) {
-        final MutableMap<Integer, ForkJoinTask<List<Future<JobReport>>>> taskMap = this.threadTaskMaps.computeIfAbsent(
+        final MutableMap<Integer, ForkJoinTask<T>> taskMap = this.threadTaskMaps.computeIfAbsent(
                 origin,
                 _origin -> Maps.mutable.empty()
         );
-        final Mutable<ForkJoinTask<List<Future<JobReport>>>> taskReference = new MutableObject<>();
-        final ForkJoinTask<List<Future<JobReport>>> forkJoinTask = super.submit(new DroppingClientBoundWorkerTask<>(
+        final Mutable<ForkJoinTask<T>> taskReference = new MutableObject<>();
+        final ForkJoinTask<T> forkJoinTask = super.submit(new DroppingClientBoundWorkerTask<>(
                 task,
                 taskReference,
                 taskMap
@@ -56,16 +53,16 @@ public class WaitableTaskExecutorPool extends TaskExecutorPool {
     }
 
     public void resettingBarrier(final long origin) {
-        final MutableMap<Integer, ForkJoinTask<List<Future<JobReport>>>> taskMap = this.threadTaskMaps.get(origin);
+        final MutableMap<Integer, ForkJoinTask<T>> taskMap = this.threadTaskMaps.get(origin);
         taskMap.forEachValue(ForkJoinTask::quietlyJoin);
         taskMap.clear();
     }
 
-    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView() {
+    public RichIterable<? super ForkJoinTask<T>> getTasksView() {
         return getTasksView(Thread.currentThread().threadId());
     }
 
-    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView(final long origin) {
+    public RichIterable<? super ForkJoinTask<T>> getTasksView(final long origin) {
         return this.threadTaskMaps.get(origin).valuesView();
     }
 

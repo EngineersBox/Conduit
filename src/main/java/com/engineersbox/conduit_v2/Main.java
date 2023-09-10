@@ -20,12 +20,14 @@ import com.jayway.jsonpath.internal.function.PathFunction;
 import com.jayway.jsonpath.spi.cache.CacheProvider;
 import io.riemann.riemann.client.RiemannClient;
 import org.jeasy.batch.core.job.JobExecutor;
+import org.jeasy.batch.core.job.JobReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Future;
 
 public class Main {
 
@@ -51,22 +53,22 @@ public class Main {
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
 			 final JobExecutor jobExecutor = new JobExecutor()) {
 			client.connect();
-			final Conduit conduit = new Conduit(
-					new Conduit.Parameters()
-							.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
-							.setExecutor(
-									new QueueSuppliedClientPool(
-											() -> client,
-											5
-									),
-									new DirectSupplierJobExecutorPool(
-											() -> jobExecutor
-									)
-							).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
-							.setBatcher(WorkloadBatcher.defaultbatcher())
-							.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
-					ConfigFactory.load(Path.of("./example/config.conf"))
-			);
+			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
+                    new Conduit.Parameters<List<Future<JobReport>>, JobExecutor>()
+                            .setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
+                            .setExecutor(
+                                    new QueueSuppliedClientPool(
+                                            () -> client,
+                                            5
+                                    ),
+                                    new DirectSupplierJobExecutorPool<>(
+                                            () -> jobExecutor
+                                    )
+                            ).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
+                            .setBatcher(WorkloadBatcher.defaultbatcher())
+                            .setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3)),
+                    ConfigFactory.load(Path.of("./example/config.conf"))
+            );
 			conduit.execute(null, Source.singleConfigurable());
 		} catch (final Exception e) {
 			LOGGER.error("EXCEPTION IN MAIN:", e);

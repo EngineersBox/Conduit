@@ -14,7 +14,7 @@ import java.util.Spliterators;
 import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
 
-public class PipelineProcessingModel implements ProcessingModel<Future<JobReport>, JobExecutor> {
+public class PipelineProcessingModel implements ProcessingModel<List<Future<JobReport>>, JobExecutor> {
 
     private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue> graph;
 

@@ -1,22 +1,20 @@
 package com.engineersbox.conduit_v2.processing.task.worker.executor;
 
-import org.jeasy.batch.core.job.JobExecutor;
+public interface JobExecutorPool<E> {
 
-public interface JobExecutorPool {
+    E acquire();
 
-    JobExecutor acquire();
+    void release(final E jobExecutor);
 
-    void release(final JobExecutor jobExecutor);
+    abstract class ClosableJobExecutor<E> implements AutoCloseable {
 
-    abstract class ClosableJobExecutor implements AutoCloseable {
+        protected final E jobExecutor;
 
-        protected final JobExecutor jobExecutor;
-
-        private ClosableJobExecutor(final JobExecutor jobExecutor) {
+        private ClosableJobExecutor(final E jobExecutor) {
             this.jobExecutor = jobExecutor;
         }
 
-        public JobExecutor getJobExecutor() {
+        public E getJobExecutor() {
             return this.jobExecutor;
         }
 
@@ -25,8 +23,8 @@ public interface JobExecutorPool {
 
     }
 
-    static ClosableJobExecutor acquireClosable(final JobExecutorPool jobExecutorPool) {
-        return new ClosableJobExecutor(jobExecutorPool.acquire()) {
+    static <E> ClosableJobExecutor<E> acquireClosable(final JobExecutorPool<E> jobExecutorPool) {
+        return new ClosableJobExecutor<>(jobExecutorPool.acquire()) {
             @Override
             public void close() {
                 jobExecutorPool.release(this.jobExecutor);

@@ -11,12 +11,12 @@ import org.eclipse.collections.api.map.ImmutableMap;
 import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface TaskBatchGenerator {
+public interface TaskBatchGenerator<T, E> {
 
-    ClientBoundWorkerTask generate(final RichIterable<Metric> metrics,
-                                   final Proto.Event eventTemplate,
-                                   final RetrievalHandler<Metric> retrieverReference,
-                                   final ImmutableMap<String, Object> extensions,
-                                   final Consumer<ContextTransformer.Builder> contextInjector);
+    ClientBoundWorkerTask<T, E> generate(final RichIterable<Metric> metrics,
+                                         final Proto.Event eventTemplate,
+                                         final RetrievalHandler<Metric> retrieverReference,
+                                         final ImmutableMap<String, Object> extensions,
+                                         final Consumer<ContextTransformer.Builder> contextInjector);
 
 }

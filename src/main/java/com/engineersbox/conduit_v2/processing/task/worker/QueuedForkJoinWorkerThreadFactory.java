@@ -5,7 +5,7 @@ import com.engineersbox.conduit_v2.processing.task.worker.client.ClientPool;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 
-public class QueuedForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+public class QueuedForkJoinWorkerThreadFactory<T, E> implements ForkJoinPool.ForkJoinWorkerThreadFactory {
 
     private final ClientPool clientProvider;
 
@@ -18,7 +18,7 @@ public class QueuedForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinW
         if (!(pool instanceof ClientBoundForkJoinPool clientPool)) {
             throw new IllegalArgumentException("Queued fork-join worker threads must be bound to a ClientBoundForkJoinPool, instead got: " + pool.getClass().getName());
         }
-        return new ClientBoundForkJoinWorkerThead(clientPool, this.clientProvider);
+        return new ClientBoundForkJoinWorkerThead<T, E>(clientPool, this.clientProvider);
     }
 
 }

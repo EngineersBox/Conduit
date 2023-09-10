@@ -1,9 +1,8 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
-import java.util.List;
-
+@FunctionalInterface
 public interface ProcessingModel<T, E> {
 
-    List<T> submitAll(final E executor);
+    T submitAll(final E executor);
 
 }

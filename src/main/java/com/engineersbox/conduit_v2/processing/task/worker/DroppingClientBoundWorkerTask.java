@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
+import com.engineersbox.conduit_v2.processing.pipeline.ProcessingModel;
 import io.riemann.riemann.client.IRiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.eclipse.collections.api.map.MutableMap;
@@ -8,14 +9,14 @@ import org.jeasy.batch.core.job.Job;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 
-public class DroppingClientBoundWorkerTask<T extends ForkJoinTask<?>, C extends MutableMap<Integer, T>> implements ClientBoundWorkerTask {
+public class DroppingClientBoundWorkerTask<T, E, F extends ForkJoinTask<T>, C extends MutableMap<Integer, F>> implements ClientBoundWorkerTask<T, E> {
 
-    private final ClientBoundWorkerTask task;
-    private final Mutable<T> ref;
+    private final ClientBoundWorkerTask<T, E> task;
+    private final Mutable<F> ref;
     private final C dropFromCollection;
 
-    public DroppingClientBoundWorkerTask(final ClientBoundWorkerTask task,
-                                         final Mutable<T> ref,
+    public DroppingClientBoundWorkerTask(final ClientBoundWorkerTask<T, E> task,
+                                         final Mutable<F> ref,
                                          final C dropFromCollection) {
         this.task = task;
         this.ref = ref;
@@ -23,13 +24,13 @@ public class DroppingClientBoundWorkerTask<T extends ForkJoinTask<?>, C extends 
     }
 
     @Override
-    public List<Job> apply(final IRiemannClient riemannClient) {
-        final List<Job> jobs = this.task.apply(riemannClient);
-        final T forkJoinTask = ref.getValue();
+    public ProcessingModel<T, E> apply(final IRiemannClient riemannClient) {
+        final ProcessingModel<T, E> model = this.task.apply(riemannClient);
+        final F forkJoinTask = ref.getValue();
         if (forkJoinTask == null) {
             throw new IllegalStateException("Held parent ForkJoinTask for submitted ClientBoundWorkerTask was not present");
         }
         this.dropFromCollection.remove(forkJoinTask.hashCode());
-        return jobs;
+        return model;
     }
 }

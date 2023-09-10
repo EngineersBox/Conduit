@@ -13,12 +13,12 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
-public class TaskExecutorPool {
+public class TaskExecutorPool<T, E> {
 
-    private final ClientBoundForkJoinPool executorService;
+    private final ClientBoundForkJoinPool<T, E> executorService;
 
     public TaskExecutorPool(final ClientPool clientProvider,
-                            final JobExecutorPool jobExecutorPool,
+                            final JobExecutorPool<E> jobExecutorPool,
                             final int parallelism) {
         this.executorService = newWorkStealingPool(
                 parallelism,
@@ -27,10 +27,10 @@ public class TaskExecutorPool {
         );
     }
 
-    private ClientBoundForkJoinPool newWorkStealingPool(final int parallelism,
-                                                        final JobExecutorPool jobExecutorPool,
-                                                        final ForkJoinPool.ForkJoinWorkerThreadFactory workerThreadFactory) {
-        return new ClientBoundForkJoinPool(
+    private ClientBoundForkJoinPool<T, E> newWorkStealingPool(final int parallelism,
+                                                              final JobExecutorPool<E> jobExecutorPool,
+                                                              final ForkJoinPool.ForkJoinWorkerThreadFactory workerThreadFactory) {
+        return new ClientBoundForkJoinPool<>(
                 parallelism > 0 ? parallelism : Runtime.getRuntime().availableProcessors(),
                 workerThreadFactory,
                 jobExecutorPool,
@@ -39,20 +39,20 @@ public class TaskExecutorPool {
         );
     }
 
-    public ForkJoinTask<List<Future<JobReport>>> submit(final ClientBoundWorkerTask task) {
+    public ForkJoinTask<T> submit(final ClientBoundWorkerTask<T, E> task) {
         return this.executorService.submit(task);
     }
 
-    public List<? extends ForkJoinTask<List<Future<JobReport>>>> invokeAll(final ClientBoundWorkerTask ...tasks) {
+    public List<? extends ForkJoinTask<T>> invokeAll(final ClientBoundWorkerTask<T, E> ...tasks) {
         return this.executorService.invokeAll(tasks);
     }
 
-    public void invokeAll(final Consumer<? super ForkJoinTask<List<Future<JobReport>>>> appender,
-                          final ClientBoundWorkerTask ...tasks) {
+    public void invokeAll(final Consumer<? super ForkJoinTask<T>> appender,
+                          final ClientBoundWorkerTask<T, E> ...tasks) {
         this.executorService.invokeAll(appender, tasks);
     }
 
-    public void waitAll(final ClientBoundWorkerTask ...tasks) {
+    public void waitAll(final ClientBoundWorkerTask<T, E> ...tasks) {
         this.executorService.waitAll(tasks);
     }
 

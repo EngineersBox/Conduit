@@ -4,6 +4,7 @@ import com.engineersbox.conduit.handler.ContextTransformer;
 import com.engineersbox.conduit_v2.processing.event.EventTransformer;
 import com.engineersbox.conduit_v2.processing.pipeline.Pipeline;
 import com.engineersbox.conduit_v2.processing.pipeline.PipelineStage;
+import com.engineersbox.conduit_v2.processing.pipeline.ProcessingModel;
 import com.engineersbox.conduit_v2.processing.pipeline.StageResult;
 import com.engineersbox.conduit_v2.processing.pipeline.core.TerminatingPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelineStage;
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MetricProcessingTask implements ClientBoundWorkerTask {
+public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<JobReport>>, JobExecutor> {
 
     /* TODO: Refactor usage of Pipeline to use EasyBatch library
      *       to use a more effective and standardised interface
@@ -188,7 +189,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
     }
 
     @Override
-    public List<Job> apply(final IRiemannClient riemannClient) {
+    public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
         final JobBuilder<String,Integer> builder = new JobBuilder<String, Integer>()
                 .named("String to Integer")
                 .reader(new IterableRecordReader<>(List.of("1234")))
@@ -209,9 +210,9 @@ public class MetricProcessingTask implements ClientBoundWorkerTask {
         } catch (final Exception e) {
             LOGGER.error("Exception during metric processing pipeline invocation:", e);
         }
-        return List.of(
+        return (final JobExecutor jobExecutor) -> jobExecutor.submitAll(List.of(
                 builder.build()
-        );
+        ));
     }
 
 }

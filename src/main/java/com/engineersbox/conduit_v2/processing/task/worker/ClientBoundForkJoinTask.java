@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.task.worker;
 
+import com.engineersbox.conduit_v2.processing.pipeline.ProcessingModel;
 import com.engineersbox.conduit_v2.processing.task.worker.executor.JobExecutorPool;
 import org.jeasy.batch.core.job.Job;
 import org.jeasy.batch.core.job.JobExecutor;
@@ -11,18 +12,18 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
 import java.util.concurrent.RunnableFuture;
 
-public class ClientBoundForkJoinTask extends ForkJoinTask<List<Future<JobReport>>> implements RunnableFuture<List<Future<JobReport>>> {
+public class ClientBoundForkJoinTask<T, E> extends ForkJoinTask<T> implements RunnableFuture<T> {
 
     @Serial
     private static final long serialVersionUID = 2988328017776527845L;
 
     @SuppressWarnings("serial") // Conditionally serializable
-    private final ClientBoundWorkerTask runnable;
-    private final JobExecutorPool jobExecutorPool;
-    private List<Future<JobReport>> results;
+    private final ClientBoundWorkerTask<T, E> runnable;
+    private final JobExecutorPool<E> jobExecutorPool;
+    private T results;
 
-    public ClientBoundForkJoinTask(final ClientBoundWorkerTask runnable,
-                                   final JobExecutorPool jobExecutorPool) {
+    public ClientBoundForkJoinTask(final ClientBoundWorkerTask<T, E> runnable,
+                                   final JobExecutorPool<E> jobExecutorPool) {
         if (runnable == null) throw new NullPointerException();
         this.runnable = runnable;
         this.jobExecutorPool = jobExecutorPool;
@@ -30,12 +31,12 @@ public class ClientBoundForkJoinTask extends ForkJoinTask<List<Future<JobReport>
     }
 
     @Override
-    public List<Future<JobReport>> getRawResult() {
+    public T getRawResult() {
         return this.results;
     }
 
     @Override
-    protected void setRawResult(final List<Future<JobReport>> newResult) {
+    protected void setRawResult(final T newResult) {
         this.results = newResult;
     }
 
@@ -43,9 +44,9 @@ public class ClientBoundForkJoinTask extends ForkJoinTask<List<Future<JobReport>
     public final boolean exec() {
         final Thread thread;
         if ((thread = Thread.currentThread()) instanceof ClientBoundForkJoinWorkerThead workerThread) {
-            final List<Job> jobs = runnable.apply(workerThread.getClient());
-            try (final JobExecutorPool.ClosableJobExecutor jobExecutor = JobExecutorPool.acquireClosable(this.jobExecutorPool)) {
-                setRawResult(jobExecutor.getJobExecutor().submitAll(jobs));
+            final ProcessingModel<T, E> model = runnable.apply(workerThread.getClient());
+            try (final JobExecutorPool.ClosableJobExecutor<E> jobExecutor = JobExecutorPool.acquireClosable(this.jobExecutorPool)) {
+                setRawResult(model.submitAll(jobExecutor.getJobExecutor()));
             }
             return true;
         }

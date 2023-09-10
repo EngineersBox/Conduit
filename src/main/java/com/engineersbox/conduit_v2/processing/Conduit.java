@@ -33,16 +33,16 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class Conduit {
+public class Conduit<T, E> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Conduit.class);
 
-    private final Parameters params;
+    private final Parameters<T, E> params;
     private final ConduitConfig config;
     private boolean executing = false;
     private ContentManager<?, ? ,?> contentManager;
 
-    public Conduit(final Parameters params,
+    public Conduit(final Parameters<T, E> params,
                    final ConduitConfig config) {
         this.params = params;
         this.config = config;
@@ -90,18 +90,18 @@ public class Conduit {
         return this.executing;
     }
 
-    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView() {
+    public RichIterable<? super ForkJoinTask<T>> getTasksView() {
         return this.params.executor.getTasksView();
     }
 
-    public RichIterable<? super ForkJoinTask<List<Future<JobReport>>>> getTasksView(final long origin) {
+    public RichIterable<? super ForkJoinTask<T>> getTasksView(final long origin) {
         return this.params.executor.getTasksView(origin);
     }
 
-    public static class Parameters {
+    public static class Parameters<T, E> {
 
         private MetricsSchemaFactory schemaProvider;
-        private WaitableTaskExecutorPool executor;
+        private WaitableTaskExecutorPool<T, E> executor;
         private TaskBatchGenerator workerTaskGenerator;
         private WorkloadBatcher batcher;
         private Consumer<ContextTransformer.Builder> contextInjector;
@@ -116,13 +116,13 @@ public class Conduit {
             this.contentManagerFactory = ContentManagerFactory.defaultFactory();
         }
 
-        public Parameters setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
+        public Parameters<T, E> setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
             this.schemaProvider = schemaProvider;
             return this;
         }
 
-        public Parameters setExecutor(final ClientPool clientProvider,
-                                      final JobExecutorPool jobExecutorPool) {
+        public Parameters<T, E> setExecutor(final ClientPool clientProvider,
+                                            final JobExecutorPool<E> jobExecutorPool) {
             return setExecutor(
                     clientProvider,
                     jobExecutorPool,
@@ -130,42 +130,42 @@ public class Conduit {
             );
         }
 
-        public Parameters setExecutor(final ClientPool clientProvider,
-                                      final JobExecutorPool jobExecutorPool,
-                                      final int threadCount) {
-            return setExecutor(new WaitableTaskExecutorPool(
+        public Parameters<T, E> setExecutor(final ClientPool clientProvider,
+                                            final JobExecutorPool<E> jobExecutorPool,
+                                            final int threadCount) {
+            return setExecutor(new WaitableTaskExecutorPool<>(
                     clientProvider,
                     jobExecutorPool,
                     threadCount
             ));
         }
 
-        public Parameters setExecutor(final WaitableTaskExecutorPool executor) {
+        public Parameters<T, E> setExecutor(final WaitableTaskExecutorPool<T, E> executor) {
             this.executor = executor;
             return this;
         }
 
-        public Parameters setWorkerTaskGenerator(final TaskBatchGenerator workerTaskGenerator) {
+        public Parameters<T, E> setWorkerTaskGenerator(final TaskBatchGenerator workerTaskGenerator) {
             this.workerTaskGenerator = workerTaskGenerator;
             return this;
         }
 
-        public Parameters setBatcher(final WorkloadBatcher batcher) {
+        public Parameters<T, E> setBatcher(final WorkloadBatcher batcher) {
             this.batcher = batcher;
             return this;
         }
 
-        public Parameters setContextInjector(final Consumer<ContextTransformer.Builder> contextInjector) {
+        public Parameters<T, E> setContextInjector(final Consumer<ContextTransformer.Builder> contextInjector) {
             this.contextInjector = contextInjector;
             return this;
         }
 
-        public Parameters setIngesterFactory(final IngesterFactory ingesterFactory) {
+        public Parameters<T, E> setIngesterFactory(final IngesterFactory ingesterFactory) {
             this.ingesterFactory = ingesterFactory;
             return this;
         }
 
-        public Parameters setContentManagerFactory(ContentManagerFactory contentManagerFactory) {
+        public Parameters<T, E> setContentManagerFactory(ContentManagerFactory contentManagerFactory) {
             this.contentManagerFactory = contentManagerFactory;
             return this;
         }

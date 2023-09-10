@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ForkJoinWorkerThread;
 
-public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
+public class ClientBoundForkJoinWorkerThead<T, E> extends ForkJoinWorkerThread {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientBoundForkJoinWorkerThead.class);
 
@@ -15,14 +15,14 @@ public class ClientBoundForkJoinWorkerThead extends ForkJoinWorkerThread {
     private IRiemannClient heldClient;
     private long affinityId;
 
-    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
+    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool<T, E> pool,
                                              final ClientPool clientPool) {
         super(pool);
         this.clientPool = clientPool;
         setAffinityId(threadId());
     }
 
-    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool pool,
+    protected ClientBoundForkJoinWorkerThead(final ClientBoundForkJoinPool<T, E> pool,
                                              final ClientPool clientPool,
                                              final long affinityId) {
         super(pool);
