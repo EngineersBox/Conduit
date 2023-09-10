@@ -18,6 +18,7 @@ import com.networknt.schema.ValidationMessage;
 import io.riemann.riemann.Proto;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.eclipse.collections.api.LazyIterable;
+import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.list.ImmutableList;
 import org.eclipse.collections.api.map.ImmutableMap;
 
@@ -86,8 +87,8 @@ public class Schema {
         this.metrics = metrics;
     }
 
-    public LazyIterable<Metric> lazyMetricsView() {
-        return this.metrics.asLazy();
+    public RichIterable<Metric> metricsView() {
+        return this.metrics;
     }
 
     public Connector<?, ?> getConnector() {

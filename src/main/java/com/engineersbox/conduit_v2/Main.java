@@ -24,12 +24,10 @@ import org.jeasy.batch.core.job.JobReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.Future;
 
 public class Main {
 
@@ -66,14 +64,14 @@ public class Main {
 									() -> jobExecutor
 							)
 					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
-					.setBatcher(WorkloadBatcher.defaultbatcher())
+					.setBatcher(WorkloadBatcher.defaultBatcher())
 					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3));
 			final Conduit<List<JobReport>, JobExecutor> conduit = new Conduit<>(
                     params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
-			conduit.execute(null, Source.singleConfigurable());
-			conduit.getTasksView().forEach((final ForkJoinTask<List<JobReport>> task) -> {
+			conduit.execute(null, Source.singleConfigurable())
+					.forEach((final ForkJoinTask<List<JobReport>> task) -> {
 				try {
 					task.get().forEach((final JobReport report) -> LOGGER.info(
 							"[JOB REPORT]: {}",

@@ -7,10 +7,10 @@ import org.eclipse.collections.api.RichIterable;
 @FunctionalInterface
 public interface WorkloadBatcher {
 
-    LazyIterable<RichIterable<Metric>> chunk(final LazyIterable<Metric> metrics, final int chunkSize);
+    RichIterable<RichIterable<Metric>> chunk(final RichIterable<Metric> metrics, final int chunkSize);
 
-    static WorkloadBatcher defaultbatcher() {
-        return LazyIterable::chunk;
+    static WorkloadBatcher defaultBatcher() {
+        return RichIterable::chunk;
     }
 
 }
