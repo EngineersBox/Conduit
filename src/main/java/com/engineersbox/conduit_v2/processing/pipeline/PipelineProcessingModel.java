@@ -1,17 +1,16 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue;
-import io.netty.util.internal.shaded.org.jctools.queues.atomic.MpscAtomicArrayQueue;
+import org.jctools.queues.MessagePassingQueue;
+import org.jctools.queues.atomic.MpscAtomicArrayQueue;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
-import org.jeasy.batch.core.reader.RecordReader;
-import org.jeasy.batch.core.writer.RecordWriter;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Spliterators;
@@ -33,14 +32,24 @@ public class PipelineProcessingModel implements ProcessingModel<List<JobReport>,
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
     }
 
-    public <I,O> JobBuilder<I, O> addJob(final String name) {
+    public <I,O> JobBuilder<I, O> addJob(@Nonnull final String name) {
+        if (name == null) {
+            throw new NullPointerException("Job must have non-null name");
+        }
         final JobBuilder<I, O> builder = new JobBuilder<I, O>().named(name);
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(final JobBuilder<?, T> source,
-                                                                        final JobBuilder<T, ?> destination,
-                                                                        final Q queue) {
+    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                                        @Nonnull final JobBuilder<T, ?> destination,
+                                                                        @Nonnull final Q queue) {
+        if (source == null) {
+            throw new NullPointerException("Cannot connect null source job");
+        } else if (destination == null) {
+            throw new NullPointerException("Cannot connect null destination job");
+        } else if (queue == null) {
+            throw new NullPointerException("Cannot connect job via null queue");
+        }
         return this.graph.addEdge(
                 source,
                 destination,

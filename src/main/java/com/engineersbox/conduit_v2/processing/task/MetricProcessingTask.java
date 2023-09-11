@@ -12,7 +12,7 @@ import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.schema.metric.Metric;
-import io.netty.util.internal.shaded.org.jctools.queues.SpscLinkedQueue;
+import org.jctools.queues.SpscLinkedQueue;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
