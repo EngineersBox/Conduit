@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class PathFunctionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PathFunctionProvider.class);
-    private static final Map<String, Class<?>> FUNCTIONS; // = Maps.mutable.of();
+    private static final Map<String, Class<?>> FUNCTIONS;
     private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock(true);
     private static final Lock READ_LOCK = RW_LOCK.readLock();
     private static final Lock WRITE_LOCK = RW_LOCK.writeLock();

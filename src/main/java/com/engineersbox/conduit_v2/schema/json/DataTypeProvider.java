@@ -1,27 +1,31 @@
 package com.engineersbox.conduit_v2.schema.json;
 
-import com.jayway.jsonpath.spi.json.*;
-import com.jayway.jsonpath.spi.mapper.*;
-import org.eclipse.collections.api.factory.Maps;
-import org.eclipse.collections.api.map.MutableMap;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import org.eclipse.collections.api.map.ConcurrentMutableMap;
+import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
 import java.util.function.Supplier;
 
 public final class DataTypeProvider {
 
-    // Make these thread safe with RW locks
-    static final MutableMap<String, Supplier<? extends JsonProvider>> JSON_PROVIDERS;
-    static final MutableMap<String, Supplier<? extends MappingProvider>> MAPPING_PROVIDERS;
+    static final ConcurrentMutableMap<String, Supplier<? extends JsonProvider>> JSON_PROVIDERS;
+    static final ConcurrentMutableMap<String, Supplier<? extends MappingProvider>> MAPPING_PROVIDERS;
 
+    // TODO: Uncomment rest of these and add dependencies
     static {
-        JSON_PROVIDERS = Maps.mutable.<String, Supplier<? extends JsonProvider>>of()
+        JSON_PROVIDERS = ConcurrentHashMap.<String, Supplier<? extends JsonProvider>>newMap()
                 .withKeyValue("JACKSON", JacksonJsonProvider::new)
                 .withKeyValue("GSON", GsonJsonProvider::new);
 //                .withKeyValue("JAKARTA", JakartaJsonProvider::new)
 //                .withKeyValue("JSON_ORG", JsonOrgJsonProvider::new)
 //                .withKeyValue("JSON_SMART", JsonSmartJsonProvider::new)
 //                .withKeyValue("TAPESTRY", TapestryJsonProvider::new);
-        MAPPING_PROVIDERS = Maps.mutable.<String, Supplier<? extends MappingProvider>>of()
+        MAPPING_PROVIDERS = ConcurrentHashMap.<String, Supplier<? extends MappingProvider>>newMap()
                 .withKeyValue("JACKSON", JacksonMappingProvider::new)
                 .withKeyValue("GSON", GsonMappingProvider::new);
 //                .withKeyValue("JAKARTA", JakartaMappingProvider::new)
