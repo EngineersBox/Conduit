@@ -30,7 +30,7 @@
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <typesafe.version>1.4.1</typesafe.version>
-        <log4j2.version>2.20.0</log4j2.version>
+        <slf4j.version>2.20.0</slf4j.version>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-collections.version>4.4</commons-collections.version>
         <asm.version>9.3</asm.version>
@@ -153,17 +153,17 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>${log4j2.version}</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${log4j2.version}</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <version>${log4j2.version}</version>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <!-- Apache Commons IO -->
         <dependency>

@@ -8,13 +8,11 @@ import com.engineersbox.conduit_v2.processing.pipeline.lua.AdapterProcessPipelin
 import com.engineersbox.conduit_v2.processing.pipeline.lua.EventBatch;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PostProcessFilterPipelineStage;
 import com.engineersbox.conduit_v2.processing.pipeline.lua.PreProcessFilterPipelineStage;
-import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
-import com.engineersbox.conduit_v2.schema.metric.Metric;
 import com.engineersbox.conduit_v2.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit_v2.retrieval.content.RetrievalHandler;
+import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
+import com.engineersbox.conduit_v2.schema.metric.Metric;
 import io.netty.util.internal.shaded.org.jctools.queues.SpscLinkedQueue;
-import io.netty.util.internal.shaded.org.jctools.queues.atomic.MpscAtomicArrayQueue;
-import io.netty.util.internal.shaded.org.jctools.queues.atomic.SpscLinkedAtomicQueue;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
@@ -22,23 +20,18 @@ import org.eclipse.collections.api.map.ImmutableMap;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
-import org.jeasy.batch.core.processor.RecordProcessor;
-import org.jeasy.batch.core.reader.BlockingQueueRecordReader;
 import org.jeasy.batch.core.reader.IterableRecordReader;
 import org.jeasy.batch.core.record.Batch;
 import org.jeasy.batch.core.record.GenericRecord;
 import org.jeasy.batch.core.record.Record;
-import org.jeasy.batch.core.writer.BlockingQueueRecordWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobReport>, JobExecutor> {
@@ -50,7 +43,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
     private final Proto.Event eventTemplate;
     private final EventTransformer transformer;
     private final RetrievalHandler<Metric> retriever;
-    private final Pipeline.Builder<RichIterable<Metric>> pipeline;
     private final ContextTransformer.Builder contextBuilder;
     private final Consumer<ContextTransformer.Builder> contextInjector;
 
@@ -69,7 +61,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
         if (schemaExtensions.get("lua_handlers") instanceof LuaHandlerExtension extension) {
             luaHandlerExtension = extension;
         }
-        this.pipeline = createPipeline(luaHandlerExtension);
     }
 
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final LuaHandlerExtension handlerExtension) {
@@ -233,13 +224,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
     @Override
     public ProcessingModel<List<JobReport>, JobExecutor> apply(final IRiemannClient riemannClient) {
         final PipelineProcessingModel model = new PipelineProcessingModel();
-//        final JobBuilder<String, Integer> builder = model.<String, Integer>addJob(
-//                        "String to integer"
-//                ).reader(new IterableRecordReader<>(List.of("1234")))
-//                .processor((final Record<String> record) -> new GenericRecord<>(
-//                        record.getHeader(),
-//                        Integer.valueOf(record.getPayload())
-//                ));
         final JobBuilder<Metric, Proto.Event[]> transformerJob = createTransformerJob(model);
         final JobBuilder<Proto.Event[], Proto.Event[]> riemannSendJob = createRiemannSendJob(model, riemannClient);
         final SpscLinkedQueue<Record<Proto.Event[]>> queue = new SpscLinkedQueue<>();
@@ -251,14 +235,6 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
         transformerJob.reader(new IterableRecordReader<>(this.initialMetrics))
                 .writer((final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer));
         riemannSendJob.reader(queue::poll);
-//        this.contextInjector.accept(this.contextBuilder);
-//        try {
-//            this.pipeline.withContext(RIEMANN_CLIENT_CTX_ATTRIBUTE, riemannClient)
-//                    .build()
-//                    .accept(this.initialMetrics);
-//        } catch (final Exception e) {
-//            LOGGER.error("Exception during metric processing pipeline invocation:", e);
-//        }
         return model;
     }
 
