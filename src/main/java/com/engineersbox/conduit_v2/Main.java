@@ -5,7 +5,7 @@ import com.engineersbox.conduit_v2.config.ConfigFactory;
 import com.engineersbox.conduit_v2.processing.Conduit;
 import com.engineersbox.conduit_v2.processing.generation.TaskBatchGeneratorFactory;
 import com.engineersbox.conduit_v2.processing.task.worker.executor.DirectSupplierJobExecutorPool;
-import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
+import com.engineersbox.conduit_v2.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit_v2.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit_v2.schema.json.path.PathFunctionProvider;
@@ -74,7 +74,7 @@ public class Main {
 					.forEach((final ForkJoinTask<List<JobReport>> task) -> {
 				try {
 					task.get().forEach((final JobReport report) -> LOGGER.info(
-							"[JOB REPORT]: {}", // FIXME: Logs are not appearing on STDOUT
+							"[JOB REPORT]: {}",
 							report
 					));
 				} catch (final InterruptedException | ExecutionException e) {

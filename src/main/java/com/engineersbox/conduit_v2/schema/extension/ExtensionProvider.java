@@ -11,6 +11,9 @@ import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 public class ExtensionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionProvider.class);

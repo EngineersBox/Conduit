@@ -12,16 +12,16 @@ import com.engineersbox.conduit_v2.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit_v2.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit_v2.retrieval.ingest.Source;
-import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
+import com.engineersbox.conduit_v2.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit_v2.schema.Schema;
 import com.engineersbox.conduit_v2.schema.metric.Metric;
 import io.riemann.riemann.Proto;
-import org.eclipse.collections.api.LazyIterable;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
@@ -46,7 +46,7 @@ public class Conduit<T, E> {
     }
 
     public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context,
-                                                 final Source<?> source) throws Exception {
+                                                 @Nonnull final Source<?> source) throws Exception {
         this.executing = true;
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
         if (this.params.schemaProvider.instanceRefreshed()) {

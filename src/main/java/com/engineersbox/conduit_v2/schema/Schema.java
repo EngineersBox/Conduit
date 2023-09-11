@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Metrics schema definition
  */
+// @ThreadSafe TODO: Make the methods thread safe and mark class
 public class Schema {
 
     /* TODO: Support hooking into validation (schema validator library supports this)

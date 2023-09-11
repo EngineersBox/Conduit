@@ -8,12 +8,14 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+@ThreadSafe
 @SuppressWarnings("unchecked")
 public class PathFunctionProvider {
 
@@ -33,6 +35,10 @@ public class PathFunctionProvider {
         } catch (final IllegalAccessException e) {
             throw new RuntimeException("Unable to obtain mutable inner reference to PathFunctionFactory.FUNCTIONS:", e);
         }
+    }
+
+    private PathFunctionProvider() {
+        throw new UnsupportedOperationException("Static provider class");
     }
 
     public static synchronized void bindFunction(final String functionName,

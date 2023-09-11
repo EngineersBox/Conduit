@@ -9,8 +9,10 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.eclipse.collections.api.map.ConcurrentMutableMap;
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Supplier;
 
+@ThreadSafe
 public final class DataTypeProvider {
 
     static final ConcurrentMutableMap<String, Supplier<? extends JsonProvider>> JSON_PROVIDERS;
@@ -32,6 +34,10 @@ public final class DataTypeProvider {
 //                .withKeyValue("JSON_ORG", JsonOrgMappingProvider::new)
 //                .withKeyValue("JSON_SMART", JsonSmartMappingProvider::new)
 //                .withKeyValue("TAPESTRY", TapestryMappingProvider::new);
+    }
+
+    private DataTypeProvider() {
+        throw new UnsupportedOperationException("Static provider class");
     }
 
     public static void bindJsonProvider(final String name,

@@ -9,7 +9,7 @@ import com.engineersbox.conduit.pipeline.ingestion.IngestSource;
 import com.engineersbox.conduit.pipeline.ingestion.IngestionContext;
 import com.engineersbox.conduit_v2.schema.metric.DimensionIndex;
 import com.engineersbox.conduit.schema.MetricsSchema;
-import com.engineersbox.conduit_v2.schema.MetricsSchemaFactory;
+import com.engineersbox.conduit_v2.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.schema.metric.MetricContainerType;
 import com.engineersbox.conduit.schema.metric.MetricType;
