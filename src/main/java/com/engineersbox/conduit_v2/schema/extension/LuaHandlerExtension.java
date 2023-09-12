@@ -19,6 +19,7 @@ public class LuaHandlerExtension {
             LuaHandlerExtension::configureGlobals,
             false
     );
+    public static final String SCHEMA_EXTENSION_FIELD_NAME = "lua_handlers";
     private static String LUA_CONTEXT_LOGGER_NAME = "LuaHandlerExtension";
     private static Level LUA_CONTEXT_LOGGER_LEVEL = Level.INFO;
 
@@ -70,7 +71,7 @@ public class LuaHandlerExtension {
 
         @Override
         public String name() {
-            return "lua_handlers";
+            return LuaHandlerExtension.SCHEMA_EXTENSION_FIELD_NAME;
         }
 
         @Override

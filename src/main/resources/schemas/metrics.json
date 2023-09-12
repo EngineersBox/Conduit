@@ -37,25 +37,14 @@
     },
     "additionalProperties": false,
     "$defs": {
-        "providers": {
-            "enum": [
-                "GSON",
-                "JACKSON",
-                "JAKARTA",
-                "JSON_ORG",
-                "JSON_SMART",
-                "TAPESTRY",
-                "CUSTOM"
-            ]
-        },
         "configuration": {
             "type": "object",
             "properties": {
                 "mapping_provider": {
-                    "$ref": "#/$defs/providers"
+                    "type": "string"
                 },
                 "json_provider": {
-                    "$ref": "#/$defs/providers"
+                    "type": "string"
                 }
             },
             "additionalProperties": false

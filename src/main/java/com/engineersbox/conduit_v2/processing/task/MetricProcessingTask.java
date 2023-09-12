@@ -60,7 +60,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
         LuaHandlerExtension luaHandlerExtension = null;
-        if (schemaExtensions.get("lua_handlers") instanceof LuaHandlerExtension extension) {
+        if (schemaExtensions.get(LuaHandlerExtension.SCHEMA_EXTENSION_FIELD_NAME) instanceof LuaHandlerExtension extension) {
             luaHandlerExtension = extension;
         }
     }
@@ -162,7 +162,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
     }
 
     private JobBuilder<Metric, Proto.Event[]> createTransformerJob(final PipelineProcessingModel model) {
-        return model.<Metric, Proto.Event[]>addJob("Metric Transformer")
+        return model.<Metric, Proto.Event[]>addJob("Parse Metric Events")
                 .batchSize(BATCH_SIZE)
                 .processor((final Record<Metric> record) -> {
                     final Metric metric = record.getPayload();
