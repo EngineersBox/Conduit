@@ -1,5 +1,6 @@
 package com.engineersbox.conduit_v2.processing.pipeline;
 
+import org.eclipse.collections.api.factory.Lists;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.atomic.MpscAtomicArrayQueue;
 import org.jeasy.batch.core.job.JobBuilder;
@@ -16,6 +17,7 @@ import java.util.Objects;
 import java.util.Spliterators;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class PipelineProcessingModel implements ProcessingModel<List<Future<JobReport>>, JobExecutor> {
@@ -65,14 +67,15 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
     @Override
     public List<Future<JobReport>> submitAll(final JobExecutor executor) {
         final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
+        Stream<Future<JobReport>> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
-                .map(executor::submit)
-                .peek((final Future<JobReport> future) -> {
-                    if (this.blockOnFutures) {
-                        while (!future.isDone() && !future.isCancelled()) ;
-                    }
-                }).toList();
+                .map(executor::submit);
+        if (this.blockOnFutures) {
+            stream = stream.peek((final Future<JobReport> future) -> {
+                while (!future.isDone() && !future.isCancelled()) ;
+            });
+        }
+        return stream.toList();
     }
 
 }

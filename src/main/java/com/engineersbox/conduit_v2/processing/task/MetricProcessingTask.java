@@ -80,9 +80,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                             final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
                                     MetricProcessingTask.this.retriever.lookup(metric),
                                     metric.getStructure(),
-                                    metric,
-                                    0,
-                                    ""
+                                    metric
                             ).toArray(Proto.Event[]::new);
                             return new StageResult<>(
                                     StageResult.Type.COMBINE,
@@ -112,9 +110,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                     final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
                             MetricProcessingTask.this.retriever.lookup(metric),
                             metric.getStructure(),
-                            metric,
-                            0,
-                            ""
+                            metric
                     ).toArray(Proto.Event[]::new);
                     return new StageResult<>(
                             StageResult.Type.COMBINE,
@@ -173,9 +169,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                     final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
                             MetricProcessingTask.this.retriever.lookup(metric),
                             metric.getStructure(),
-                            metric,
-                            0,
-                            ""
+                            metric
                     ).toArray(Proto.Event[]::new);
                     return new GenericRecord<>(
                             record.getHeader(),

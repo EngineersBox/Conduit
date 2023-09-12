@@ -26,10 +26,22 @@ public class EventTransformer {
     }
 
     public List<Proto.Event> parseCoerceMetricEvents(final Object value,
-                                                      final MetricType type,
-                                                      final Metric metric,
-                                                      final int currentDimension,
-                                                      final String suffix) {
+                                                     final MetricType type,
+                                                     final Metric metric) {
+        return parseCoerceMetricEvents(
+                value,
+                type,
+                metric,
+                0,
+                ""
+        );
+    }
+
+    public List<Proto.Event> parseCoerceMetricEvents(final Object value,
+                                                     final MetricType type,
+                                                     final Metric metric,
+                                                     final int currentDimension,
+                                                     final String suffix) {
         if (type.isLeaf()) {
             return List.of(parsePrimitiveMetricEvent(
                     value,
