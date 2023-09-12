@@ -30,14 +30,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobReport>, JobExecutor> {
+public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<JobReport>>, JobExecutor> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricProcessingTask.class);
     private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
+    private static final int BATCH_SIZE = 5;
 
     private final RichIterable<Metric> initialMetrics; // Received from conduit
     private final Proto.Event eventTemplate;
@@ -165,6 +167,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
 
     private JobBuilder<Metric, Proto.Event[]> createTransformerJob(final PipelineProcessingModel model) {
         return model.<Metric, Proto.Event[]>addJob("Metric Transformer")
+                .batchSize(BATCH_SIZE)
                 .processor((final Record<Metric> record) -> {
                     final Metric metric = record.getPayload();
                     final Proto.Event[] result = MetricProcessingTask.this.transformer.parseCoerceMetricEvents(
@@ -184,6 +187,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
     private JobBuilder<Proto.Event[], Proto.Event[]> createRiemannSendJob(final PipelineProcessingModel model,
                                       final IRiemannClient riemannClient) {
         return model.<Proto.Event[], Proto.Event[]>addJob("Send Riemann Events")
+                .batchSize(BATCH_SIZE)
                 .writer((final Batch<Proto.Event[]> batch) -> {
                     try {
                         for (final Record<Proto.Event[]> eventsRecord : batch) {
@@ -222,8 +226,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
     }
 
     @Override
-    public ProcessingModel<List<JobReport>, JobExecutor> apply(final IRiemannClient riemannClient) {
-        final PipelineProcessingModel model = new PipelineProcessingModel();
+    public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
+        final PipelineProcessingModel model = new PipelineProcessingModel(false);
         final JobBuilder<Metric, Proto.Event[]> transformerJob = createTransformerJob(model);
         final JobBuilder<Proto.Event[], Proto.Event[]> riemannSendJob = createRiemannSendJob(model, riemannClient);
         final SpscLinkedQueue<Record<Proto.Event[]>> queue = new SpscLinkedQueue<>();
@@ -235,6 +239,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<JobRepor
         transformerJob.reader(new IterableRecordReader<>(this.initialMetrics))
                 .writer((final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer));
         riemannSendJob.reader(queue::poll);
+        // TODO: Finish implementing jobs
         return model;
     }
 

@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 public class LuaHandlerExtension {
 
-    static GlobalsProvider GLOBALS_PROVIDER = new LazyLoadedGlobalsProvider(
+    public static final GlobalsProvider GLOBALS_PROVIDER = new LazyLoadedGlobalsProvider(
             LuaHandlerExtension::configureGlobals,
             false
     );

@@ -18,18 +18,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
 
-public class PipelineProcessingModel implements ProcessingModel<List<JobReport>, JobExecutor> {
+public class PipelineProcessingModel implements ProcessingModel<List<Future<JobReport>>, JobExecutor> {
+
+    // NOTE: Usage guide for EasyBatch: https://github.com/j-easy/easy-batch/tree/master/easy-batch-tutorials/src/main/java/org/jeasy/batch/tutorials/advanced/parallel
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineProcessingModel.class);
 
     private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue> graph;
+    private final boolean blockOnFutures;
 
-    public PipelineProcessingModel() {
-        this(MpscAtomicArrayQueue.class);
+    public PipelineProcessingModel(final boolean blockOnFutures) {
+        this(MpscAtomicArrayQueue.class, blockOnFutures);
     }
 
-    public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass) {
+    public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass,
+                                   final boolean blockOnFutures) {
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
+        this.blockOnFutures = blockOnFutures;
     }
 
     public <I,O> JobBuilder<I, O> addJob(@Nonnull final String name) {
@@ -58,20 +63,16 @@ public class PipelineProcessingModel implements ProcessingModel<List<JobReport>,
     }
 
     @Override
-    public List<JobReport> submitAll(final JobExecutor executor) {
+    public List<Future<JobReport>> submitAll(final JobExecutor executor) {
         final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit)
-                .map((final Future<JobReport> future) -> {
-                    try {
-                        return future.get();
-                    } catch (final InterruptedException | ExecutionException e) {
-                        LOGGER.error("Failed while waiting for job to complete", e);
-                        return null;
+                .peek((final Future<JobReport> future) -> {
+                    if (this.blockOnFutures) {
+                        while (!future.isDone() && !future.isCancelled()) ;
                     }
-                }).filter(Objects::nonNull)
-                .toList();
+                }).toList();
     }
 
 }

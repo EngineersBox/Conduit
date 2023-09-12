@@ -13,6 +13,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.eclipse.collections.api.map.MutableMap;
 import org.eclipse.collections.impl.factory.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -21,6 +23,7 @@ import java.util.Map;
 
 public class ExtensionDeserializer extends StdDeserializer<ImmutableMap<String, Object>> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionDeserializer.class);
     private static final boolean ALLOW_ANONYMOUS_PRIMITIVE_DESERIALIZATION = true;
 
     protected ExtensionDeserializer() {
@@ -96,6 +99,10 @@ public class ExtensionDeserializer extends StdDeserializer<ImmutableMap<String, 
         try {
             return ConstructorUtils.invokeConstructor(deserializerClass);
         } catch (final NoSuchMethodException | IllegalAccessException e) {
+            LOGGER.trace(
+                    "Failed to invoke default constructor for {}, attempting invocation of constructor accepting TypeReference<?>",
+                    deserializerClass.getName()
+            );
             return ConstructorUtils.invokeConstructor(
                     deserializerClass,
                     targetClass.getType()

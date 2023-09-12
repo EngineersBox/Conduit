@@ -11,7 +11,7 @@ public abstract class Source<T> {
         return new SingleConfigurable();
     }
 
-    public static class SingleConfigurable extends Source<Object> {
+    private static final class SingleConfigurable extends Source<Object> {
 
         private boolean configured = false;
         @Override

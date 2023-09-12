@@ -5,6 +5,7 @@ import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 public abstract class TaskBatchGeneratorFactory {
 
@@ -12,7 +13,7 @@ public abstract class TaskBatchGeneratorFactory {
         throw new IllegalArgumentException("Factory class");
     }
 
-    public static TaskBatchGenerator<List<JobReport>, JobExecutor> defaultGenerator() {
+    public static TaskBatchGenerator<List<Future<JobReport>>, JobExecutor> defaultGenerator() {
         return MetricProcessingTask::new;
     }
 
