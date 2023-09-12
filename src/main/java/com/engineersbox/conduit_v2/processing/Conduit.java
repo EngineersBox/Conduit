@@ -45,10 +45,9 @@ public class Conduit<T, E> {
         this.params.validate();
     }
 
-    public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context,
-                                                 @Nonnull final Source<?> source) throws Exception {
-        this.executing = true;
-        final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
+    private RichIterable<Metric> retrieveWorkload(final Schema schema,
+                                                  final IngestionContext context,
+                                                  final Source<?> source) {
         if (this.params.schemaProvider.instanceRefreshed()) {
             LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
             this.contentManager = this.params.contentManagerFactory.construct(
@@ -62,19 +61,27 @@ public class Conduit<T, E> {
         if (this.config.executor.lazy) {
             workload = workload.asLazy();
         }
-        this.contentManager.poll();
+        return workload;
+    }
+
+    private RichIterable<ForkJoinTask<T>> submitWorkload(final Schema schema,
+                                                         final RichIterable<Metric> workload) {
         final RichIterable<RichIterable<Metric>> batchedMetricWorkloads = this.params.batcher.chunk(workload, this.config.executor.task_batch_size);
         LOGGER.debug("Partitioned workloads into {} batches of size at least {}", batchedMetricWorkloads.size(), this.config.executor.task_batch_size);
         final Proto.Event eventTemplate = schema.getEventTemplate();
         final ImmutableMap<String, Object> extensions = schema.getExtensions();
         final RichIterable<ForkJoinTask<T>> results = batchedMetricWorkloads.collect((final RichIterable<Metric> metrics) -> this.params.workerTaskGenerator.generate(
-                        metrics.asLazy(),
-                        eventTemplate,
-                        this.contentManager,
-                        extensions,
-                        this.params.contextInjector // TODO: Add support for supplying extension contexts and make this one that is provided
-                )).collect(this.params.executor::submit);
+                metrics.asLazy(),
+                eventTemplate,
+                this.contentManager,
+                extensions,
+                this.params.contextInjector // TODO: Add support for supplying extension contexts and make this one that is provided
+        )).collect(this.params.executor::submit);
         LOGGER.debug("Submitted workloads to conduit executor");
+        return results;
+    }
+
+    private void synchronisedRefresh() {
         if (!this.config.ingest.async) {
             this.params.executor.resettingBarrier(this.config.executor.lazy);
         }
@@ -82,6 +89,19 @@ public class Conduit<T, E> {
         if (this.config.ingest.schema_provider_locking) {
             this.params.schemaProvider.unlock();
         }
+    }
+
+    public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context,
+                                                 @Nonnull final Source<?> source) throws Exception {
+        this.executing = true;
+        final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
+        final RichIterable<Metric> workload = retrieveWorkload(schema, context, source);
+        this.contentManager.poll();
+        final RichIterable<ForkJoinTask<T>> results = submitWorkload(
+                schema,
+                workload
+        );
+        synchronisedRefresh();
         this.executing = false;
         return results;
     }
