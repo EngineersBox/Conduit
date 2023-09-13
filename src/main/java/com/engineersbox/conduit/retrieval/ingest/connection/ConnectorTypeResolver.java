@@ -6,24 +6,29 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import org.eclipse.collections.api.factory.Maps;
+import org.eclipse.collections.api.map.ConcurrentMutableMap;
 import org.eclipse.collections.api.map.MutableMap;
+import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
 public class ConnectorTypeResolver extends TypeIdResolverBase {
 
-    private static final MutableMap<String, Class<? extends Connector<?,?>>> CONNECTOR_CLASSES;
+    private static final ConcurrentMutableMap<String, Class<? extends Connector<?,?>>> CONNECTOR_CLASSES = ConcurrentHashMap.newMap();
 
     static {
-        CONNECTOR_CLASSES = Maps.mutable.of(
-                "HTTP", HTTPConnector.class
-        );
+        CONNECTOR_CLASSES.put("HTTP", HTTPConnector.class);
     }
 
     public static void bindImplementation(final String name,
                                           final Class<? extends Connector<?,?>> subType) {
-        if (CONNECTOR_CLASSES.containsKey(name)) {
-            throw new IllegalStateException("Connector implementation is already bound: " + name);
-        }
-        CONNECTOR_CLASSES.put(name, subType);
+        CONNECTOR_CLASSES.compute(
+                name,
+                (final String key, final Class<? extends Connector<?,?>> mapping) -> {
+                    if (mapping == null) {
+                        return subType;
+                    }
+                    throw new IllegalStateException("Connector implementation is already bound: " + name);
+                }
+        );
     }
 
     private JavaType superType;

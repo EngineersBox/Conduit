@@ -1,13 +1,15 @@
 package com.engineersbox.conduit.schema.extension.handler;
 
+import com.engineersbox.conduit.schema.extension.LuaContextHandlerDeserializer;
 import com.engineersbox.conduit.schema.extension.handler.globals.GlobalsProvider;
 import com.engineersbox.conduit.schema.extension.handler.loader.IsolatedLoader;
-import com.engineersbox.conduit.schema.extension.LuaContextHandlerDeserializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
+import org.eclipse.collections.api.map.MutableMap;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -85,7 +87,11 @@ public class LuaContextHandler {
     @SuppressWarnings({"unchecked"})
     public <T> T getFromResult(final String[] target,
                                final Class<T> type) {
-        final Function<LuaValue, ?> converter = CONVERTERS.get(type);
+        Class<?> resolvedType = type;
+        if (ClassUtils.isPrimitiveWrapper(resolvedType)) {
+            resolvedType = ClassUtils.wrapperToPrimitive(type);
+        }
+        final Function<LuaValue, ?> converter = CONVERTERS.get(resolvedType);
         if (converter == null) {
             throw new IllegalArgumentException("Type not supported: " + type.getName());
         }

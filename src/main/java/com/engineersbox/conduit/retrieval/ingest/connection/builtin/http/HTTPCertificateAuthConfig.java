@@ -4,7 +4,18 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.http.HttpClient;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class HTTPCertificateAuthConfig extends HTTPAuthConfig {
 
@@ -45,4 +56,28 @@ public class HTTPCertificateAuthConfig extends HTTPAuthConfig {
         return this.certificatePassword;
     }
 
+    @Override
+    public void configure(final HttpClient.Builder clientBuilder) {
+        try {
+            final SSLContext sslContext = SSLContext.getInstance("TLS");
+            final TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            final KeyStore cert = KeyStore.getInstance(this.certificateType);
+            final InputStream certStream = new FileInputStream(this.certificatePath.toAbsolutePath().toString());
+            cert.load(
+                    certStream,
+                    this.certificatePassword
+            );
+            certStream.close();
+            trustManager.init(cert);
+            sslContext.init(
+                    null,
+                    trustManager.getTrustManagers(),
+                    null
+            );
+            clientBuilder.sslContext(sslContext);
+        } catch (final NoSuchAlgorithmException | KeyStoreException | IOException | CertificateException |
+                       KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
