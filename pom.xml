@@ -302,7 +302,7 @@
                 <version>${typesafe.version}</version>
                 <configuration>
                     <templateFile>src/main/resources/templates/conduit_config_template.conf</templateFile>
-                    <packageName>com.engineersbox.conduit_v2.config</packageName>
+                    <packageName>com.engineersbox.conduit.config</packageName>
                     <outputDirectory>src/main/java</outputDirectory>
                     <className>ConduitConfig</className>
                     <generateGetters>false</generateGetters>

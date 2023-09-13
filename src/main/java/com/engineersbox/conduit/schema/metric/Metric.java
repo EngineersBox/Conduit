@@ -1,63 +1,40 @@
 package com.engineersbox.conduit.schema.metric;
 
-import com.engineersbox.conduit.handler.ContextBuiltins;
-import com.engineersbox.conduit_v2.schema.metric.DimensionIndex;
-import com.engineersbox.conduit_v2.schema.metric.DimensionallyIndexedRangeMap;
+import com.engineersbox.conduit.schema.extension.ExtensionDeserializer;
+import com.engineersbox.conduit.schema.json.SuffixFormatDeserializer;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Range;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.ImmutableMap;
-import org.luaj.vm2.LuaTable;
+
+import java.util.Objects;
 
 public class Metric {
 
-    private String path;
-    private String metricNamespace;
-    private ImmutableMap<String, String> handlers;
-    private ParameterizedMetricType type;
+    private final String namespace;
+    private final String path;
+    private final ParameterizedMetricType structure;
     private final DimensionallyIndexedRangeMap suffixes;
-    private boolean isComplete;
+    private final ImmutableMap<String, Object> extensions;
 
-    private Metric() {
-        this.suffixes = new DimensionallyIndexedRangeMap();
-        this.isComplete = false;
-    }
-
-    public static Metric path(final String path) {
-        final Metric binding = new Metric();
-        binding.path = path;
-        return binding;
-    }
-
-    public Metric namespace(final String namespace) {
-        if (this.isComplete) {
-            throw new IllegalStateException("Path binding is already complete");
+    @JsonCreator
+    public Metric(@JsonProperty("namespace") final String namespace,
+                  @JsonProperty("path") final String path,
+                  @JsonProperty("structure") final ParameterizedMetricType structure,
+                  @JsonProperty("extensions") @JsonDeserialize(using = ExtensionDeserializer.class) final ImmutableMap<String, Object> extensions) {
+        this.namespace = namespace;
+        this.path = path;
+        this.structure = structure;
+        this.extensions = Objects.requireNonNullElseGet(extensions, Maps.immutable::empty);
+        if (!structure.getSuffixes().isEmpty()) {
+            this.suffixes = new DimensionallyIndexedRangeMap();
+            extractSuffixesToMap(0, this.structure);
+        } else {
+            this.suffixes = null;
         }
-        this.metricNamespace = namespace;
-        return this;
-    }
-
-    public Metric handlers(final ImmutableMap<String, String> handlers) {
-        if (this.isComplete) {
-            throw new IllegalStateException("Path binding is already complete");
-        }
-        this.handlers = handlers;
-        return this;
-    }
-
-    public Metric type(final MetricType type) {
-        if (this.isComplete) {
-            throw new IllegalStateException("Path binding is already complete");
-        }
-        this.type = new ParameterizedMetricType(
-                type.getChild().orElse(null),
-                type.getContainerType(),
-                type.getValueType(),
-                type.getSuffixFormat()
-        );
-        extractSuffixesToMap(0, type);
-        return this;
     }
 
     private void extractSuffixesToMap(final int dimension,
@@ -65,33 +42,15 @@ public class Metric {
         if (metricType.isLeaf()) {
             return;
         }
-        metricType.getSuffixFormat()
+        metricType.getSuffixes()
                 .forEach((final Pair<Range<Integer>, String> format) -> this.suffixes.put(
                         new DimensionIndex(dimension, format.getLeft()),
                         format.getRight()
                 ));
         extractSuffixesToMap(
                 dimension + 1,
-                metricType.getChild().get()
+                metricType.getStructure()
         );
-    }
-
-    public Metric complete() {
-        if (this.isComplete) {
-            throw new IllegalStateException("Path binding is already complete");
-        }
-        this.isComplete = true;
-        return this;
-    }
-
-    public void validate() {
-        if (StringUtils.isBlank(this.path)) {
-            throw new IllegalStateException("Path cannot be blank/empty/null in binding");
-        } else if (StringUtils.isBlank(this.metricNamespace)) {
-            throw new IllegalStateException("Metric name cannot be blank/empty/null in binding");
-        } else if (this.type == null) {
-            throw new IllegalStateException("Data type cannot be null in binding");
-        }
     }
 
     public String getPath() {
@@ -99,31 +58,25 @@ public class Metric {
     }
 
     public String getNamespace() {
-        return this.metricNamespace;
+        return this.namespace;
     }
 
-    public ImmutableMap<String, String> getHandlers() {
-        return this.handlers;
-    }
-
-    public String getHandler(final String name) {
-        return this.handlers.get(name);
+    public ParameterizedMetricType getStructure() {
+        return this.structure;
     }
 
     public String getSuffix(final DimensionIndex query) {
-        return this.suffixes.get(query);
+        return this.suffixes == null
+                ? SuffixFormatDeserializer.DEFAULT_SUFFIX_FORMAT
+                : this.suffixes.get(query);
     }
 
-    public ParameterizedMetricType getType() {
-        return this.type;
+    public ImmutableMap<String, String> getHandlers() {
+        return Maps.immutable.of();
     }
 
-    public LuaTable constructContextAttributes() {
-        final LuaTable ctx = ContextBuiltins.METRIC_INFO;
-        ctx.set("namespace", getNamespace());
-        ctx.set("path", getPath());
-        ctx.set("type", TypeUtils.toString(getType().intoConcrete().getType()));
-        return ctx;
+    public ImmutableMap<String, Object> getExtensions() {
+        return this.extensions;
     }
 
 }

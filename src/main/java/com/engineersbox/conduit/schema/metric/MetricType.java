@@ -1,123 +1,41 @@
 package com.engineersbox.conduit.schema.metric;
 
 import com.google.common.collect.Range;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import org.eclipse.collections.api.LazyIterable;
+import org.eclipse.collections.api.list.ImmutableList;
+import org.eclipse.collections.impl.factory.Iterables;
 
 public class MetricType {
 
-    private final Optional<MetricType> child;
-    private final MetricContainerType containerType;
-    private final MetricValueType valueType;
-    private final List<Pair<Range<Integer>, String>> suffixFormat;
+    private static final LazyIterable<Pair<Range<Integer>, String>> DEFAULT_EMPTY_ITERABLE = Iterables.<Pair<Range<Integer>, String>>iList().asLazy();
 
-    public MetricType(final MetricType child,
-                      final MetricContainerType containerType,
-                      final List<Pair<Range<Integer>, String>> suffixFormat) {
-        this.child = Optional.ofNullable(child);
-        this.containerType = containerType;
-        this.valueType = MetricValueType.CONTAINER;
-        this.suffixFormat = suffixFormat.isEmpty()
-                ? List.of(Pair.of(Range.all(), "/{index}"))
-                : suffixFormat;
-    }
+    private final MetricKind type; // Union<ContainerType | ValueType>
+    private final ParameterizedMetricType structure; // Child element type structure, nullable
+    private final ImmutableList<Pair<Range<Integer>, String>> suffixes;
 
-    public MetricType(final MetricValueType valueType,
-                      final List<Pair<Range<Integer>, String>> suffixFormat) {
-        this.child = Optional.empty();
-        this.containerType = MetricContainerType.NONE;
-        this.valueType = valueType;
-        this.suffixFormat = suffixFormat.isEmpty()
-                ? List.of(Pair.of(Range.all(), "/{index}"))
-                : suffixFormat;
-    }
-
-    public MetricType(final MetricType child,
-                      final MetricContainerType containerType,
-                      final MetricValueType valueType,
-                      final List<Pair<Range<Integer>, String>> suffixFormat) {
-        this.child = Optional.ofNullable(child);
-        this.containerType = containerType;
-        this.valueType = valueType;
-        this.suffixFormat = suffixFormat.isEmpty()
-                ? List.of(Pair.of(Range.all(), "/{index}"))
-                : suffixFormat;
+    public MetricType(final MetricKind type,
+                      final ParameterizedMetricType structure,
+                      final ImmutableList<Pair<Range<Integer>, String>> suffixes) {
+        this.type = type;
+        this.structure = structure;
+        this.suffixes = suffixes;
     }
 
     public boolean isLeaf() {
-        return this.child.isEmpty();
+        return this.structure == null;
     }
 
-    public Optional<MetricType> getChild() {
-        return this.child;
+    public MetricKind getType() {
+        return this.type;
     }
 
-    public MetricContainerType getContainerType() {
-        return this.containerType;
+    public ParameterizedMetricType getStructure() {
+        return this.structure;
     }
 
-    public MetricValueType getValueType() {
-        return this.valueType;
+    public LazyIterable<Pair<Range<Integer>, String>> getSuffixes() {
+        return this.suffixes == null ? DEFAULT_EMPTY_ITERABLE : this.suffixes.asLazy();
     }
 
-    public List<Pair<Range<Integer>, String>> getSuffixFormat() {
-        return this.suffixFormat;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static final class Builder {
-        private MetricType _child;
-        private MetricContainerType _containerType;
-        private MetricValueType _valueType;
-        private List<Pair<Range<Integer>, String>> _suffixFormat;
-
-        private Builder() {
-            this._child = null;
-            this._containerType = MetricContainerType.NONE;
-            this._valueType = MetricValueType.STRING;
-            this._suffixFormat = new ArrayList<>();
-        }
-
-        public Builder withChild(final MetricType child) {
-            this._child = child;
-            return this;
-        }
-
-        public Builder withContainerType(final MetricContainerType containerType) {
-            this._containerType = containerType;
-            return this;
-        }
-
-        public Builder withValueType(final MetricValueType valueType) {
-            this._valueType = valueType;
-            return this;
-        }
-
-        public Builder addSuffixFormat(final Range<Integer> range,
-                                       final String format) {
-            this._suffixFormat.add(Pair.of(range, format));
-            return this;
-        }
-
-        public Builder withSuffixFormat(final List<Pair<Range<Integer>, String>> suffixFormat) {
-            this._suffixFormat = suffixFormat;
-            return this;
-        }
-
-        public MetricType build() {
-            return new MetricType(
-                    this._child,
-                    this._containerType,
-                    this._valueType,
-                    this._suffixFormat
-            );
-        }
-    }
 }
