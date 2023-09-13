@@ -4,6 +4,7 @@ import com.engineersbox.conduit.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.AuthenticatorProvider;
 import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.SSLContextProvider;
 import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.SSLParametersProvider;
+import com.engineersbox.conduit.util.Functional;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,6 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
 
@@ -30,6 +32,14 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
     }
 
     private static <T> void checkedApply(final Consumer<T> method,
+                                         final Functional.ThrowsSupplier<T> supplier) throws Exception {
+        if (supplier == null) {
+            return;
+        }
+        checkedApply(method, supplier.get());
+    }
+
+    private static <T> void checkedApply(final Consumer<T> method,
                                          final T value) {
         if (value == null) {
             return;
@@ -40,24 +50,14 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
     @Override
     public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
-        final AuthenticatorProvider authProvider = this.config.getAuthentication();
-        if (authProvider != null) {
-            checkedApply(builder::authenticator, authProvider.get());
-        }
+        checkedApply(builder::authenticator, this.config.getAuthentication());
         checkedApply(builder::connectTimeout, this.config.getTimeout());
-        System.out.println("DURATION: " + this.config.getTimeout());
         checkedApply(builder::followRedirects, this.config.getRedirect());
         checkedApply(builder::localAddress, this.config.getLocalAddress());
         checkedApply(builder::priority, this.config.getPriority());
         checkedApply(builder::proxy, this.config.getProxy());
-        final SSLContextProvider sslContextProvider = this.config.getSSLContext();
-        if (sslContextProvider != null) {
-            checkedApply(builder::sslContext, sslContextProvider.get());
-        }
-        final SSLParametersProvider sslParamsProvider = this.config.getSSLParameters();
-        if (sslParamsProvider != null) {
-            checkedApply(builder::sslParameters, sslParamsProvider.get());
-        }
+        checkedApply(builder::sslContext, this.config.getSSLContext());
+        checkedApply(builder::sslParameters, this.config.getSSLParameters());
         checkedApply(builder::version, this.config.getVersion());
         this.client = builder.build();
     }

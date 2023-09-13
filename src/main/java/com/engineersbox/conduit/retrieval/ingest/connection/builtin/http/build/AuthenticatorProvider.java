@@ -1,13 +1,13 @@
 package com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build;
 
+import com.engineersbox.conduit.util.Functional;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
-import java.util.function.Supplier;
 
-public class AuthenticatorProvider implements Supplier<Authenticator> {
+public class AuthenticatorProvider implements Functional.ThrowsSupplier<Authenticator> {
 
     private final String username;
     private final String password;
