@@ -57,8 +57,8 @@ public class Schema {
         ).setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE); // Needed for Riemann Proto.Event JSON to Protobuf definitions
     }
 
-    @JsonProperty("source")
-    private Connector<?,?> source;
+    @JsonProperty("connection")
+    private Connector<?,?> connector;
     @JsonProperty("configuration")
     @JsonDeserialize(using = JsonPathConfigDeserializer.class)
     private Configuration jsonPathConfiguration;
@@ -76,11 +76,11 @@ public class Schema {
     @JsonCreator
     public Schema() {}
 
-    public Schema(final Connector<?, ?> source,
+    public Schema(final Connector<?, ?> connector,
                   final Configuration jsonPathConfiguration,
                   final Proto.Event eventTemplate,
                   final ImmutableList<Metric> metrics) {
-        this.source = source;
+        this.connector = connector;
         this.jsonPathConfiguration = jsonPathConfiguration;
         this.eventTemplate = eventTemplate;
         this.metrics = metrics;
@@ -91,7 +91,7 @@ public class Schema {
     }
 
     public Connector<?, ?> getConnector() {
-        return this.source;
+        return this.connector;
     }
 
     public Configuration getJsonPathConfiguration() {

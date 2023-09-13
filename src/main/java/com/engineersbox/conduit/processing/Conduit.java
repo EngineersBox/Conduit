@@ -92,6 +92,13 @@ public class Conduit<T, E> {
         }
     }
 
+    public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context) throws Exception {
+        return execute(
+                context,
+                Source.singleConfigurable()
+        );
+    }
+
     public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context,
                                                  @Nonnull final Source<?> source) throws Exception {
         this.executing = true;

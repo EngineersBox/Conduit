@@ -7,8 +7,8 @@
         "configuration": {
             "$ref": "#/$defs/configuration"
         },
-        "source": {
-            "$ref": "#/$defs/source"
+        "connection": {
+            "$ref": "#/$defs/connection"
         },
         "event_template": {
             "type": "object",
@@ -49,7 +49,7 @@
             },
             "additionalProperties": false
         },
-        "source_type": {
+        "connection_type": {
             "enum": [
                 "HTTP",
                 "CUSTOM"
@@ -67,7 +67,7 @@
                 "PKCS12"
             ]
         },
-        "http_source": {
+        "http_connection": {
             "properties": {
                 "auth": {
                     "type": "object",
@@ -121,14 +121,14 @@
                 "uri"
             ]
         },
-        "custom_source": {
+        "custom_connection": {
             "additionalProperties": true
         },
-        "source": {
+        "connection": {
             "type": "object",
             "properties": {
                 "type": {
-                    "$ref": "#/$defs/source_type"
+                    "$ref": "#/$defs/connection_type"
                 },
                 "config": {
                     "type": "object",
@@ -141,16 +141,16 @@
                             }
                         },
                         "then": {
-                            "$ref": "#/$defs/http_source",
+                            "$ref": "#/$defs/http_connection",
                             "properties": {
                                 "type": {
-                                    "$ref": "#/$defs/source_type"
+                                    "$ref": "#/$defs/connection_type"
                                 }
                             },
                             "unevaluatedProperties": false
                         },
                         "else": {
-                            "$ref": "#/$defs/custom_source"
+                            "$ref": "#/$defs/custom_connection"
                         }
                     }
                 }
@@ -158,12 +158,6 @@
             "required": [
                 "type"
             ]
-        },
-        "handler_methods": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "string"
-            }
         },
         "metric_structure": {
             "oneOf": [
@@ -232,12 +226,6 @@
                 },
                 "path": {
                     "type": "string"
-                },
-                "handler_method": {
-                    "type": "string"
-                },
-                "handlers": {
-                    "$ref": "#/$defs/handler_methods"
                 },
                 "structure": {
                     "$ref": "#/$defs/metric_structure"

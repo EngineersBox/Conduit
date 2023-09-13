@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -49,6 +50,5 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
 
     @Override
     public void close() throws Exception {
-
     }
 }
