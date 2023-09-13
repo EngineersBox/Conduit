@@ -29,6 +29,10 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
     @Override
     public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
+        /* TODO: Refactor this to configure the builder for each builder method
+         *       available with an optional JSON configuration in the schema for
+         *       each of the builder methods.
+         */
         this.config.getAuth().configure(builder);
         this.client = builder.build();
     }
