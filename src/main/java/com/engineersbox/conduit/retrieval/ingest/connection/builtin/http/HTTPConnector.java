@@ -1,9 +1,6 @@
 package com.engineersbox.conduit.retrieval.ingest.connection.builtin.http;
 
 import com.engineersbox.conduit.retrieval.ingest.connection.Connector;
-import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.AuthenticatorProvider;
-import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.SSLContextProvider;
-import com.engineersbox.conduit.retrieval.ingest.connection.builtin.http.build.SSLParametersProvider;
 import com.engineersbox.conduit.util.Functional;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,8 +10,6 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
 
@@ -31,34 +26,18 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
         this.config = config;
     }
 
-    private static <T> void checkedApply(final Consumer<T> method,
-                                         final Functional.ThrowsSupplier<T> supplier) throws Exception {
-        if (supplier == null) {
-            return;
-        }
-        checkedApply(method, supplier.get());
-    }
-
-    private static <T> void checkedApply(final Consumer<T> method,
-                                         final T value) {
-        if (value == null) {
-            return;
-        }
-        method.accept(value);
-    }
-
     @Override
     public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
-        checkedApply(builder::authenticator, this.config.getAuthentication());
-        checkedApply(builder::connectTimeout, this.config.getTimeout());
-        checkedApply(builder::followRedirects, this.config.getRedirect());
-        checkedApply(builder::localAddress, this.config.getLocalAddress());
-        checkedApply(builder::priority, this.config.getPriority());
-        checkedApply(builder::proxy, this.config.getProxy());
-        checkedApply(builder::sslContext, this.config.getSSLContext());
-        checkedApply(builder::sslParameters, this.config.getSSLParameters());
-        checkedApply(builder::version, this.config.getVersion());
+        Functional.checkedApply(builder::authenticator, this.config.getAuthentication());
+        Functional.checkedApply(builder::connectTimeout, this.config.getTimeout());
+        Functional.checkedApply(builder::followRedirects, this.config.getRedirect());
+        Functional.checkedApply(builder::localAddress, this.config.getLocalAddress());
+        Functional.checkedApply(builder::priority, this.config.getPriority());
+        Functional.checkedApply(builder::proxy, this.config.getProxy());
+        Functional.checkedApply(builder::sslContext, this.config.getSSLContext());
+        Functional.checkedApply(builder::sslParameters, this.config.getSSLParameters());
+        Functional.checkedApply(builder::version, this.config.getVersion());
         this.client = builder.build();
     }
 

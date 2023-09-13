@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import javax.net.ssl.SSLParameters;
 import java.security.AlgorithmConstraints;
-import java.util.function.Consumer;
 
 public class SSLParametersProvider implements Functional.ThrowsSupplier<SSLParameters> {
 
@@ -53,29 +52,21 @@ public class SSLParametersProvider implements Functional.ThrowsSupplier<SSLParam
         this.namedGroups = namedGroups;
     }
 
-    private static <T> void checkedApply(final Consumer<T> method,
-                                         final T value) {
-        if (value == null) {
-            return;
-        }
-        method.accept(value);
-    }
-
     @Override
     public SSLParameters get() {
         final SSLParameters params = new SSLParameters();
-        checkedApply(params::setCipherSuites, this.cipherSuites);
-        checkedApply(params::setApplicationProtocols, this.applicationProtocols);
-        checkedApply(params::setProtocols, this.protocols);
-        checkedApply(params::setWantClientAuth, this.wantClientAuth);
-        checkedApply(params::setNeedClientAuth, this.needClientAuth);
-        checkedApply(params::setAlgorithmConstraints, this.algorithmConstraints);
-        checkedApply(params::setEndpointIdentificationAlgorithm, this.endpointIdentificationAlgorithm);
-        checkedApply(params::setUseCipherSuitesOrder, this.useCipherSuitesOrder);
-        checkedApply(params::setEnableRetransmissions, this.enableRetransmissions);
-        checkedApply(params::setMaximumPacketSize, this.maximumPacketSize);
-        checkedApply(params::setSignatureSchemes, this.signatureSchemes);
-        checkedApply(params::setNamedGroups, this.namedGroups);
+        Functional.checkedApply(params::setCipherSuites, this.cipherSuites);
+        Functional.checkedApply(params::setApplicationProtocols, this.applicationProtocols);
+        Functional.checkedApply(params::setProtocols, this.protocols);
+        Functional.checkedApply(params::setWantClientAuth, this.wantClientAuth);
+        Functional.checkedApply(params::setNeedClientAuth, this.needClientAuth);
+        Functional.checkedApply(params::setAlgorithmConstraints, this.algorithmConstraints);
+        Functional.checkedApply(params::setEndpointIdentificationAlgorithm, this.endpointIdentificationAlgorithm);
+        Functional.checkedApply(params::setUseCipherSuitesOrder, this.useCipherSuitesOrder);
+        Functional.checkedApply(params::setEnableRetransmissions, this.enableRetransmissions);
+        Functional.checkedApply(params::setMaximumPacketSize, this.maximumPacketSize);
+        Functional.checkedApply(params::setSignatureSchemes, this.signatureSchemes);
+        Functional.checkedApply(params::setNamedGroups, this.namedGroups);
         return params;
     }
 }

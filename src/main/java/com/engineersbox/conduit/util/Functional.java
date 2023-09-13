@@ -63,4 +63,20 @@ public class Functional {
         };
     }
 
+    public static <T> void checkedApply(final Consumer<T> method,
+                                        final Functional.ThrowsSupplier<T> supplier) throws Exception {
+        if (supplier == null) {
+            return;
+        }
+        checkedApply(method, supplier.get());
+    }
+
+    public static <T> void checkedApply(final Consumer<T> method,
+                                        final T value) {
+        if (value == null) {
+            return;
+        }
+        method.accept(value);
+    }
+
 }
