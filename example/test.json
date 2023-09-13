@@ -1,12 +1,12 @@
 {
-    "source": {
+    "connection": {
         "type": "HTTP",
         "config": {
-            "auth": {
-                "type": "BASIC",
+            "authentication": {
                 "username": "some_test_user",
                 "password": "P4ss-w0rd1!2@3#4$"
             },
+            "timeout": "PT1M",
             "uri": "http://localhost:8000/source.json"
         }
     },
@@ -19,7 +19,6 @@
         "description": "Some Metric Description",
         "metric_d": 123.44
     },
-    "handler": "example/compiled/handler.class",
     "metrics": [
         {
             "namespace": "/service/plugin/list_metric",
