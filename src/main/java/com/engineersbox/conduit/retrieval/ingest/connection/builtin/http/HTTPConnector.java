@@ -40,11 +40,6 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
     @Override
     public void configure() throws Exception {
         final HttpClient.Builder builder = HttpClient.newBuilder();
-        /* TODO: Refactor this to configure the builder for each builder method
-         *       available with an optional JSON configuration in the schema for
-         *       each of the builder methods.
-         * NOTE: For the SSL stuff, use this as reference https://stackoverflow.com/questions/63022464/jdk11-httpclient-mutual-tls
-         */
         final AuthenticatorProvider authProvider = this.config.getAuthentication();
         if (authProvider != null) {
             checkedApply(builder::authenticator, authProvider.get());
