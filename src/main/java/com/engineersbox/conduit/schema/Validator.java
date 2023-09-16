@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 public class Validator {
@@ -45,7 +46,6 @@ public class Validator {
         }
         final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(node));
         final SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-//        config.setFailFast(true);
         SCHEMA = factory.getSchema(node, config);
         SCHEMA.initializeValidators();
     }
