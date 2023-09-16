@@ -1,0 +1,51 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "classpath:/schemas/connection/connection.schema.json",
+    "title": "Connection",
+    "description": "Connection types and attributes for connecting to a metrics source",
+    "type": "object",
+    "properties": {
+        "type": {
+            "$ref": "#/$defs/connection_type"
+        },
+        "config": {
+            "type": "object",
+            "properties": {
+                "if": {
+                    "properties": {
+                        "type": {
+                            "const": "HTTP"
+                        }
+                    }
+                },
+                "then": {
+                    "$ref": "classpath:/schemas/connection/http_connection.schema.json",
+                    "properties": {
+                        "type": {
+                            "$ref": "#/$defs/connection_type"
+                        }
+                    },
+                    "unevaluatedProperties": false
+                },
+                "else": {
+                    "$ref": "#/$defs/custom_connection"
+                }
+            }
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "connection_type": {
+            "enum": [
+                "HTTP",
+                "CUSTOM"
+            ]
+        },
+        "custom_connection": {
+            "additionalProperties": true
+        }
+    }
+}

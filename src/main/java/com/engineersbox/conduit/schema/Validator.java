@@ -31,7 +31,7 @@ public class Validator {
         JsonNode node;
         try (final InputStream resource = Thread.currentThread()
                 .getContextClassLoader()
-                .getResourceAsStream("schemas/metrics.json")) {
+                .getResourceAsStream("schemas/metrics.schema.json")) {
             node = ObjectMapperModule.OBJECT_MAPPER.readTree(resource);
         } catch (final IOException e) {
             throw new IllegalStateException(e);

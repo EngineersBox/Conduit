@@ -1,0 +1,157 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "classpath:/schemas/connection/http_connection.schema.json",
+    "title": "HTTP Connection",
+    "description": "HTTP connection schema with SSL and context support parameters",
+    "type": "object",
+    "properties": {
+        "uri": {
+            "type": "string"
+        },
+        "authentication": {
+            "$ref": "#/$defs/http_connection_authentication"
+        },
+        "ssl_context": {
+            "$ref": "#/$defs/http_connection_ssl_context"
+        },
+        "ssl_parameters": {
+            "$ref": "#/$defs/http_connection_ssl_parameters"
+        },
+        "timeout": {
+            "type": "string"
+        },
+        "redirect": {
+            "type": "string"
+        },
+        "priority": {
+            "type": "integer"
+        },
+        "version": {
+            "type": "string"
+        },
+        "proxy": {
+            "type": "string"
+        },
+        "local_address": {
+            "type": "string",
+            "format": "ipv4"
+        }
+    },
+    "required": [
+        "uri"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "http_connection_authentication": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "http_connection_ssl_context": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "key_manager": {
+                    "$ref": "#/$defs/http_connection_ssl_context_manager"
+                },
+                "trust_manager": {
+                    "$ref": "#/$defs/http_connection_ssl_context_manager"
+                },
+                "secure_random_algorithm": {
+                    "type": "string"
+                },
+                "secure_random_provider": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties":false
+        },
+        "http_connection_ssl_context_manager": {
+            "type": "object",
+            "properties": {
+                "key_store_path": {
+                    "type": "string"
+                },
+                "key_store_password": {
+                    "type": "string"
+                },
+                "algorithm": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "http_connection_ssl_parameters": {
+            "type": "object",
+            "properties": {
+                "cipher_suites": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "application_protocols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "protocols": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "want_client_auth": {
+                    "type": "boolean"
+                },
+                "need_client_auth": {
+                    "type": "boolean"
+                },
+                "algorithm_constraints": {
+                    "type": "string"
+                },
+                "endpoint_identification_algorithm": {
+                    "type": "string"
+                },
+                "use_cipher_suites_order": {
+                    "type": "boolean"
+                },
+                "enable_retransmissions": {
+                    "type": "boolean"
+                },
+                "maximum_packet_size": {
+                    "type": "integer"
+                },
+                "signature_schemes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "named_groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

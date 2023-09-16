@@ -1,0 +1,158 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "classpath:/schemas/metrics.schema.json",
+    "title": "Metrics",
+    "description": "Metrics ingestion schema for creating Riemann events",
+    "type": "object",
+    "properties": {
+        "configuration": {
+            "$ref": "#/$defs/configuration"
+        },
+        "connection": {
+            "$ref": "classpath:/schemas/connection/connection.schema.json"
+        },
+        "event_template": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "handler": {
+            "type": "string"
+        },
+        "metrics": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "$ref": "#/$defs/metric"
+                }
+            ]
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+        },
+        "required": [
+            "source",
+            "metrics"
+        ]
+    },
+    "additionalProperties": false,
+    "$defs": {
+        "configuration": {
+            "type": "object",
+            "properties": {
+                "mapping_provider": {
+                    "type": "string"
+                },
+                "json_provider": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "metric_structure": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/container_metric_structure"
+                },
+                {
+                    "$ref": "#/$defs/primitive_metric_structure"
+                }
+            ]
+        },
+        "primitive_metric_structure": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "STRING",
+                        "FLOAT",
+                        "DOUBLE",
+                        "INTEGER",
+                        "BOOLEAN",
+                        "INFER"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "additionalProperties": false,
+            "unevaluatedProperties": false
+        },
+        "container_metric_structure": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "LIST",
+                        "MAP"
+                    ],
+                    "type": "string"
+                },
+                "structure": {
+                    "$ref": "#/$defs/metric_structure"
+                },
+                "suffixes": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "$ref": "#/$defs/range_suffix_format"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "type",
+                "structure"
+            ],
+            "additionalProperties": false
+        },
+        "metric": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "structure": {
+                    "$ref": "#/$defs/metric_structure"
+                },
+                "extensions": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": true
+                }
+            },
+            "required": [
+                "namespace",
+                "path",
+                "structure"
+            ],
+            "additionalProperties": false
+        },
+        "range_suffix_format": {
+            "type": "object",
+            "properties": {
+                "template": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "integer",
+                    "default": -1
+                },
+                "to": {
+                    "type": "integer",
+                    "default": -1
+                }
+            },
+            "required": [
+                "template"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
