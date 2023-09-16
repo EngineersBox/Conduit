@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Properties>
+        <Property name="maxLogFileCount">10</Property>
+        <Property name="baseDir">logs</Property>
+        <Property name="fileName">${baseDir}/conduit.log</Property>
         <Property name="fileFormatPath">logs/conduit_%d{MM-dd-yyyy}_%d{HH:mm:ss.SSS}.log</Property>
-        <Property name="fileName">RollingFile</Property>
+        <Property name="rollingName">RollingFile</Property>
         <Property name="consoleName">Console</Property>
         <Property name="pureLogFormat">[%d{dd/MM/yyyy HH:mm:ss.SSS}][%pid][%thread:%tid][%-5level] %C{1.}.%M :: %msg%n</Property>
         <Property name="logFormat">[%magenta{%d{dd/MM/yyyy HH:mm:ss.SSS}}] [%white{%pid}] [%blue{%thread:%tid}] [%highlight{%-5level}{FATAL=bright red, ERROR=red, WARN=bright yellow, INFO=green, DEBUG=bright magenta, TRACE=cyan}] %style{%C{1.}.%M}{normal,cyan} :: %msg%n</Property>
@@ -11,17 +14,27 @@
         <Console name="${consoleName}" target="SYSTEM_OUT">
             <PatternLayout disableAnsi="false" pattern="${logFormat}"/>
         </Console>
-        <RollingFile name="${fileName}" filePattern="${fileFormatPath}" ignoreExceptions="false">
+        <RollingFile name="${rollingName}"
+                     fileName="${fileName}"
+                     filePattern="${fileFormatPath}"
+                     ignoreExceptions="false">
             <PatternLayout disableAnsi="false" pattern="${pureLogFormat}"/>
             <Policies>
                 <OnStartupTriggeringPolicy/>
             </Policies>
+            <DefaultRolloverStrategy max="${maxLogFileCount}">
+                <Delete basePath="${baseDir}" maxDepth="1">
+                    <IfFileName glob="conduit_*.log">
+                        <IfAccumulatedFileCount exceeds="${maxLogFileCount}"/>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
     </Appenders>
     <Loggers>
         <Root level="TRACE">
             <AppenderRef ref="${consoleName}"/>
-            <AppenderRef ref="${fileName}"/>
+            <AppenderRef ref="${rollingName}"/>
         </Root>
     </Loggers>
 </Configuration>
