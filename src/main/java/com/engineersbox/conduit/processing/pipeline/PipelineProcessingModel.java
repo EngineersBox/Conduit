@@ -5,6 +5,8 @@ import org.jctools.queues.atomic.MpscAtomicArrayQueue;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
+import org.jeasy.batch.core.reader.RecordReader;
+import org.jeasy.batch.core.writer.RecordWriter;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Spliterators;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -59,6 +62,27 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
                 destination,
                 queue
         );
+    }
+
+    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                                        final RecordWriter<T> sourceQueueWriter,
+                                                                        @Nonnull final JobBuilder<T, ?> destination,
+                                                                        final RecordReader<T> destinationQueueReader,
+                                                                        @Nonnull final Q queue) {
+        if (!connectJobs(source, destination, queue)) {
+            return false;
+        }
+        if (sourceQueueWriter == null) {
+            LOGGER.trace("Source queue writer was null, skipping writer binding to job {}", source);
+        } else {
+            source.writer(sourceQueueWriter);
+        }
+        if (destinationQueueReader == null) {
+            LOGGER.trace("Destination queue reader was null, skipping reader binding to job {}", destination);
+        } else {
+            destination.reader(destinationQueueReader);
+        }
+        return true;
     }
 
     @Override

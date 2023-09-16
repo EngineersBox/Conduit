@@ -12,6 +12,7 @@ import com.engineersbox.conduit.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit.schema.metric.Metric;
+import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.SpscLinkedQueue;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
@@ -227,12 +228,12 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         final SpscLinkedQueue<Record<Proto.Event[]>> queue = new SpscLinkedQueue<>();
         model.connectJobs(
                 transformerJob,
+                (final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer),
                 riemannSendJob,
+                queue::poll,
                 queue
         );
-        transformerJob.reader(new IterableRecordReader<>(this.initialMetrics))
-                .writer((final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer));
-        riemannSendJob.reader(queue::poll);
+        transformerJob.reader(new IterableRecordReader<>(this.initialMetrics));
         // TODO: Finish implementing jobs
         return model;
     }
