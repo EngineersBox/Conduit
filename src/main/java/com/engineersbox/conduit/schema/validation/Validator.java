@@ -36,6 +36,8 @@ public class Validator {
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
+        // TODO: Apply this over all sub-schemas in referenced files, or compile schema into
+        //       an uber schema as merged schema of all sub schemas and keep this as is.
         EnumRefResolver.resolve(node);
         for (final ExtensionMetadata extensionMetadata : ExtensionProvider.getExtensionMetadataView()) {
             try {
