@@ -4,6 +4,7 @@ import com.engineersbox.conduit.schema.extension.ExtensionDeserializer;
 import com.engineersbox.conduit.schema.json.JsonPathConfigDeserializer;
 import com.engineersbox.conduit.schema.metric.Metric;
 import com.engineersbox.conduit.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit.schema.validation.Validator;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

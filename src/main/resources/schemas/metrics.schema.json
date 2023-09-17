@@ -69,14 +69,6 @@
                         "inclusionFieldName": "isPrimitive",
                         "inclusionFieldValue": "true"
                     },
-                    "enum": [
-                        "STRING",
-                        "FLOAT",
-                        "DOUBLE",
-                        "INTEGER",
-                        "BOOLEAN",
-                        "INFER"
-                    ],
                     "type": "string"
                 }
             },
@@ -95,10 +87,6 @@
                         "inclusionFieldName": "isPrimitive",
                         "inclusionFieldValue": "false"
                     },
-                    "enum": [
-                        "LIST",
-                        "MAP"
-                    ],
                     "type": "string"
                 },
                 "structure": {
