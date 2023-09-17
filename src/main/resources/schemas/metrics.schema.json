@@ -64,6 +64,11 @@
             "type": "object",
             "properties": {
                 "type": {
+                    "enumRef": {
+                        "class": "com.engineersbox.conduit.schema.metric.MetricKind",
+                        "inclusionFieldName": "isPrimitive",
+                        "inclusionFieldValue": "true"
+                    },
                     "enum": [
                         "STRING",
                         "FLOAT",
@@ -85,6 +90,11 @@
             "type": "object",
             "properties": {
                 "type": {
+                    "enumRef": {
+                        "class": "com.engineersbox.conduit.schema.metric.MetricKind",
+                        "inclusionFieldName": "isPrimitive",
+                        "inclusionFieldValue": "false"
+                    },
                     "enum": [
                         "LIST",
                         "MAP"

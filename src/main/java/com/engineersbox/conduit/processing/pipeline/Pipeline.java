@@ -18,16 +18,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@Deprecated(forRemoval = true)
 public class Pipeline<T> implements Consumer<T> {
 
-    /* TODO: Refactor pipeline to use ExMesh structure of tasks as stages with graph mappings.
-     *       Also support the delegation to a worker pool for individual pipelines based on a
-     *       pool that is either provided or defaulted to a single thread (the current thread).
-     *       Allow for pipeline stages to be dynamically created only when needed to avoid
-     *       all stages living as long as the pipeline. Releasing of stages and their resources
-     *       should be done as soon as all forward dependencies on the stage are satisfied in
-     *       terms of execution and result storage/handling.
-     */
+    // TODO: Remove this class and associated classes
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
 
