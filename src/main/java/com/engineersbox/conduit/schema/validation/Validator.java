@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.schema.validation;
 
+import com.engineersbox.conduit.compile.schema.SchemaMerger;
 import com.engineersbox.conduit.schema.extension.ExtensionMetadata;
 import com.engineersbox.conduit.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit.util.ObjectMapperModule;
@@ -47,10 +48,27 @@ public class Validator {
                 throw new IllegalStateException(e);
             }
         }
-        final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(node));
+        final JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersionDetector.detect(node)))
+                .addMetaSchema(SchemaMerger.amendMetaSchema(
+                        getSchemaURI(node),
+                        JsonMetaSchema.getV202012()
+                )).build();
         final SchemaValidatorsConfig config = new SchemaValidatorsConfig();
         SCHEMA = factory.getSchema(node, config);
         SCHEMA.initializeValidators();
+    }
+
+    private static String getSchemaURI(final JsonNode node) {
+        if (node == null) {
+            throw new NullPointerException("Schema JsonNode must not be null");
+        }
+        final JsonNode schemaUriNode = node.get("$schema");
+        if (schemaUriNode == null || schemaUriNode.isNull() || schemaUriNode.isMissingNode()) {
+            throw new IllegalStateException("Schema has no $schema field");
+        } else if (!schemaUriNode.isTextual()) {
+            throw new IllegalStateException("Schema $schema field is non-textual");
+        }
+        return schemaUriNode.asText();
     }
 
     private static JsonNode applySchemaPatch(final ExtensionMetadata extensionMetadata,

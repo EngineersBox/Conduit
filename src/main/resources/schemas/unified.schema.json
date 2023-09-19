@@ -9,7 +9,7 @@
       "$ref" : "#/$defs/configuration"
     },
     "connection" : {
-      "$ref" : "#/subSchemas/connection"
+      "$ref" : "#/$subSchemas/connection"
     },
     "event_template" : {
       "type" : "object",
@@ -124,7 +124,7 @@
       "additionalProperties" : false
     }
   },
-  "subSchemas" : {
+  "$subSchemas" : {
     "connection" : {
       "title" : "connection",
       "description" : "Connection types and attributes for connecting to a metrics source",
@@ -144,7 +144,7 @@
               }
             },
             "then" : {
-              "$ref" : "#/subSchemas/connection/subSchemas/http_connection",
+              "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection",
               "properties" : {
                 "type" : {
                   "$ref" : "#/$defs/connection_type"
@@ -168,7 +168,7 @@
           "additionalProperties" : true
         }
       },
-      "subSchemas" : {
+      "$subSchemas" : {
         "http_connection" : {
           "title" : "http_connection",
           "description" : "HTTP connection schema with SSL and context support parameters",
@@ -321,7 +321,7 @@
               "additionalProperties" : false
             }
           },
-          "subSchemas" : { }
+          "$subSchemas" : { }
         }
       }
     }

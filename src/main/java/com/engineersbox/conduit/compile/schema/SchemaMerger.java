@@ -3,6 +3,8 @@ package com.engineersbox.conduit.compile.schema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.JsonMetaSchema;
+import com.networknt.schema.NonValidationKeyword;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
@@ -41,7 +43,7 @@ public class SchemaMerger {
     }
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    public static final String SUB_SCHEMAS_FIELD_NAME = "subSchemas";
+    public static final String SUB_SCHEMAS_FIELD_NAME = "$subSchemas";
     private static final String REF_FIELD_NAME = "$ref";
     private static final String TITLE_FIELD_NAME = "title";
     private static final String ROOT_REF_PREFIX = "#/";
@@ -250,6 +252,13 @@ public class SchemaMerger {
         } catch (final IOException e) {
             throw new RuntimeException("Unable to write merged schema to " + fileName, e);
         }
+    }
+
+    public static JsonMetaSchema amendMetaSchema(final String uri,
+                                                 final JsonMetaSchema template) {
+        return JsonMetaSchema.builder(uri, template)
+                .addKeyword(new NonValidationKeyword(SUB_SCHEMAS_FIELD_NAME))
+                .build();
     }
 
 }
