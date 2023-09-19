@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.instrument.IllegalClassFormatException;
 import java.util.Collection;
 
+// TODO: Remove this once SchemaMerge complete
+@Deprecated(forRemoval = true)
 public class EnumRefResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EnumRefResolver.class);

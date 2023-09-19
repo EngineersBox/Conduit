@@ -21,6 +21,7 @@ public class SchemaMerger {
     private static final String METRICS_SCHEMA_PATH = "schemas/metrics.schema.json";
     public static final String UNIFIED_SCHEMA_PATH = "/Users/jackkilrain/Desktop/Projects/Java/Conduit/src/main/resources/schemas/unified.schema.json";
 
+    // TODO: Create maven goal to run this with the above paths as args
     public static void main(final String[] args) throws IOException {
         // 1. Read initial schema
         // 2. Create "subSchemas" field

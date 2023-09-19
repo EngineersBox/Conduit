@@ -25,19 +25,20 @@ public class Validator {
                 }
             ]
             """;
+    // TODO: Change this to schemas/unified.schema.json after completed SchemaMerger implementation
+    private static final String SCHEMA_PATH = "schemas/metrics.schema.json";
     private static final JsonSchema SCHEMA;
 
     static {
         JsonNode node;
         try (final InputStream resource = Thread.currentThread()
                 .getContextClassLoader()
-                .getResourceAsStream("schemas/metrics.schema.json")) {
+                .getResourceAsStream(SCHEMA_PATH)) {
             node = ObjectMapperModule.OBJECT_MAPPER.readTree(resource);
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
-        // TODO: Apply this over all sub-schemas in referenced files, or compile schema into
-        //       an uber schema as merged schema of all sub schemas and keep this as is.
+        // TODO: Remove this when move to unified merged schema is complete
         EnumRefResolver.resolve(node);
         for (final ExtensionMetadata extensionMetadata : ExtensionProvider.getExtensionMetadataView()) {
             try {
