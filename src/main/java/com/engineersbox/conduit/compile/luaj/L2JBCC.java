@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.compile;
+package com.engineersbox.conduit.compile.luaj;
 /*******************************************************************************
  * Copyright (c) 2009-2012 Luaj.org. All rights reserved.
  *
