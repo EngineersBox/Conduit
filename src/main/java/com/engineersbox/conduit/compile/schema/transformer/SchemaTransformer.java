@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.compile.schema;
+package com.engineersbox.conduit.compile.schema.transformer;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

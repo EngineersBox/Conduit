@@ -26,8 +26,7 @@ public class Validator {
                 }
             ]
             """;
-    // TODO: Change this to schemas/unified.schema.json after completed SchemaMerger implementation
-    private static final String SCHEMA_PATH = "schemas/metrics.schema.json";
+    private static final String SCHEMA_PATH = "schemas/unified.schema.json";
     private static final JsonSchema SCHEMA;
 
     static {
@@ -39,8 +38,6 @@ public class Validator {
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
-        // TODO: Remove this when move to unified merged schema is complete
-        EnumRefResolver.resolve(node);
         for (final ExtensionMetadata extensionMetadata : ExtensionProvider.getExtensionMetadataView()) {
             try {
                 node = applySchemaPatch(extensionMetadata, node);

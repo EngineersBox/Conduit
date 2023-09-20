@@ -1,5 +1,7 @@
 package com.engineersbox.conduit.compile.schema;
 
+import com.engineersbox.conduit.compile.schema.transformer.EnumRefTransformer;
+import com.engineersbox.conduit.compile.schema.transformer.SchemaTransformer;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -20,23 +22,33 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * <p>
+ * Merges all sub-schemas of a given JSON schema into one. Each sub-schema is emplaced into
+ * a nested {@code $subSchemas} field. Note that the unified schema is consutrcted in a
+ * nested format, that is to say {@code $subSchemas} fields will be nested. Sub-schemas in
+ * the same level, will be part of the same {@code $subSchemas} field.
+ * </p>
+ * <ol>
+ *  <li>Read initial schema</li>
+ *  <li>Create {@code $subSchemas} field</li>
+ *  <li>Find refs with {@code classpath:} qualifiers</li>
+ *  <li>For each resolved ref, read the ref'd schema ({@code Thread...getResource(...)})</li>
+ *  <li>Strip header info ({@code $schema}, {@code $id})</li>
+ *  <li>Read sub-schema {@code title} field and transform to lower snake case</li>
+ *  <li>Rewrite use of {@code #/$defs/<def>} to refer to {@code #/subSchemas/<LSC title>/$defs/<def>}</li>
+ *  <li>Recursively invoke this process for the ref'd schema with an appended nested path prefix</li>
+ *  <li>Create entry in {@code $subSchemas} field based on transformed title field</li>
+ *  <li>Write transformed sub-schema into created field</li>
+ *  <li>Once all refs are resolved, write unified schema to file</li>
+ * </ol>
+ */
 public class SchemaMerger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaMerger.class);
 
     public static void main(final String[] args) throws IOException {
-        // 1. Read initial schema
-        // 2. Create "subSchemas" field
-        // 3. Find refs with "classpath:" qualifiers
-        // 4. For each resolved ref, read the ref'd schema (Thread...getResource(...))
-        // 5. Strip header info ($schema, $id)
-        // 6. Read sub-schema "title" field and transform to lower snake case
-        // 7. Rewrite use of "#/$defs/<def>" to refer to "#/subSchemas/<LSC title>/$defs/<def>"
-        // 8. Recursively invoke this process for the ref'd schema with an appended nested path prefix
-        // 9. Create entry in "subSchemas" field based on transformed title field
-        // 10. Write transformed sub-schema into created field
-        // 11. Once all refs are resolved, write unified schema to file
-        if (args.length < 2) {
+        if (args.length != 2) {
             throw new IllegalArgumentException("Usage: SchemaMerger <input resource> <output resource absolute path>");
         }
         final String inputResource = args[0];
@@ -53,16 +65,6 @@ public class SchemaMerger {
     }
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    public static final String SUB_SCHEMAS_FIELD_NAME = "$subSchemas";
-    private static final String REF_FIELD_NAME = "$ref";
-    private static final String DEFS_FIELD_NAME = "$defs";
-    private static final String TITLE_FIELD_NAME = "title";
-    private static final String ROOT_REF_PREFIX = "#/";
-    private static final String CLASSPATH_PREFIX = "classpath:";
-    private static final List<String> HEADER_FIELDS = List.of(
-            "$schema",
-            "$id"
-    );
 
     private ObjectNode mainSchema;
     private ObjectNode subSchemas;
@@ -89,7 +91,7 @@ public class SchemaMerger {
         if (this.mainSchema == null || this.mainSchema.isNull() || this.mainSchema.isMissingNode()) {
             return null;
         }
-        final JsonNode titleNode = this.mainSchema.get(TITLE_FIELD_NAME);
+        final JsonNode titleNode = this.mainSchema.get(JsonSchemaConstants.TITLE_FIELD_NAME);
         if (!titleNode.isTextual()) {
             return null;
         }
@@ -117,7 +119,7 @@ public class SchemaMerger {
     private ObjectNode readResource(final String resourcePath) {
         final String path = stripIfPresent(
                 resourcePath,
-                CLASSPATH_PREFIX, "/"
+                JsonSchemaConstants.CLASSPATH_PREFIX, "/"
         );
         LOGGER.info(
                 "{}Reading resource: {}",
@@ -140,23 +142,27 @@ public class SchemaMerger {
     }
 
     private void applyTransformers() {
-        this.mainSchema = this.transformers.injectInto(
-                this.mainSchema,
-                (final ObjectNode schema, final SchemaTransformer transformer) ->
-                        transformer.transform(schema)
-        );
         LOGGER.info(
-                "[SCHEMA: {}] Applied {} schema transformers: [{}]",
+                "[SCHEMA: {}] Applying {} schema transformers: [{}]",
                 this.name,
                 this.transformers.size(),
                 this.transformers.collect(Object::getClass)
                         .collect(Class::getSimpleName)
                         .makeString(",")
         );
+        this.mainSchema = this.transformers.injectInto(
+                this.mainSchema,
+                (final ObjectNode schema, final SchemaTransformer transformer) ->
+                        transformer.transform(schema)
+        );
+        LOGGER.info(
+                "[SCHEMA: {}] Finished transformer application",
+                this.name
+        );
     }
 
     private List<ObjectNode> findResourceRefParents() {
-        final List<JsonNode> refFieldParents = this.mainSchema.findParents(REF_FIELD_NAME);
+        final List<JsonNode> refFieldParents = this.mainSchema.findParents(JsonSchemaConstants.REF_FIELD_NAME);
         LOGGER.info(
                 "[SCHEMA: {}] Found {} ref fields",
                 this.name,
@@ -164,8 +170,8 @@ public class SchemaMerger {
         );
         final List<ObjectNode> resourceRefFieldParents = refFieldParents.stream()
                 .filter((final JsonNode node) -> {
-                    final JsonNode ref = node.get(REF_FIELD_NAME);
-                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), CLASSPATH_PREFIX);
+                    final JsonNode ref = node.get(JsonSchemaConstants.REF_FIELD_NAME);
+                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), JsonSchemaConstants.CLASSPATH_PREFIX);
                 }).filter(JsonNode::isObject)
                 .map((final JsonNode node) -> (ObjectNode) node)
                 .toList();
@@ -178,11 +184,11 @@ public class SchemaMerger {
     }
 
     private ResourceRef resolveRef(final ObjectNode refParent) {
-        final JsonNode refNode = refParent.get(REF_FIELD_NAME);
+        final JsonNode refNode = refParent.get(JsonSchemaConstants.REF_FIELD_NAME);
         final String ref = refNode.asText();
         final ObjectNode schema = readResource(StringUtils.substringAfter(
                 ref,
-                CLASSPATH_PREFIX
+                JsonSchemaConstants.CLASSPATH_PREFIX
         ));
         LOGGER.info(
                 "[SCHEMA: {}] Resolved ref {}",
@@ -193,7 +199,7 @@ public class SchemaMerger {
     }
 
     private ResourceRef stripHeaders(final ResourceRef resourceRef) {
-        resourceRef.schema.remove(HEADER_FIELDS);
+        resourceRef.schema.remove(JsonSchemaConstants.HEADER_FIELDS);
         LOGGER.info(
                 "[SCHEMA: {}] Stripped header fields",
                 this.name
@@ -202,30 +208,30 @@ public class SchemaMerger {
     }
 
     private ResourceRef rewriteDefs(final ResourceRef resourceRef) {
-        final List<JsonNode> refFieldParents = resourceRef.schema.findParents(REF_FIELD_NAME)
+        final List<JsonNode> refFieldParents = resourceRef.schema.findParents(JsonSchemaConstants.REF_FIELD_NAME)
                 .stream()
                 .filter((final JsonNode node) -> {
-                    final JsonNode ref = node.get(REF_FIELD_NAME);
-                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), ROOT_REF_PREFIX + DEFS_FIELD_NAME);
+                    final JsonNode ref = node.get(JsonSchemaConstants.REF_FIELD_NAME);
+                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME);
                 }).toList();
         int rewritten = 0;
         for (final JsonNode refParent : refFieldParents) {
-            final JsonNode ref = refParent.get(REF_FIELD_NAME);
-            if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), ROOT_REF_PREFIX + DEFS_FIELD_NAME)) {
+            final JsonNode ref = refParent.get(JsonSchemaConstants.REF_FIELD_NAME);
+            if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME)) {
                 LOGGER.debug(
                         "[SCHEMA: {}] Ref is either non-textual or does not reference via {}",
                         this.name,
-                        ROOT_REF_PREFIX + DEFS_FIELD_NAME
+                        JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME
                 );
                 continue;
             }
             final String refLiteral = ref.asText().replace(
-                    ROOT_REF_PREFIX,
+                    JsonSchemaConstants.ROOT_REF_PREFIX,
                     this.nestedSchemaPrefix + "/"
             );
             final ObjectNode refParentObject = (ObjectNode) refParent;
             refParentObject.put(
-                    REF_FIELD_NAME,
+                    JsonSchemaConstants.REF_FIELD_NAME,
                     refLiteral
             );
             rewritten++;
@@ -234,33 +240,33 @@ public class SchemaMerger {
                 "[SCHEMA: {}] {} refs with localised {} prefix to absolute unified path",
                 this.name,
                 rewritten,
-                DEFS_FIELD_NAME
+                JsonSchemaConstants.DEFS_FIELD_NAME
         );
         return resourceRef;
     }
 
     private ResourceRef transformTitle(final ResourceRef resourceRef) {
-        final JsonNode title = resourceRef.schema.get(TITLE_FIELD_NAME);
+        final JsonNode title = resourceRef.schema.get(JsonSchemaConstants.TITLE_FIELD_NAME);
         if (title == null || title.isNull() || title.isMissingNode()) {
             throw new IllegalStateException(String.format(
                     "Schema %s is missing \"%s\" field or is null",
                     this.name,
-                    TITLE_FIELD_NAME
+                    JsonSchemaConstants.TITLE_FIELD_NAME
             ));
         } else if (!title.isTextual()) {
             throw new IllegalStateException(String.format(
                     "Schema \"%s\" has non-textual \"%s\" field",
                     this.name,
-                    TITLE_FIELD_NAME
+                    JsonSchemaConstants.TITLE_FIELD_NAME
             ));
         }
 
         final String transformedTitle = title.asText()
                 .toLowerCase()
                 .replace(" ", "_");
-        resourceRef.schema.put(TITLE_FIELD_NAME, transformedTitle);
+        resourceRef.schema.put(JsonSchemaConstants.TITLE_FIELD_NAME, transformedTitle);
         resourceRef.setTitle(transformedTitle);
-        this.nestedSchemaPrefix += "/" + SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
+        this.nestedSchemaPrefix += "/" + JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
         LOGGER.info(
                 "[SCHEMA: {}] Transformed title {} -> {}",
                 this.name,
@@ -272,7 +278,7 @@ public class SchemaMerger {
 
     private ResourceRef rewriteMergeRef(final ResourceRef resourceRef) {
         final String def = this.nestedSchemaPrefix;
-        resourceRef.refParent.put(REF_FIELD_NAME, def);
+        resourceRef.refParent.put(JsonSchemaConstants.REF_FIELD_NAME, def);
         LOGGER.info(
                 "[SCHEMA: {}] Rewrote merge ref to {}",
                 this.name,
@@ -314,7 +320,7 @@ public class SchemaMerger {
                     "[SCHEMA: {}] No resource refs found, schema is a leaf. Skipping sub-schema merge.",
                     this.name
             );
-            this.subSchemas = this.mainSchema.putObject(SUB_SCHEMAS_FIELD_NAME);
+            this.subSchemas = this.mainSchema.putObject(JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME);
         }
         applyTransformers();
         resourceRefParents.stream()
@@ -364,7 +370,7 @@ public class SchemaMerger {
     public static JsonMetaSchema amendMetaSchema(final String uri,
                                                  final JsonMetaSchema template) {
         return JsonMetaSchema.builder(uri, template)
-                .addKeyword(new NonValidationKeyword(SUB_SCHEMAS_FIELD_NAME))
+                .addKeyword(new NonValidationKeyword(JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME))
                 .build();
     }
 
