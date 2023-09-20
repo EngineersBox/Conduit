@@ -27,12 +27,10 @@ public class Pipeline<T> implements Consumer<T> {
 
     private final MutableMap<String, Object> context;
     private final MutableList<PipelineStage<?, ?>> stageQueue;
-    private final JobExecutor executor;
 
     private Pipeline() {
         this.stageQueue = Lists.mutable.empty();
         this.context = Maps.mutable.empty();
-        this.executor = new JobExecutor();
     }
 
     @Override
