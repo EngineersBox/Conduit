@@ -131,7 +131,7 @@
       "type" : "object",
       "properties" : {
         "type" : {
-          "$ref" : "#/$defs/connection_type"
+          "$ref" : "#/$subSchemas/connection/$defs/connection_type"
         },
         "config" : {
           "type" : "object",
@@ -147,13 +147,13 @@
               "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection",
               "properties" : {
                 "type" : {
-                  "$ref" : "#/$defs/connection_type"
+                  "$ref" : "#/$subSchemas/connection/$defs/connection_type"
                 }
               },
               "unevaluatedProperties" : false
             },
             "else" : {
-              "$ref" : "#/$defs/custom_connection"
+              "$ref" : "#/$subSchemas/connection/$defs/custom_connection"
             }
           }
         }
@@ -178,13 +178,13 @@
               "type" : "string"
             },
             "authentication" : {
-              "$ref" : "#/$defs/http_connection_authentication"
+              "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_authentication"
             },
             "ssl_context" : {
-              "$ref" : "#/$defs/http_connection_ssl_context"
+              "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context"
             },
             "ssl_parameters" : {
-              "$ref" : "#/$defs/http_connection_ssl_parameters"
+              "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_parameters"
             },
             "timeout" : {
               "type" : "string"
@@ -231,10 +231,10 @@
                   "type" : "string"
                 },
                 "key_manager" : {
-                  "$ref" : "#/$defs/http_connection_ssl_context_manager"
+                  "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
                 },
                 "trust_manager" : {
-                  "$ref" : "#/$defs/http_connection_ssl_context_manager"
+                  "$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
                 },
                 "secure_random_algorithm" : {
                   "type" : "string"

@@ -49,11 +49,14 @@
         <jackson-eclipse-collections.version>2.15.2</jackson-eclipse-collections.version>
         <jackson-protobuf.version>0.9.14</jackson-protobuf.version>
         <aspectj.version>1.9.19</aspectj.version>
-        <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
         <typetools.version>0.6.3</typetools.version>
         <easy-batch.version>7.0.2</easy-batch.version>
         <jgrapht.version>1.5.2</jgrapht.version>
         <jctools.version>4.0.1</jctools.version>
+
+        <!-- Plugins -->
+        <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
+        <exec-plugin.version>3.1.0</exec-plugin.version>
 
         <!-- Maven -->
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -285,6 +288,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -298,7 +302,17 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
-                    <version>1.13.1</version>
+                    <version>${aspectj-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.timvlaer</groupId>
+                    <artifactId>tscfg-maven-plugin</artifactId>
+                    <version>${typesafe.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -314,7 +328,6 @@
             <plugin>
                 <groupId>com.github.timvlaer</groupId>
                 <artifactId>tscfg-maven-plugin</artifactId>
-                <version>${typesafe.version}</version>
                 <configuration>
                     <templateFile>src/main/resources/templates/conduit_config_template.conf</templateFile>
                     <packageName>com.engineersbox.conduit.config</packageName>
@@ -336,7 +349,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>${aspectj-plugin.version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
@@ -363,7 +375,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
                 <configuration>
                     <argLine>
                         -javaagent:"${settings.localRepository}"/org/aspectj/
@@ -372,6 +383,26 @@
                     </argLine>
                     <useSystemClassLoader>true</useSystemClassLoader>
                     <forkMode>always</forkMode>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>merge-schemas</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.engineersbox.conduit.compile.schema.SchemaMerger</mainClass>
+                    <arguments>
+                        <argument>schemas/metrics.schema.json</argument>
+                        <argument>${project.basedir}/src/main/resources/schemas/unified.schema.json</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>

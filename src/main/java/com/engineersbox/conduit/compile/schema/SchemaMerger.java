@@ -20,10 +20,7 @@ import java.util.List;
 public class SchemaMerger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaMerger.class);
-    private static final String METRICS_SCHEMA_PATH = "schemas/metrics.schema.json";
-    public static final String UNIFIED_SCHEMA_PATH = "/Users/jackkilrain/Desktop/Projects/Java/Conduit/src/main/resources/schemas/unified.schema.json";
 
-    // TODO: Create maven goal to run this with the above paths as args
     public static void main(final String[] args) throws IOException {
         // 1. Read initial schema
         // 2. Create "subSchemas" field
@@ -36,15 +33,22 @@ public class SchemaMerger {
         // 9. Create entry in "subSchemas" field based on transformed title field
         // 10. Write transformed sub-schema into created field
         // 11. Once all refs are resolved, write unified schema to file
-        final SchemaMerger merger = new SchemaMerger(METRICS_SCHEMA_PATH);
+        if (args.length < 2) {
+            throw new IllegalArgumentException("Usage: SchemaMerger <input resource> <output resource absolute path>");
+        }
+        final String inputResource = args[0];
+        final String outputResourceAbsolutePath = args[1];
+        LOGGER.info("Merge schema for {} to {}", inputResource, outputResourceAbsolutePath);
+        final SchemaMerger merger = new SchemaMerger(inputResource);
         merger.registerTransformer(new EnumRefTransformer());
         merger.merge();
-        merger.writeMerged(UNIFIED_SCHEMA_PATH);
+        merger.writeMerged(outputResourceAbsolutePath);
     }
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final String SUB_SCHEMAS_FIELD_NAME = "$subSchemas";
     private static final String REF_FIELD_NAME = "$ref";
+    private static final String DEFS_FIELD_NAME = "$defs";
     private static final String TITLE_FIELD_NAME = "title";
     private static final String ROOT_REF_PREFIX = "#/";
     private static final String CLASSPATH_PREFIX = "classpath:";
@@ -60,7 +64,7 @@ public class SchemaMerger {
 
     private SchemaMerger(final String resourcePath) {
         this.mainSchema = readResource(resourcePath);
-        this.nestedSchemaPrefix = ROOT_REF_PREFIX + SUB_SCHEMAS_FIELD_NAME;
+        this.nestedSchemaPrefix = "#";
         this.transformers = Lists.mutable.empty();
     }
 
@@ -148,6 +152,44 @@ public class SchemaMerger {
         return resourceRef;
     }
 
+    private ResourceRef rewriteDefs(final ResourceRef resourceRef) {
+        final List<JsonNode> refFieldParents = resourceRef.schema.findParents(REF_FIELD_NAME)
+                .stream()
+                .filter((final JsonNode node) -> {
+                    final JsonNode ref = node.get(REF_FIELD_NAME);
+                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), ROOT_REF_PREFIX + DEFS_FIELD_NAME);
+                }).toList();
+        int rewritten = 0;
+        for (final JsonNode refParent : refFieldParents) {
+            final JsonNode ref = refParent.get(REF_FIELD_NAME);
+            if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), ROOT_REF_PREFIX + DEFS_FIELD_NAME)) {
+                LOGGER.debug(
+                        "[SCHEMA: {}] Ref is either non-textual or does not reference via {}",
+                        resourceRef.ref,
+                        ROOT_REF_PREFIX + DEFS_FIELD_NAME
+                );
+                continue;
+            }
+            final String refLiteral = ref.asText().replace(
+                    ROOT_REF_PREFIX,
+                    this.nestedSchemaPrefix + "/"
+            );
+            final ObjectNode refParentObject = (ObjectNode) refParent;
+            refParentObject.put(
+                    REF_FIELD_NAME,
+                    refLiteral
+            );
+            rewritten++;
+        }
+        LOGGER.info(
+                "[SCHEMA: {}] {} refs with localised {} prefix to absolute unified path",
+                resourceRef.ref,
+                rewritten,
+                DEFS_FIELD_NAME
+        );
+        return resourceRef;
+    }
+
     private ResourceRef transformTitle(final ResourceRef resourceRef) {
         final JsonNode title = resourceRef.schema.get(TITLE_FIELD_NAME);
         if (title == null || title.isNull() || title.isMissingNode()) {
@@ -169,7 +211,7 @@ public class SchemaMerger {
                 .replace(" ", "_");
         resourceRef.schema.put(TITLE_FIELD_NAME, transformedTitle);
         resourceRef.setTitle(transformedTitle);
-        this.nestedSchemaPrefix += "/" + transformedTitle;
+        this.nestedSchemaPrefix += "/" + SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
         LOGGER.info(
                 "[SCHEMA: {}] Transformed title {} -> {}",
                 resourceRef.ref,
@@ -190,15 +232,10 @@ public class SchemaMerger {
         return resourceRef;
     }
 
-    private ResourceRef rewriteDefs(final ResourceRef resourceRef) {
-        // TODO: Rewrite all $ref fields with #/$defs prefix, to use nestedSchemaPrefix
-        return resourceRef;
-    }
-
     private ResourceRef recursivelyMerge(final ResourceRef resourceRef) {
         final SchemaMerger merger = new SchemaMerger(
                 resourceRef.schema,
-                this.nestedSchemaPrefix + "/" + SUB_SCHEMAS_FIELD_NAME
+                this.nestedSchemaPrefix
         );
         merger.registerTransformers(this.transformers);
         merger.merge();
@@ -229,10 +266,11 @@ public class SchemaMerger {
                 .map(this::resolveRef)
                 .map(this::stripHeaders)
                 .map(this::transformTitle)
-                .map(this::rewriteMergeRef)
                 .map(this::rewriteDefs)
+                .map(this::rewriteMergeRef)
                 .map(this::recursivelyMerge)
                 .forEach(this::createSubSchemaEntry);
+        LOGGER.info("Finished schema merge");
     }
 
     public ObjectNode getMerged() {
