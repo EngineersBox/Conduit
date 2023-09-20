@@ -1,5 +1,8 @@
 package com.engineersbox.conduit.compile.schema;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,7 +41,11 @@ public class SchemaMerger {
         }
         final String inputResource = args[0];
         final String outputResourceAbsolutePath = args[1];
-        LOGGER.info("Merge schema for {} to {}", inputResource, outputResourceAbsolutePath);
+        LOGGER.info(
+                "Merging sub-schemas of {} to unified file at {}",
+                inputResource,
+                outputResourceAbsolutePath
+        );
         final SchemaMerger merger = new SchemaMerger(inputResource);
         merger.registerTransformer(new EnumRefTransformer());
         merger.merge();
@@ -60,12 +67,14 @@ public class SchemaMerger {
     private ObjectNode mainSchema;
     private ObjectNode subSchemas;
     private String nestedSchemaPrefix;
+    private final String name;
     private final MutableList<SchemaTransformer> transformers;
 
     private SchemaMerger(final String resourcePath) {
         this.mainSchema = readResource(resourcePath);
         this.nestedSchemaPrefix = "#";
         this.transformers = Lists.mutable.empty();
+        this.name = getTitle();
     }
 
     private SchemaMerger(final ObjectNode mainSchema,
@@ -73,6 +82,18 @@ public class SchemaMerger {
         this.mainSchema = mainSchema;
         this.nestedSchemaPrefix = nestedSchemaPrefix;
         this.transformers = Lists.mutable.empty();
+        this.name = getTitle();
+    }
+
+    private String getTitle() {
+        if (this.mainSchema == null || this.mainSchema.isNull() || this.mainSchema.isMissingNode()) {
+            return null;
+        }
+        final JsonNode titleNode = this.mainSchema.get(TITLE_FIELD_NAME);
+        if (!titleNode.isTextual()) {
+            return null;
+        }
+        return titleNode.asText();
     }
 
     public void registerTransformer(final SchemaTransformer transformer) {
@@ -83,14 +104,26 @@ public class SchemaMerger {
         this.transformers.addAll(transformers);
     }
 
+    private String stripIfPresent(final String str, final String... prefixes) {
+        String string = str;
+        for (final String prefix : prefixes) {
+            if (StringUtils.startsWith(string, prefix)) {
+                string = StringUtils.stripStart(string, prefix);
+            }
+        }
+        return string;
+    }
+
     private ObjectNode readResource(final String resourcePath) {
-        String path = resourcePath.startsWith(CLASSPATH_PREFIX)
-                ? StringUtils.stripStart(resourcePath, CLASSPATH_PREFIX)
-                : resourcePath;
-        path = path.startsWith("/")
-                ? StringUtils.stripStart(path, "/")
-                : path;
-        LOGGER.info("Reading resource: {}", path);
+        final String path = stripIfPresent(
+                resourcePath,
+                CLASSPATH_PREFIX, "/"
+        );
+        LOGGER.info(
+                "{}Reading resource: {}",
+                this.name == null ? "" : "[SCHEMA: " + this.name + "] ",
+                path
+        );
         try (final InputStream stream = Thread.currentThread()
                 .getContextClassLoader()
                 .getResourceAsStream(path)) {
@@ -113,7 +146,8 @@ public class SchemaMerger {
                         transformer.transform(schema)
         );
         LOGGER.info(
-                "Applied {} schema transformers: [{}]",
+                "[SCHEMA: {}] Applied {} schema transformers: [{}]",
+                this.name,
                 this.transformers.size(),
                 this.transformers.collect(Object::getClass)
                         .collect(Class::getSimpleName)
@@ -123,7 +157,11 @@ public class SchemaMerger {
 
     private List<ObjectNode> findResourceRefParents() {
         final List<JsonNode> refFieldParents = this.mainSchema.findParents(REF_FIELD_NAME);
-        LOGGER.info("Found {} ref fields", refFieldParents.size());
+        LOGGER.info(
+                "[SCHEMA: {}] Found {} ref fields",
+                this.name,
+                refFieldParents.size()
+        );
         final List<ObjectNode> resourceRefFieldParents = refFieldParents.stream()
                 .filter((final JsonNode node) -> {
                     final JsonNode ref = node.get(REF_FIELD_NAME);
@@ -131,7 +169,11 @@ public class SchemaMerger {
                 }).filter(JsonNode::isObject)
                 .map((final JsonNode node) -> (ObjectNode) node)
                 .toList();
-        LOGGER.info("Filtered ref fields to {} resource refs", resourceRefFieldParents.size());
+        LOGGER.info(
+                "[SCHEMA: {}] Filtered ref fields to {} resource refs",
+                this.name,
+                resourceRefFieldParents.size()
+        );
         return resourceRefFieldParents;
     }
 
@@ -142,13 +184,20 @@ public class SchemaMerger {
                 ref,
                 CLASSPATH_PREFIX
         ));
-        LOGGER.info("Resolved ref {}", ref);
+        LOGGER.info(
+                "[SCHEMA: {}] Resolved ref {}",
+                this.name,
+                ref
+        );
         return new ResourceRef(refParent, ref, schema);
     }
 
     private ResourceRef stripHeaders(final ResourceRef resourceRef) {
         resourceRef.schema.remove(HEADER_FIELDS);
-        LOGGER.info("[SCHEMA: {}] Stripped header fields", resourceRef.ref);
+        LOGGER.info(
+                "[SCHEMA: {}] Stripped header fields",
+                this.name
+        );
         return resourceRef;
     }
 
@@ -165,7 +214,7 @@ public class SchemaMerger {
             if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), ROOT_REF_PREFIX + DEFS_FIELD_NAME)) {
                 LOGGER.debug(
                         "[SCHEMA: {}] Ref is either non-textual or does not reference via {}",
-                        resourceRef.ref,
+                        this.name,
                         ROOT_REF_PREFIX + DEFS_FIELD_NAME
                 );
                 continue;
@@ -183,7 +232,7 @@ public class SchemaMerger {
         }
         LOGGER.info(
                 "[SCHEMA: {}] {} refs with localised {} prefix to absolute unified path",
-                resourceRef.ref,
+                this.name,
                 rewritten,
                 DEFS_FIELD_NAME
         );
@@ -195,13 +244,13 @@ public class SchemaMerger {
         if (title == null || title.isNull() || title.isMissingNode()) {
             throw new IllegalStateException(String.format(
                     "Schema %s is missing \"%s\" field or is null",
-                    resourceRef.ref,
+                    this.name,
                     TITLE_FIELD_NAME
             ));
         } else if (!title.isTextual()) {
             throw new IllegalStateException(String.format(
                     "Schema \"%s\" has non-textual \"%s\" field",
-                    resourceRef.ref,
+                    this.name,
                     TITLE_FIELD_NAME
             ));
         }
@@ -214,7 +263,7 @@ public class SchemaMerger {
         this.nestedSchemaPrefix += "/" + SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
         LOGGER.info(
                 "[SCHEMA: {}] Transformed title {} -> {}",
-                resourceRef.ref,
+                this.name,
                 title.asText(),
                 transformedTitle
         );
@@ -226,7 +275,7 @@ public class SchemaMerger {
         resourceRef.refParent.put(REF_FIELD_NAME, def);
         LOGGER.info(
                 "[SCHEMA: {}] Rewrote merge ref to {}",
-                resourceRef.ref,
+                this.name,
                 def
         );
         return resourceRef;
@@ -243,7 +292,7 @@ public class SchemaMerger {
         resourceRef.setSchema(merged);
         LOGGER.info(
                 "[SCHEMA: {}] Recursively merged sub-schemas",
-                resourceRef.ref
+                this.name
         );
         return resourceRef;
     }
@@ -253,16 +302,22 @@ public class SchemaMerger {
                 .setAll(resourceRef.schema);
         LOGGER.info(
                 "[SCHEMA: {}] Created sub-schema entry as {}",
-                resourceRef.ref,
+                this.name,
                 resourceRef.title
         );
     }
 
     public void merge() {
-        this.subSchemas = this.mainSchema.putObject(SUB_SCHEMAS_FIELD_NAME);
+        final List<ObjectNode> resourceRefParents = findResourceRefParents();
+        if (!resourceRefParents.isEmpty()) {
+            LOGGER.info(
+                    "[SCHEMA: {}] No resource refs found, schema is a leaf. Skipping sub-schema merge.",
+                    this.name
+            );
+            this.subSchemas = this.mainSchema.putObject(SUB_SCHEMAS_FIELD_NAME);
+        }
         applyTransformers();
-        findResourceRefParents()
-                .stream()
+        resourceRefParents.stream()
                 .map(this::resolveRef)
                 .map(this::stripHeaders)
                 .map(this::transformTitle)
@@ -270,21 +325,35 @@ public class SchemaMerger {
                 .map(this::rewriteMergeRef)
                 .map(this::recursivelyMerge)
                 .forEach(this::createSubSchemaEntry);
-        LOGGER.info("Finished schema merge");
+        LOGGER.info(
+                "[SCHEMA: {}] Finished schema merge",
+                this.name
+        );
     }
 
     public ObjectNode getMerged() {
         return this.mainSchema;
     }
 
+    private PrettyPrinter createPrettyPrinter() {
+        final DefaultIndenter indenter = new DefaultIndenter(
+                "\t",
+                DefaultIndenter.SYS_LF
+        );
+        return new DefaultPrettyPrinter()
+                .withArrayIndenter(indenter)
+                .withObjectIndenter(indenter);
+    }
+
     public void writeMerged(final String fileName) {
         try {
-            MAPPER.writerWithDefaultPrettyPrinter().writeValue(
+            MAPPER.writer(createPrettyPrinter()).writeValue(
                     new File(fileName),
                     this.mainSchema
             );
             LOGGER.info(
-                    "Wrote merged schema to file {}",
+                    "[SCHEMA: {}] Wrote merged schema to file {}",
+                    this.name,
                     fileName
             );
         } catch (final IOException e) {
