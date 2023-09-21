@@ -1,0 +1,71 @@
+[
+    {
+        "op": "add",
+        "path": "/properties/extensions/properties/lua_handlers",
+        "value": {
+            "type": "object",
+            "properties": {
+                "lua_pre_process_handler_definitions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "lua_adapter_handler_definitions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "lua_post_process_handler_definitions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_pre_process_handler_definition",
+        "value": {
+            "type": "string"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_pre_process_handler_name",
+        "value": {
+            "type": "string"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_adapter_handler_definition",
+        "value": {
+            "type": "string"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_adapter_handler_name",
+        "value": {
+            "type": "string"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_post_process_handler_definition",
+        "value": {
+            "type": "string"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/$defs/metric/properties/extensions/properties/lua_post_process_handler_name",
+        "value": {
+            "type": "string"
+        }
+    }
+]

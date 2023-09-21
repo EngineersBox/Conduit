@@ -1,0 +1,9 @@
+<aspectj>
+    <aspects>
+        <aspect name="com.engineersbox.conduit.core.schema.json.path.PathFunctionRegistrationAspect"/>
+        <aspect name="com.engineersbox.conduit.core.schema.json.path.CacheProviderRegistrationAspect"/>
+        <weaver options="-verbose -showWeaveInfo">
+            <include within="com.jayway.jsonpath.spi.cache.*"/>
+        </weaver>
+    </aspects>
+</aspectj>

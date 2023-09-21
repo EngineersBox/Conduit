@@ -1,0 +1,6 @@
+com/engineersbox/conduit/schemamerger/transformer/SchemaTransformer.class
+com/engineersbox/conduit/schemamerger/SchemaMerger.class
+com/engineersbox/conduit/schemamerger/ResourceRef.class
+com/engineersbox/conduit/schemamerger/transformer/EnumRefTransformer$EnumRef.class
+com/engineersbox/conduit/schemamerger/transformer/EnumRefTransformer.class
+com/engineersbox/conduit/schemamerger/JsonSchemaConstants.class

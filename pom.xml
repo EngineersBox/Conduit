@@ -7,8 +7,13 @@
     <groupId>com.engineersbox</groupId>
     <artifactId>conduit</artifactId>
     <version>0.1.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>Conduit</name>
+    <modules>
+        <module>core</module>
+        <module>schema-merger</module>
+        <module>extensions</module>
+    </modules>
 
     <repositories>
         <repository>
@@ -316,95 +321,5 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.github.timvlaer</groupId>
-                <artifactId>tscfg-maven-plugin</artifactId>
-                <configuration>
-                    <templateFile>src/main/resources/templates/conduit_config_template.conf</templateFile>
-                    <packageName>com.engineersbox.conduit.config</packageName>
-                    <outputDirectory>src/main/java</outputDirectory>
-                    <className>ConduitConfig</className>
-                    <generateGetters>false</generateGetters>
-                    <useOptionals>true</useOptionals>
-                    <useDurations>true</useDurations>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>tscfg-sources</id>
-                        <goals>
-                            <goal>generate-config-class</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjtools</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <showWeaveInfo>true</showWeaveInfo>
-                    <verbose>true</verbose>
-                    <complianceLevel>19.0</complianceLevel>
-                    <verbose>true</verbose>
-                    <source>19.0</source>
-                    <target>19.0</target>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>
-                        -javaagent:"${settings.localRepository}"/org/aspectj/
-                        aspectjweaver/${aspectj.version}/
-                        aspectjweaver-${aspectj.version}.jar
-                    </argLine>
-                    <useSystemClassLoader>true</useSystemClassLoader>
-                    <forkMode>always</forkMode>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>merge-schemas</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>com.engineersbox.conduit.compile.schema.SchemaMerger</mainClass>
-                    <arguments>
-                        <argument>schemas/metrics.schema.json</argument>
-                        <argument>${project.basedir}/src/main/resources/schemas/unified.schema.json</argument>
-                    </arguments>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>
