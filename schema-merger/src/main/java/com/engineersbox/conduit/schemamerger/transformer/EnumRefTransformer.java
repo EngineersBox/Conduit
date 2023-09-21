@@ -45,9 +45,6 @@ public class EnumRefTransformer implements SchemaTransformer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EnumRefTransformer.class);
     public static final String TOKEN = "enumRef";
-    private static final String CLASS_FIELD_NAME = "class";
-    private static final String INCLUSION_FIELD_NAME = "inclusionFieldName";
-    private static final String INCLUSION_FIELD_VALUE = "inclusionFieldValue";
 
     private void affixEnum(final JsonNode parentNode,
                            final EnumRef enumRef) {

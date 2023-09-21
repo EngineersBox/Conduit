@@ -30,6 +30,7 @@
         </repository>
     </repositories>
 
+    <!-- TODO: Move dependencies to specific modules and keep only blanket dependencies here -->
     <properties>
         <!-- Dependency Versions -->
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
