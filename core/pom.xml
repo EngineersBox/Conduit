@@ -42,7 +42,7 @@
                 <configuration>
                     <templateFile>src/main/resources/templates/conduit_config_template.conf</templateFile>
                     <packageName>com.engineersbox.conduit.core.config</packageName>
-                    <outputDirectory>src/main/java</outputDirectory>
+                    <outputDirectory>core/src/main/java</outputDirectory>
                     <className>ConduitConfig</className>
                     <generateGetters>false</generateGetters>
                     <useOptionals>true</useOptionals>
