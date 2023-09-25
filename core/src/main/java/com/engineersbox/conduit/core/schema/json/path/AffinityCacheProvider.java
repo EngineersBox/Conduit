@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.schema.json.path;
 
+import com.engineersbox.conduit.core.jvm.AgentInspector;
 import com.engineersbox.conduit.core.retrieval.caching.LRUCache;
 import com.jayway.jsonpath.spi.cache.Cache;
 import org.eclipse.collections.api.map.ConcurrentMutableMap;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 @ThreadSafe
 public class AffinityCacheProvider {
@@ -17,6 +19,12 @@ public class AffinityCacheProvider {
     private static final ConcurrentMutableMap<Long, Cache> CACHES = ConcurrentHashMap.newMap();
     private static final int DEFAULT_CACHE_CAPACITY = 10;
     private static final AtomicReference<Cache> DEFAULT_CACHE = new AtomicReference<>(new LRUCache(DEFAULT_CACHE_CAPACITY));
+    private static final boolean enabled = AgentInspector.agentLoaded(Pattern.compile(".*aspectjweaver.*"));
+    static {
+        if (!enabled) {
+            LOGGER.warn("AspectJ runtime weaver agent is not loaded, AffinityCacheProvider will be transparent to JsonPath CacheProvider");
+        }
+    }
 
     private AffinityCacheProvider() {
         throw new UnsupportedOperationException("Static provider class");
@@ -35,6 +43,9 @@ public class AffinityCacheProvider {
     }
 
     public static void bindCache(final long affinityId, final Cache cache) {
+        if (!enabled) {
+            return;
+        }
         final Cache previousCache = CACHES.put(affinityId, cache);
         if (previousCache != null) {
             LOGGER.warn(
@@ -47,6 +58,9 @@ public class AffinityCacheProvider {
     }
 
     static Cache getCacheInstance(final long affinityId) {
+        if (!enabled) {
+            return null;
+        }
         return CACHES.getOrDefault(
                 affinityId,
                 DEFAULT_CACHE.get()
