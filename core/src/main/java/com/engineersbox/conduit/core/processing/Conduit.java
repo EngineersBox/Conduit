@@ -140,7 +140,7 @@ public class Conduit<T, E> {
             this.batcher = WorkloadBatcher.defaultBatcher();
             this.contextInjector = (_b) -> {};
             this.ingesterFactory = IngesterFactory.defaultFactory();
-            this.contentManagerFactory = ContentManagerFactory.defaultFactory(true);
+            this.contentManagerFactory = ContentManagerFactory.defaultFactory();
         }
 
         public Parameters<T, E> setSchemaProvider(final MetricsSchemaFactory schemaProvider) {

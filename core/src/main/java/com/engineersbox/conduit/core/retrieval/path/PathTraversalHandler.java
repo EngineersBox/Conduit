@@ -17,12 +17,21 @@ public class PathTraversalHandler<R> {
     private Configuration config;
     private final boolean cachedConfig;
 
+    private final boolean affinityBoundConfig;
+
+    public PathTraversalHandler(final Configuration config) {
+        this.config = config;
+        this.cachedConfig = false;
+        this.affinityBoundConfig = false;
+    }
+
     public PathTraversalHandler(final boolean cachedConfig) {
         this.cachedConfig = cachedConfig;
+        this.affinityBoundConfig = true;
     }
 
     public void saturate(final R raw) {
-        if (!cachedConfig || this.config == null) {
+        if (this.affinityBoundConfig && (!cachedConfig || this.config == null)) {
             this.config = AffinityBoundConfigProvider.getConfiguration(
                     ClientBoundForkJoinWorkerThead.getThreadAffinityId()
             );
