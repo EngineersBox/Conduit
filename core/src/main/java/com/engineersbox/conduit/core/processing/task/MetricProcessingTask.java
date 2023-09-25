@@ -66,6 +66,9 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         }
     }
 
+    // Commented out code is the old pipeline implementation with lua. Need to refactor this into
+    // a form supported by the new extensions system and include it here with the new stuff.
+    /*
     private Pipeline.Builder<RichIterable<Metric>> createPipeline(final LuaHandlerExtension handlerExtension) {
         final Pipeline.Builder<RichIterable<Metric>> pipelineBuilder = new Pipeline.Builder<>();
         if (handlerExtension != null) {
@@ -160,7 +163,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                     }
                 }
         );
-    }
+    } */
 
     private JobBuilder<Metric, Proto.Event[]> createTransformerJob(final PipelineProcessingModel model) {
         return model.<Metric, Proto.Event[]>addJob("Parse Metric Events")

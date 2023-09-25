@@ -8,6 +8,7 @@ import com.engineersbox.conduit.core.processing.task.worker.executor.DirectSuppl
 import com.engineersbox.conduit.core.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit.core.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit.core.schema.extension.LuaHandlerExtension;
+import com.engineersbox.conduit.core.schema.json.path.AffinityCacheProvider;
 import com.engineersbox.conduit.core.schema.json.path.PathFunctionProvider;
 import com.engineersbox.conduit.core.processing.task.worker.client.QueueSuppliedClientPool;
 import com.engineersbox.conduit.core.retrieval.caching.LRUCache;
@@ -50,6 +51,7 @@ public class Main {
 
     public static void main(final String[] args) throws Exception {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
+		AffinityCacheProvider.removeDefaultCache();
 		CacheProvider.setCache(new LRUCache(10));
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
