@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.retrieval.content;
 
+import com.engineersbox.conduit.core.retrieval.configuration.AffinityBoundConfigProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.Source;
@@ -7,7 +8,6 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.path.PathTraversalHandler;
 import com.engineersbox.conduit.core.schema.Schema;
-import com.jayway.jsonpath.Configuration;
 
 public abstract class ContentManagerFactory {
 
@@ -20,7 +20,7 @@ public abstract class ContentManagerFactory {
                                             final IngestionContext context,
                                             final IngesterFactory ingesterFactory);
 
-    public static ContentManagerFactory defaultFactory() {
+    public static ContentManagerFactory defaultFactory(final boolean cachedConfig) {
         return new ContentManagerFactory() {
             @Override
             public <
@@ -31,11 +31,11 @@ public abstract class ContentManagerFactory {
                                                     final Source<T> source,
                                                     final IngestionContext context,
                                                     final IngesterFactory ingesterFactory) {
-                final Configuration jsonPathConfig = schema.getJsonPathConfiguration();
+                AffinityBoundConfigProvider.bindDefaultConfiguration(schema.getJsonPathConfiguration());
                 return new ContentManager<>(
                         ingesterFactory.construct(schema, source),
                         context,
-                        new PathTraversalHandler<>(jsonPathConfig)
+                        new PathTraversalHandler<>(cachedConfig)
                 );
             }
         };

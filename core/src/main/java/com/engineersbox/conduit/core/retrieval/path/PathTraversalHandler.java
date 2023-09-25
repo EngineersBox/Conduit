@@ -1,35 +1,44 @@
 package com.engineersbox.conduit.core.retrieval.path;
 
+import com.engineersbox.conduit.core.processing.task.worker.ClientBoundForkJoinWorkerThead;
+import com.engineersbox.conduit.core.retrieval.configuration.AffinityBoundConfigProvider;
 import com.jayway.jsonpath.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class PathTraversalHandler<R> {
 
-    /* TODO: Allow for configurations to be retrieved based on affinity ID
-     *       which requires using the JsonPath.parse(raw, config) methods
-     *       instead of the JsonPath.using(config).parse(raw) handlers.
-     *       Each time the saturate method is called, the config should
-     *       be retrieved based on the affinity id and then the raw data
-     *       parsed with it.
-     */
-
-    private final ParseContext parseContext;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathTraversalHandler.class);
     private ReadContext context;
+    private Configuration config;
+    private final boolean cachedConfig;
 
-    public PathTraversalHandler(final Configuration configuration) {
-        this.parseContext = JsonPath.using(configuration);
+    public PathTraversalHandler(final boolean cachedConfig) {
+        this.cachedConfig = cachedConfig;
     }
 
     public void saturate(final R raw) {
+        if (!cachedConfig || this.config == null) {
+            this.config = AffinityBoundConfigProvider.getConfiguration(
+                    ClientBoundForkJoinWorkerThead.getThreadAffinityId()
+            );
+        }
         if (raw instanceof String rawString) {
-            this.context = this.parseContext.parse(rawString);
+            this.context = JsonPath.parse(rawString, config);
         } else if (raw instanceof InputStream rawInputStream) {
-            this.context = this.parseContext.parse(rawInputStream);
+            this.context = JsonPath.parse(rawInputStream, config);
         } else if (raw instanceof byte[] rawBytes) {
-            this.context = this.parseContext.parseUtf8(rawBytes);
+            try (final ByteArrayInputStream bais = new ByteArrayInputStream(rawBytes)) {
+                this.context = JsonPath.parse(bais, config);
+            } catch (final IOException e) {
+                LOGGER.error("Unable to parse raw bytes into JsonPath instance", e);
+            }
         } else {
-            this.context = this.parseContext.parse(raw);
+            this.context = JsonPath.parse(raw, config);
         }
     }
 
