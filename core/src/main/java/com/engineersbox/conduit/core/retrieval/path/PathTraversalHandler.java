@@ -12,7 +12,6 @@ public class PathTraversalHandler<R> {
     private ParseContext parseContext;
     private Configuration config;
     private final boolean cachedConfig;
-
     private final boolean affinityBoundConfig;
 
     public PathTraversalHandler(final Configuration config) {
