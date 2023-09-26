@@ -2,12 +2,14 @@ package com.engineersbox.conduit.core.processing.task.worker.client;
 
 import io.riemann.riemann.client.IRiemannClient;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+@ThreadSafe
 public class QueueSuppliedClientPool implements ClientPool {
 
     private final int poolSize;

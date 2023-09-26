@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
@@ -30,6 +31,7 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@ThreadSafe
 public class Conduit<T, E> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Conduit.class);

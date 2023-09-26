@@ -1,7 +1,9 @@
 package com.engineersbox.conduit.core.processing.task.worker.executor;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Supplier;
 
+@ThreadSafe
 public class DirectSupplierJobExecutorPool<E> implements JobExecutorPool<E> {
 
     private final Supplier<E> jobExecutorSupplier;

@@ -10,8 +10,10 @@ import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.MutableMap;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ForkJoinTask;
 
+@ThreadSafe
 public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
 
     private final MutableMap<Long, MutableMap<Integer, ForkJoinTask<T>>> threadTaskMaps;
