@@ -177,7 +177,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
     }
 
     private JobBuilder<Proto.Event[], Proto.Event[]> createRiemannSendJob(final PipelineProcessingModel model,
-                                      final IRiemannClient riemannClient) {
+                                                                          final IRiemannClient riemannClient) {
         return model.<Proto.Event[], Proto.Event[]>addJob("Send Riemann Events")
                 .batchSize(BATCH_SIZE)
                 .writer((final Batch<Proto.Event[]> batch) -> {
