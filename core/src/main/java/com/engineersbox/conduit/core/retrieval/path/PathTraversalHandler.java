@@ -3,10 +3,14 @@ package com.engineersbox.conduit.core.retrieval.path;
 import com.engineersbox.conduit.core.processing.task.worker.ClientBoundForkJoinWorkerThead;
 import com.engineersbox.conduit.core.retrieval.configuration.AffinityBoundConfigProvider;
 import com.jayway.jsonpath.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
 public class PathTraversalHandler<R> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathTraversalHandler.class);
 
     private ReadContext context;
     private ParseContext parseContext;
@@ -19,17 +23,31 @@ public class PathTraversalHandler<R> {
         this.cachedConfig = false;
         this.affinityBoundConfig = false;
         this.parseContext = JsonPath.using(config);
+        logConfiguration();
     }
 
     public PathTraversalHandler(final boolean cachedConfig) {
         this.cachedConfig = cachedConfig;
         this.affinityBoundConfig = true;
+        logConfiguration();
+    }
+
+    private void logConfiguration() {
+        LOGGER.trace(
+                "PathTraversalHandler configuration [Cached Config: {}] [Affinity Bound Config: {}]",
+                this.cachedConfig,
+                this.affinityBoundConfig
+        );
     }
 
     public void saturate(final R raw) {
         if (this.affinityBoundConfig && (!cachedConfig || this.config == null)) {
-            this.config = AffinityBoundConfigProvider.getConfiguration(
-                    ClientBoundForkJoinWorkerThead.getThreadAffinityId()
+            final long affinityId = ClientBoundForkJoinWorkerThead.getThreadAffinityId();
+            this.config = AffinityBoundConfigProvider.getConfiguration(affinityId);
+            LOGGER.trace(
+                    "Retrieved affinity bound config {} with origin id {}",
+                    this.config,
+                    affinityId
             );
         }
         final ParseContext ctx;

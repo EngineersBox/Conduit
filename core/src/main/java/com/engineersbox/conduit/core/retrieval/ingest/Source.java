@@ -5,6 +5,10 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfig
 
 public abstract class Source<T> {
 
+    public String name() {
+        return this.getClass().getName();
+    }
+
     abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> T invoke(final C connector, final IngestionContext ctx) throws Exception;
 
     public static Source<Object> singleConfigurable() {

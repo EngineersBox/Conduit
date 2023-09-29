@@ -3,15 +3,21 @@ package com.engineersbox.conduit.core.retrieval.caching;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.cache.Cache;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serial;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@ThreadSafe
 public class LRUCache implements Cache {
 
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
     private final int size;
     private final LinkedHashMap<String, JsonPath> entries;
+
+    public LRUCache() {
+        this(10);
+    }
 
     public LRUCache(final int size) {
         this.size = size;

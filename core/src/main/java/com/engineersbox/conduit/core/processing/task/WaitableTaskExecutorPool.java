@@ -9,6 +9,8 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.MutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ForkJoinTask;
@@ -16,6 +18,7 @@ import java.util.concurrent.ForkJoinTask;
 @ThreadSafe
 public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WaitableTaskExecutorPool.class);
     private final MutableMap<Long, MutableMap<Integer, ForkJoinTask<T>>> threadTaskMaps;
 
     public WaitableTaskExecutorPool(final ClientPool clientProvider,
@@ -57,6 +60,7 @@ public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
     public void resettingBarrier(final boolean ignoreNull, final long origin) {
         final MutableMap<Integer, ForkJoinTask<T>> taskMap = this.threadTaskMaps.get(origin);
         if (ignoreNull && taskMap == null) {
+            LOGGER.trace("No task mappings found for origin id {}, ignoreNull was set, skipping task join", origin);
             return;
         }
         taskMap.forEachValue(ForkJoinTask::quietlyJoin);

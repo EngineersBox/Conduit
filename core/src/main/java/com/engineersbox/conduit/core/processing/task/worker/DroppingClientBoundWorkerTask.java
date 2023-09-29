@@ -4,10 +4,14 @@ import com.engineersbox.conduit.core.processing.pipeline.ProcessingModel;
 import io.riemann.riemann.client.IRiemannClient;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.eclipse.collections.api.map.MutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ForkJoinTask;
 
 public class DroppingClientBoundWorkerTask<T, E, F extends ForkJoinTask<T>, C extends MutableMap<Integer, F>> implements ClientBoundWorkerTask<T, E> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DroppingClientBoundWorkerTask.class);
 
     private final ClientBoundWorkerTask<T, E> task;
     private final Mutable<F> ref;
@@ -28,6 +32,11 @@ public class DroppingClientBoundWorkerTask<T, E, F extends ForkJoinTask<T>, C ex
         if (forkJoinTask == null) {
             throw new IllegalStateException("Held parent ForkJoinTask for submitted ClientBoundWorkerTask was not present");
         }
+        LOGGER.trace(
+                "Dropping ClientBoundWorkerTask {} from parent pool {}",
+                forkJoinTask,
+                this.dropFromCollection
+        );
         this.dropFromCollection.remove(forkJoinTask.hashCode());
         return model;
     }

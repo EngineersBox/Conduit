@@ -11,6 +11,10 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 @JsonTypeIdResolver(ConnectorTypeResolver.class)
 public interface Connector<T, C extends ConnectorConfiguration> extends AutoCloseable {
 
+    default String name() {
+        return this.getClass().getName();
+    }
+
     void saturate(final C config);
 
     void configure() throws Exception;

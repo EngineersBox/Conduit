@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Spliterators;
 import java.util.concurrent.Future;
@@ -64,9 +65,9 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
     }
 
     public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
-                                                                        final RecordWriter<T> sourceQueueWriter,
+                                                                        @Nullable final RecordWriter<T> sourceQueueWriter,
                                                                         @Nonnull final JobBuilder<T, ?> destination,
-                                                                        final RecordReader<T> destinationQueueReader,
+                                                                        @Nullable final RecordReader<T> destinationQueueReader,
                                                                         @Nonnull final Q queue) {
         if (!connectJobs(source, destination, queue)) {
             return false;
@@ -91,9 +92,12 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
                 .map(JobBuilder::build)
                 .map(executor::submit);
         if (this.blockOnFutures) {
+            LOGGER.trace("[BlockOnFutures: true] Waiting for submitted task futures to be \"Done\" or \"Cancelled\"");
             stream = stream.peek((final Future<JobReport> future) -> {
                 while (!future.isDone() && !future.isCancelled()) ;
             });
+        } else {
+            LOGGER.trace("[BlockOnFutures: false] PipelineProcessingModel is not configured to block on submitted tasks, continuing execution");
         }
         return stream.toList();
     }
