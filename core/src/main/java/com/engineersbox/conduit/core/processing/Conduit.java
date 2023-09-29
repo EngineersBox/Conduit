@@ -130,6 +130,8 @@ public class Conduit<T, E> {
 
     public static class Parameters<T, E> {
 
+        private static final Logger LOGGER = LoggerFactory.getLogger(Parameters.class);
+
         private MetricsSchemaFactory schemaProvider;
         private WaitableTaskExecutorPool<T, E> executor;
         private TaskBatchGenerator<T, E> workerTaskGenerator;
@@ -208,7 +210,13 @@ public class Conduit<T, E> {
                                 return " - " + field.getType().getSimpleName();
                             }
                         } catch (final IllegalAccessException e) {
-                            // NOTE: Won't happen, within the same class
+                            // NOTE: Won't happen, since the class fields are
+                            //       not final... well unless I do a stupid
+                            //       that is. So not entirely impossible.
+                            throw new IllegalStateException(String.format(
+                                    "Unable to access field %s in parameters for validation",
+                                    field.getName()
+                            ), e);
                         }
                         return null;
                     }).filter(Objects::nonNull)

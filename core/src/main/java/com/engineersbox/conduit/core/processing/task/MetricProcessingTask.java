@@ -1,23 +1,18 @@
 package com.engineersbox.conduit.core.processing.task;
 
 import com.engineersbox.conduit.core.processing.event.EventTransformer;
-import com.engineersbox.conduit.core.processing.pipeline.*;
-import com.engineersbox.conduit.core.processing.pipeline.core.TerminatingPipelineStage;
-import com.engineersbox.conduit.core.processing.pipeline.lua.EventBatch;
-import com.engineersbox.conduit.core.processing.pipeline.lua.PostProcessFilterPipelineStage;
-import com.engineersbox.conduit.core.processing.pipeline.lua.PreProcessFilterPipelineStage;
+import com.engineersbox.conduit.core.processing.pipeline.PipelineProcessingModel;
+import com.engineersbox.conduit.core.processing.pipeline.ProcessingModel;
 import com.engineersbox.conduit.core.processing.task.worker.ClientBoundWorkerTask;
-import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
-import com.engineersbox.conduit.core.processing.pipeline.*;
-import com.engineersbox.conduit.core.processing.pipeline.lua.AdapterProcessPipelineStage;
 import com.engineersbox.conduit.core.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit.core.schema.extension.LuaHandlerExtension;
+import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.schema.metric.Metric;
-import org.jctools.queues.SpscLinkedQueue;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
+import org.jctools.queues.SpscLinkedQueue;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
@@ -39,7 +34,6 @@ import java.util.stream.Collectors;
 public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<JobReport>>, JobExecutor> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricProcessingTask.class);
-    private static final String RIEMANN_CLIENT_CTX_ATTRIBUTE = "riemannClient";
     private static final int BATCH_SIZE = 5;
 
     private final RichIterable<Metric> initialMetrics; // Received from conduit
@@ -129,7 +123,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                 new TerminatingPipelineStage<Proto.Event[]>("Send Riemann events") {
                     @Override
                     public void accept(final Proto.Event[] events) {
-                        final IRiemannClient riemannClient = (IRiemannClient) super.getContextAttribute(RIEMANN_CLIENT_CTX_ATTRIBUTE);
+                        final IRiemannClient riemannClient = (IRiemannClient) super.getContextAttribute("riemannClient");
                         try {
                             LOGGER.info(
                                     "Sending events: {}",
