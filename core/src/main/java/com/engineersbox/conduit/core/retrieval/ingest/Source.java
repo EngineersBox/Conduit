@@ -11,6 +11,16 @@ public abstract class Source<T> {
 
     abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> T invoke(final C connector, final IngestionContext ctx) throws Exception;
 
+    /**
+     * Value to return when source invocation times out.
+     * Non-overridden default implementation returns null
+     * from this method.
+     * @return Default value (null when not overridden)
+     */
+    public T defaultDataValue() {
+        return null;
+    }
+
     public static Source<Object> singleConfigurable() {
         return new SingleConfigurable();
     }

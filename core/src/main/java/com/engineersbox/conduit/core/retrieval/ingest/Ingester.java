@@ -79,10 +79,21 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
                         timeout,
                         timeUnit
                 ).exceptionally((final Throwable throwable) -> {
-                    if (!(throwable instanceof TimeoutException)) {
-                        LOGGER.error("Exception occurred during Source invocation", throwable);
+                    final T defaultValue = source.defaultDataValue();
+                    if (throwable instanceof TimeoutException) {
+                        LOGGER.warn(
+                                "Source invocation did not complete within timeout of {} {}, defaulting to provided value [{}]",
+                                timeout,
+                                timeUnit.name(),
+                                defaultValue
+                        );
+                    } else {
+                        LOGGER.error(
+                                "Exception occurred during Source invocation, defaulting to provided value [" + defaultValue + "]",
+                                throwable
+                        );
                     }
-                    return null;
+                    return defaultValue;
                 }).get();
     }
 

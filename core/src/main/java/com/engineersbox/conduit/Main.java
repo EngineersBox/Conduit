@@ -76,7 +76,9 @@ public class Main {
                     params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
-			final JobReport[] reports = conduit.execute(IngestionContext.defaultContext(), Source.singleConfigurable())
+			final IngestionContext ingestionContext = IngestionContext.defaultContext();
+			ingestionContext.setTimeout(1L);
+			final JobReport[] reports = conduit.execute(ingestionContext, Source.singleConfigurable())
 					.flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()
