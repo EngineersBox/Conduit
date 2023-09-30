@@ -21,4 +21,8 @@ public interface Connector<T, C extends ConnectorConfiguration> extends AutoClos
 
     T retrieve() throws Exception;
 
+    default boolean isAnonymous() {
+        return false;
+    }
+
 }

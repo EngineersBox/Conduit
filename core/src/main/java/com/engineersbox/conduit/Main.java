@@ -1,6 +1,9 @@
 package com.engineersbox.conduit;
 
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.Conduit;
@@ -50,12 +53,38 @@ public class Main {
 		}
 	}
 
+	public static class CustomConnector implements Connector<String, ConnectorConfiguration> {
+		@Override
+		public void close() throws Exception {
+
+		}
+
+		@Override
+		public void saturate(ConnectorConfiguration config) {
+
+		}
+
+		@Override
+		public void configure() throws Exception {
+
+		}
+
+		@Override
+		public String retrieve() throws Exception {
+			return null;
+		}
+	}
+
     public static void main(final String[] args) throws Exception {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
 		AffinityCacheProvider.removeDefaultCache();
 		CacheProvider.setCache(new LRUCache(10));
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
+		ConnectorTypeResolver.bindImplementation(
+				"CUSTOM",
+				CustomConnector::new
+		);
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
 			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
@@ -77,7 +106,6 @@ public class Main {
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
-			ingestionContext.setTimeout(1L);
 			final JobReport[] reports = conduit.execute(ingestionContext, Source.singleConfigurable())
 					.flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
