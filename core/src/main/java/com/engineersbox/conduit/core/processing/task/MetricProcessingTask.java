@@ -209,7 +209,10 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                                                             .collect(Collectors.joining(", "))
                                             )).collect(Collectors.joining())
                             );
-                            riemannClient.sendEvents(events).deref(1, TimeUnit.SECONDS);
+                            riemannClient.sendEvents(events).deref(
+                                    1,
+                                    TimeUnit.SECONDS
+                            );
                         }
                     } catch (final IOException e) {
                         throw new RuntimeException(e);

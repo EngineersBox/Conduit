@@ -1,5 +1,6 @@
 package com.engineersbox.conduit;
 
+import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.Conduit;
@@ -75,7 +76,7 @@ public class Main {
                     params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
-			final JobReport[] reports = conduit.execute(null, Source.singleConfigurable())
+			final JobReport[] reports = conduit.execute(IngestionContext.defaultContext(), Source.singleConfigurable())
 					.flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()
