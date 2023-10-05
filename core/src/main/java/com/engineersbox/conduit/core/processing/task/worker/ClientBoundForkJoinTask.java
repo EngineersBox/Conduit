@@ -42,17 +42,17 @@ public class ClientBoundForkJoinTask<T, E> extends ForkJoinTask<T> implements Ru
     @Override
     public final boolean exec() {
         final Thread thread;
-        if ((thread = Thread.currentThread()) instanceof ClientBoundForkJoinWorkerThead workerThread) {
-            final ProcessingModel<T, E> model = runnable.apply(workerThread.getClient());
-            try (final JobExecutorPool.ClosableJobExecutor<E> jobExecutor = JobExecutorPool.acquireClosable(this.jobExecutorPool)) {
-                setRawResult(model.submitAll(jobExecutor.getJobExecutor()));
-            } catch (final Exception e) {
-                LOGGER.error("Exception encountered during job submission", e);
-                return false;
-            }
-            return true;
+        if (!((thread = Thread.currentThread()) instanceof ClientBoundForkJoinWorkerThead workerThread)) {
+            throw new IllegalThreadStateException("Cannot invoke client bound fork-join task on non-ClientBoundForkJoinWorkerThread instances, got instead: " + thread.getClass().getName());
         }
-        throw new IllegalThreadStateException("Cannot invoke client bound fork-join task on non-ClientBoundForkJoinWorkerThread instances, got instead: " + thread.getClass().getName());
+        final ProcessingModel<T, E> model = runnable.apply(workerThread.getClient());
+        try (final JobExecutorPool.ClosableJobExecutor<E> jobExecutor = JobExecutorPool.acquireClosable(this.jobExecutorPool)) {
+            setRawResult(model.submitAll(jobExecutor.getJobExecutor()));
+        } catch (final Exception e) {
+            LOGGER.error("Exception encountered during job submission", e);
+            return false;
+        }
+        return true;
     }
 
     @Override

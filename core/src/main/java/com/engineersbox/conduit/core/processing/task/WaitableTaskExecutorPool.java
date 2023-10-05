@@ -50,6 +50,10 @@ public class WaitableTaskExecutorPool<T, E> extends TaskExecutorPool<T, E> {
         ));
         taskReference.setValue(forkJoinTask);
         taskMap.put(forkJoinTask.hashCode(), forkJoinTask);
+        LOGGER.trace(
+                "Submitted DroppingClientBoundWorkerTask [{}] to executor pool",
+                forkJoinTask.hashCode()
+        );
         return forkJoinTask;
     }
 

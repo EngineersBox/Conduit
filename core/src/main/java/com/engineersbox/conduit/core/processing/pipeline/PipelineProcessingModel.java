@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.processing.pipeline;
 
+import com.engineersbox.conduit.core.util.FutureUtils;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.atomic.MpscAtomicArrayQueue;
 import org.jeasy.batch.core.job.JobBuilder;
@@ -30,7 +31,10 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
     private final boolean blockOnFutures;
 
     public PipelineProcessingModel(final boolean blockOnFutures) {
-        this(MpscAtomicArrayQueue.class, blockOnFutures);
+        this(
+                MpscAtomicArrayQueue.class,
+                blockOnFutures
+        );
     }
 
     public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass,
@@ -87,15 +91,13 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
 
     @Override
     public List<Future<JobReport>> submitAll(final JobExecutor executor) {
-        final TopologicalOrderIterator<JobBuilder<?,?>, MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
+        final TopologicalOrderIterator<JobBuilder<?,?>, ? extends MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
         Stream<Future<JobReport>> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit);
         if (this.blockOnFutures) {
             LOGGER.trace("[BlockOnFutures: true] Waiting for submitted task futures to be \"Done\" or \"Cancelled\"");
-            stream = stream.peek((final Future<JobReport> future) -> {
-                while (!future.isDone() && !future.isCancelled()) ;
-            });
+            stream = stream.peek(FutureUtils::waitForDoneOrCancelled);
         } else {
             LOGGER.trace("[BlockOnFutures: false] PipelineProcessingModel is not configured to block on submitted tasks, continuing execution");
         }

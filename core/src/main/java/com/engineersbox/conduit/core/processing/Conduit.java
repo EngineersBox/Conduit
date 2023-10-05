@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.processing;
 
+import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit.core.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit.core.processing.task.worker.executor.JobExecutorPool;
@@ -41,8 +42,15 @@ public class Conduit<T, E> {
     private boolean executing = false;
     private ContentManager<?, ? ,?> contentManager;
 
-    public Conduit(final Parameters<T, E> params,
-                   final ConduitConfig config) {
+    public Conduit(@Nonnull final Parameters<T, E> params) {
+        this(
+                params,
+                ConfigFactory.createDefault()
+        );
+    }
+
+    public Conduit(@Nonnull final Parameters<T, E> params,
+                   @Nonnull final ConduitConfig config) {
         this.params = params;
         this.config = config;
         this.params.validate();
