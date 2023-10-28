@@ -160,42 +160,86 @@
 			"title" : "connection",
 			"description" : "Connection types and attributes for connecting to a metrics source",
 			"type" : "object",
-			"properties" : {
-				"type" : {
-					"type" : "string"
+			"allOf" : [
+				{
+					"if" : {
+						"properties" : {
+							"type" : {
+								"const" : "HTTP"
+							}
+						}
+					},
+					"then" : {
+						"properties" : {
+							"type" : {
+								"const" : "HTTP"
+							},
+							"config" : {
+								"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection"
+							}
+						},
+						"required" : [
+							"type",
+							"config"
+						],
+						"unevaluatedProperties" : false,
+						"additionalProperties" : false
+					}
+				},
+				{
+					"if" : {
+						"properties" : {
+							"type" : {
+								"const" : "JMX"
+							}
+						}
+					},
+					"then" : {
+						"properties" : {
+							"type" : {
+								"const" : "JMX"
+							},
+							"config" : {
+								"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection"
+							}
+						},
+						"required" : [
+							"type",
+							"config"
+						],
+						"unevaluatedProperties" : false,
+						"additionalProperties" : false
+					}
+				},
+				{
+					"if" : {
+						"not" : {
+							"properties" : {
+								"type" : {
+									"$ref" : "#/$subSchemas/connection/$defs/connector_types"
+								}
+							}
+						}
+					},
+					"then" : {
+						"properties" : {
+							"type" : {
+								"type" : "string"
+							}
+						},
+						"additionalProperties" : true
+					}
+				}
+			],
+			"$defs" : {
+				"connector_types" : {
+					"type" : "string",
+					"enum" : [
+						"HTTP",
+						"JMX"
+					]
 				}
 			},
-			"required" : [
-				"type"
-			],
-			"oneOf" : [
-				{
-					"properties" : {
-						"type" : {
-							"const" : "HTTP"
-						},
-						"config" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection",
-							"unevaluatedProperties" : false
-						}
-					}
-				},
-				{
-					"properties" : {
-						"type" : {
-							"const" : "JMX"
-						},
-						"config" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection",
-							"unevaluatedProperties" : false
-						}
-					}
-				},
-				{
-					"additionalProperties" : true
-				}
-			],
-			"additionalProperties" : false,
 			"$subSchemas" : {
 				"http_connection" : {
 					"title" : "http_connection",
