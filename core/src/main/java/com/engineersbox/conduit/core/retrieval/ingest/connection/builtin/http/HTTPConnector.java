@@ -13,6 +13,8 @@ import java.net.http.HttpResponse;
 
 public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
 
+    public static final String JSON_KEY = "HTTP";
+
     @JsonIgnore
     private HttpClient client;
     private HTTPConnectorConfiguration config;
@@ -22,6 +24,7 @@ public class HTTPConnector implements Connector<String, HTTPConnectorConfigurati
         saturate(config);
     }
 
+    @Override
     public void saturate(final HTTPConnectorConfiguration config) {
         this.config = config;
     }

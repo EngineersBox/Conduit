@@ -1,6 +1,7 @@
 package com.engineersbox.conduit.core.retrieval.ingest.connection;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.HTTPConnector;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.jmx.JMXConnector;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -8,7 +9,6 @@ import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import org.eclipse.collections.api.map.ConcurrentMutableMap;
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ConnectorTypeResolver extends TypeIdResolverBase {
@@ -20,7 +20,8 @@ public class ConnectorTypeResolver extends TypeIdResolverBase {
     private static final ConcurrentMutableMap<String, Supplier<? extends Connector<?,?>>> CONNECTOR_SUPPLIERS = ConcurrentHashMap.newMap();
 
     static {
-        CONNECTOR_CLASSES.put("HTTP", HTTPConnector.class);
+        CONNECTOR_CLASSES.put(HTTPConnector.JSON_KEY, HTTPConnector.class);
+        CONNECTOR_CLASSES.put(JMXConnector.JSON_KEY, JMXConnector.class);
     }
 
     public static void bindImplementation(final String name,
