@@ -162,48 +162,40 @@
 			"type" : "object",
 			"properties" : {
 				"type" : {
-					"$ref" : "#/$subSchemas/connection/$defs/connection_type"
-				},
-				"config" : {
-					"type" : "object",
-					"properties" : {
-						"if" : {
-							"properties" : {
-								"type" : {
-									"const" : "HTTP"
-								}
-							}
-						},
-						"then" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection",
-							"properties" : {
-								"type" : {
-									"$ref" : "#/$subSchemas/connection/$defs/connection_type"
-								}
-							},
-							"unevaluatedProperties" : false
-						},
-						"else" : {
-							"$ref" : "#/$subSchemas/connection/$defs/custom_connection"
-						}
-					}
+					"type" : "string"
 				}
 			},
 			"required" : [
 				"type"
 			],
-			"additionalProperties" : false,
-			"$defs" : {
-				"connection_type" : {
-					"enum" : [
-						"HTTP",
-						"CUSTOM"
-					]
+			"oneOf" : [
+				{
+					"properties" : {
+						"type" : {
+							"const" : "HTTP"
+						},
+						"config" : {
+							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection",
+							"unevaluatedProperties" : false
+						}
+					}
 				},
-				"custom_connection" : {
+				{
+					"properties" : {
+						"type" : {
+							"const" : "JMX"
+						},
+						"config" : {
+							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection",
+							"unevaluatedProperties" : false
+						}
+					}
+				},
+				{
 					"additionalProperties" : true
 				}
-			},
+			],
+			"additionalProperties" : false,
 			"$subSchemas" : {
 				"http_connection" : {
 					"title" : "http_connection",
@@ -214,13 +206,13 @@
 							"type" : "string"
 						},
 						"authentication" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_authentication"
+							"$ref" : "#/$subSchemas/connection/$defs/http_connection_authentication"
 						},
 						"ssl_context" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context"
+							"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context"
 						},
 						"ssl_parameters" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_parameters"
+							"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_parameters"
 						},
 						"timeout" : {
 							"type" : "string"
@@ -269,10 +261,10 @@
 									"type" : "string"
 								},
 								"key_manager" : {
-									"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
+									"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context_manager"
 								},
 								"trust_manager" : {
-									"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
+									"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context_manager"
 								},
 								"secure_random_algorithm" : {
 									"type" : "string"
@@ -359,6 +351,11 @@
 							"additionalProperties" : false
 						}
 					}
+				},
+				"jmx_connection" : {
+					"title" : "jmx_connection",
+					"description" : "<TODO>",
+					"type" : "object"
 				}
 			}
 		}

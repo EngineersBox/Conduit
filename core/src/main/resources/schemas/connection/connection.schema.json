@@ -6,46 +6,34 @@
     "type": "object",
     "properties": {
         "type": {
-            "$ref": "#/$defs/connection_type"
-        },
-        "config": {
-            "type": "object",
-            "properties": {
-                "if": {
-                    "properties": {
-                        "type": {
-                            "const": "HTTP"
-                        }
-                    }
-                },
-                "then": {
-                    "$ref": "classpath:/schemas/connection/http_connection.schema.json",
-                    "properties": {
-                        "type": {
-                            "$ref": "#/$defs/connection_type"
-                        }
-                    },
-                    "unevaluatedProperties": false
-                },
-                "else": {
-                    "$ref": "#/$defs/custom_connection"
-                }
-            }
+            "type": "string"
         }
     },
     "required": [
         "type"
     ],
-    "additionalProperties": false,
-    "$defs": {
-        "connection_type": {
-            "enum": [
-                "HTTP",
-                "CUSTOM"
-            ]
+    "oneOf": [
+        {
+            "properties": {
+                "type": { "const": "HTTP" },
+                "config": {
+                    "$ref": "classpath:/schemas/connection/http_connection.schema.json",
+                    "unevaluatedProperties": false
+                }
+            }
         },
-        "custom_connection": {
+        {
+            "properties": {
+                "type": { "const": "JMX" },
+                "config": {
+                    "$ref": "classpath:/schemas/connection/jmx_connection.schema.json",
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        {
             "additionalProperties": true
         }
-    }
+    ],
+    "additionalProperties": false
 }
