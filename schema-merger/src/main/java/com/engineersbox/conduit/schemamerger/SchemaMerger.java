@@ -68,7 +68,8 @@ public class SchemaMerger {
 
     private ObjectNode mainSchema;
     private ObjectNode subSchemas;
-    private String nestedSchemaPrefix;
+    private final String nestedSchemaPrefix;
+    private String forwardedSchemaPrefix;
     private final String name;
     private final MutableList<SchemaTransformer> transformers;
 
@@ -266,7 +267,7 @@ public class SchemaMerger {
                 .replace(" ", "_");
         resourceRef.schema.put(JsonSchemaConstants.TITLE_FIELD_NAME, transformedTitle);
         resourceRef.setTitle(transformedTitle);
-        this.nestedSchemaPrefix += "/" + JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
+        this.forwardedSchemaPrefix = this.nestedSchemaPrefix + "/" + JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
         LOGGER.info(
                 "[SCHEMA: {}] Transformed title {} -> {}",
                 this.name,
@@ -277,7 +278,7 @@ public class SchemaMerger {
     }
 
     private ResourceRef rewriteMergeRef(final ResourceRef resourceRef) {
-        final String def = this.nestedSchemaPrefix;
+        final String def = this.forwardedSchemaPrefix;
         resourceRef.refParent.put(JsonSchemaConstants.REF_FIELD_NAME, def);
         LOGGER.info(
                 "[SCHEMA: {}] Rewrote merge ref to {}",
@@ -290,7 +291,7 @@ public class SchemaMerger {
     private ResourceRef recursivelyMerge(final ResourceRef resourceRef) {
         final SchemaMerger merger = new SchemaMerger(
                 resourceRef.schema,
-                this.nestedSchemaPrefix
+                this.forwardedSchemaPrefix
         );
         merger.registerTransformers(this.transformers);
         merger.merge();
