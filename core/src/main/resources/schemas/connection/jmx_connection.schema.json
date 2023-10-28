@@ -3,5 +3,15 @@
     "$id": "classpath:/schemas/connection/jmx_connection.schema.json",
     "title": "JMX Connection",
     "description": "<TODO>",
-    "type": "object"
+    "type": "object",
+    "properties": {
+        "authentication": {
+            "$ref": "#/$defs/jmx_connection_authentication"
+        }
+    },
+    "$defs": {
+        "jmx_connection_authentication": {
+            "type": "object"
+        }
+    }
 }

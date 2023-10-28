@@ -228,7 +228,7 @@ public class SchemaMerger {
             }
             final String refLiteral = ref.asText().replace(
                     JsonSchemaConstants.ROOT_REF_PREFIX,
-                    this.nestedSchemaPrefix + "/"
+                    this.forwardedSchemaPrefix + "/"
             );
             final ObjectNode refParentObject = (ObjectNode) refParent;
             refParentObject.put(

@@ -206,13 +206,13 @@
 							"type" : "string"
 						},
 						"authentication" : {
-							"$ref" : "#/$subSchemas/connection/$defs/http_connection_authentication"
+							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_authentication"
 						},
 						"ssl_context" : {
-							"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context"
+							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context"
 						},
 						"ssl_parameters" : {
-							"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_parameters"
+							"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_parameters"
 						},
 						"timeout" : {
 							"type" : "string"
@@ -261,10 +261,10 @@
 									"type" : "string"
 								},
 								"key_manager" : {
-									"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context_manager"
+									"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
 								},
 								"trust_manager" : {
-									"$ref" : "#/$subSchemas/connection/$defs/http_connection_ssl_context_manager"
+									"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection/$defs/http_connection_ssl_context_manager"
 								},
 								"secure_random_algorithm" : {
 									"type" : "string"
@@ -355,7 +355,17 @@
 				"jmx_connection" : {
 					"title" : "jmx_connection",
 					"description" : "<TODO>",
-					"type" : "object"
+					"type" : "object",
+					"properties" : {
+						"authentication" : {
+							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$defs/jmx_connection_authentication"
+						}
+					},
+					"$defs" : {
+						"jmx_connection_authentication" : {
+							"type" : "object"
+						}
+					}
 				}
 			}
 		}

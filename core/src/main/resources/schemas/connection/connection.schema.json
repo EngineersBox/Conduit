@@ -20,7 +20,12 @@
                     "$ref": "classpath:/schemas/connection/http_connection.schema.json",
                     "unevaluatedProperties": false
                 }
-            }
+            },
+            "required": [
+                "type",
+                "config"
+            ],
+            "additionalProperties": false
         },
         {
             "properties": {
@@ -29,11 +34,15 @@
                     "$ref": "classpath:/schemas/connection/jmx_connection.schema.json",
                     "unevaluatedProperties": false
                 }
-            }
+            },
+            "required": [
+                "type",
+                "config"
+            ],
+            "additionalProperties": false
         },
         {
             "additionalProperties": true
         }
-    ],
-    "additionalProperties": false
+    ]
 }
