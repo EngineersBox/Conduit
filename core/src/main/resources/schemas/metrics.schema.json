@@ -51,13 +51,10 @@
             "additionalProperties": false
         },
         "metric_structure": {
+            "type": "object",
             "oneOf": [
-                {
-                    "$ref": "#/$defs/container_metric_structure"
-                },
-                {
-                    "$ref": "#/$defs/primitive_metric_structure"
-                }
+                { "$ref": "#/$defs/container_metric_structure" },
+                { "$ref": "#/$defs/primitive_metric_structure" }
             ]
         },
         "primitive_metric_structure": {
@@ -105,7 +102,8 @@
                 "type",
                 "structure"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "unevaluatedProperties": false
         },
         "metric": {
             "type": "object",
