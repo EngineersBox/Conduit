@@ -196,7 +196,7 @@ public class SchemaMerger {
                 this.name,
                 ref
         );
-        return new ResourceRef(refParent, ref, schema);
+        return new ResourceRef(refParent, schema);
     }
 
     private ResourceRef stripHeaders(final ResourceRef resourceRef) {
@@ -204,44 +204,6 @@ public class SchemaMerger {
         LOGGER.info(
                 "[SCHEMA: {}] Stripped header fields",
                 this.name
-        );
-        return resourceRef;
-    }
-
-    private ResourceRef rewriteDefs(final ResourceRef resourceRef) {
-        final List<JsonNode> refFieldParents = resourceRef.schema.findParents(JsonSchemaConstants.REF_FIELD_NAME)
-                .stream()
-                .filter((final JsonNode node) -> {
-                    final JsonNode ref = node.get(JsonSchemaConstants.REF_FIELD_NAME);
-                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME);
-                }).toList();
-        int rewritten = 0;
-        for (final JsonNode refParent : refFieldParents) {
-            final JsonNode ref = refParent.get(JsonSchemaConstants.REF_FIELD_NAME);
-            if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME)) {
-                LOGGER.debug(
-                        "[SCHEMA: {}] Ref is either non-textual or does not reference via {}",
-                        this.name,
-                        JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME
-                );
-                continue;
-            }
-            final String refLiteral = ref.asText().replace(
-                    JsonSchemaConstants.ROOT_REF_PREFIX,
-                    this.forwardedSchemaPrefix + "/"
-            );
-            final ObjectNode refParentObject = (ObjectNode) refParent;
-            refParentObject.put(
-                    JsonSchemaConstants.REF_FIELD_NAME,
-                    refLiteral
-            );
-            rewritten++;
-        }
-        LOGGER.info(
-                "[SCHEMA: {}] {} refs with localised {} prefix to absolute unified path",
-                this.name,
-                rewritten,
-                JsonSchemaConstants.DEFS_FIELD_NAME
         );
         return resourceRef;
     }
@@ -267,7 +229,13 @@ public class SchemaMerger {
                 .replace(" ", "_");
         resourceRef.schema.put(JsonSchemaConstants.TITLE_FIELD_NAME, transformedTitle);
         resourceRef.setTitle(transformedTitle);
-        this.forwardedSchemaPrefix = this.nestedSchemaPrefix + "/" + JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME + "/" +  transformedTitle;
+        resourceRef.setPrefix(
+                this.nestedSchemaPrefix
+                + "/"
+                + JsonSchemaConstants.SUB_SCHEMAS_FIELD_NAME
+                + "/"
+                + transformedTitle
+        );
         LOGGER.info(
                 "[SCHEMA: {}] Transformed title {} -> {}",
                 this.name,
@@ -277,13 +245,50 @@ public class SchemaMerger {
         return resourceRef;
     }
 
+    private ResourceRef rewriteDefs(final ResourceRef resourceRef) {
+        final List<JsonNode> refFieldParents = resourceRef.schema.findParents(JsonSchemaConstants.REF_FIELD_NAME)
+                .stream()
+                .filter((final JsonNode node) -> {
+                    final JsonNode ref = node.get(JsonSchemaConstants.REF_FIELD_NAME);
+                    return ref.isTextual() && StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME);
+                }).toList();
+        int rewritten = 0;
+        for (final JsonNode refParent : refFieldParents) {
+            final JsonNode ref = refParent.get(JsonSchemaConstants.REF_FIELD_NAME);
+            if (!ref.isTextual() || !StringUtils.startsWith(ref.asText(), JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME)) {
+                LOGGER.debug(
+                        "[SCHEMA: {}] Ref is either non-textual or does not reference via {}",
+                        this.name,
+                        JsonSchemaConstants.ROOT_REF_PREFIX + JsonSchemaConstants.DEFS_FIELD_NAME
+                );
+                continue;
+            }
+            final String refLiteral = ref.asText().replace(
+                    JsonSchemaConstants.ROOT_REF_PREFIX,
+                    resourceRef.prefix + "/"
+            );
+            final ObjectNode refParentObject = (ObjectNode) refParent;
+            refParentObject.put(
+                    JsonSchemaConstants.REF_FIELD_NAME,
+                    refLiteral
+            );
+            rewritten++;
+        }
+        LOGGER.info(
+                "[SCHEMA: {}] {} refs with localised {} prefix to absolute unified path",
+                this.name,
+                rewritten,
+                JsonSchemaConstants.DEFS_FIELD_NAME
+        );
+        return resourceRef;
+    }
+
     private ResourceRef rewriteMergeRef(final ResourceRef resourceRef) {
-        final String def = this.forwardedSchemaPrefix;
-        resourceRef.refParent.put(JsonSchemaConstants.REF_FIELD_NAME, def);
+        resourceRef.refParent.put(JsonSchemaConstants.REF_FIELD_NAME, resourceRef.prefix);
         LOGGER.info(
                 "[SCHEMA: {}] Rewrote merge ref to {}",
                 this.name,
-                def
+                resourceRef.prefix
         );
         return resourceRef;
     }
@@ -291,7 +296,7 @@ public class SchemaMerger {
     private ResourceRef recursivelyMerge(final ResourceRef resourceRef) {
         final SchemaMerger merger = new SchemaMerger(
                 resourceRef.schema,
-                this.forwardedSchemaPrefix
+                resourceRef.prefix
         );
         merger.registerTransformers(this.transformers);
         merger.merge();

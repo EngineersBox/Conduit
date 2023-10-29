@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.instrument.IllegalClassFormatException;
 import java.util.Collection;
 
@@ -28,18 +29,12 @@ public class EnumRefTransformer implements SchemaTransformer {
         )
         @Nonnull
         public String className;
-        @JsonProperty(
-                value = "inclusionFieldName",
-                required = true
-        )
-        @Nonnull
-        public String inclusionFieldName;
-        @JsonProperty(
-                value ="inclusionFieldValue",
-                required = true
-        )
-        @Nonnull
-        public String inclusionFieldValue;
+        @JsonProperty(value = "inclusionFieldName")
+        @Nullable
+        public String inclusionFieldName = null;
+        @JsonProperty(value ="inclusionFieldValue")
+        @Nullable
+        public String inclusionFieldValue = null;
 
     }
 
@@ -85,18 +80,28 @@ public class EnumRefTransformer implements SchemaTransformer {
         final Class<? extends Enum<?>> enumClass = (Class<? extends Enum<?>>) clazz;
         final Enum<?>[] enumConstants = enumClass.getEnumConstants();
         for (final Enum<?> enumConstant : enumConstants) {
+            if (enumRef.inclusionFieldName == null) {
+                addElement(enumConstant, elements, logBuilder);
+                continue;
+            }
             final String enumFieldValue = String.valueOf(FieldUtils.readField(
                     enumConstant,
                     enumRef.inclusionFieldName,
                     true
             ));
             if (enumFieldValue.equals(enumRef.inclusionFieldValue)) {
-                final String name = enumConstant.name();
-                logBuilder.append(name).append(",");
-                elements.add(TextNode.valueOf(name));
+                addElement(enumConstant, elements, logBuilder);
             }
         }
         return elements;
+    }
+
+    private void addElement(final Enum<?> enumConstant,
+                            final MutableList<JsonNode> elements,
+                            final StringBuilder logBuilder) {
+        final String name = enumConstant.name();
+        logBuilder.append(name).append(",");
+        elements.add(TextNode.valueOf(name));
     }
 
     @Override
