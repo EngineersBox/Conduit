@@ -4,6 +4,11 @@
     "title": "Connection",
     "description": "Connection types and attributes for connecting to a metrics source",
     "type": "object",
+    "properties": {
+        "cache_key": {
+            "type": "string"
+        }
+    },
     "allOf": [
         {
             "if": {
@@ -14,6 +19,9 @@
             "then": {
                 "properties": {
                     "type": { "const": "HTTP" },
+                    "cache_key": {
+                        "type": "string"
+                    },
                     "config": {
                         "$ref": "classpath:/schemas/connection/http_connection.schema.json"
                     }
@@ -35,6 +43,9 @@
             "then": {
                 "properties": {
                     "type": { "const": "JMX" },
+                    "cache_key": {
+                        "type": "string"
+                    },
                     "config": {
                         "$ref": "classpath:/schemas/connection/jmx_connection.schema.json"
                     }
@@ -60,6 +71,9 @@
             "then": {
                 "properties": {
                     "type": {
+                        "type": "string"
+                    },
+                    "cache_key": {
                         "type": "string"
                     }
                 },

@@ -46,8 +46,23 @@ public class ConduitConfig {
 
   public static class Ingest {
     public final boolean async;
+    public final Ingest.Connector_cache connector_cache;
     public final Ingest.Event_transformer event_transformer;
     public final boolean schema_provider_locking;
+
+    public static class Connector_cache {
+      public final int concurrency_level;
+      public final boolean record_stats;
+
+      public Connector_cache(
+          com.typesafe.config.Config c,
+          java.lang.String parentPath,
+          $TsCfgValidator $tsCfgValidator) {
+        this.concurrency_level =
+            c.hasPathOrNull("concurrency_level") ? c.getInt("concurrency_level") : 1;
+        this.record_stats = c.hasPathOrNull("record_stats") && c.getBoolean("record_stats");
+      }
+    }
 
     public static class Event_transformer {
       public final boolean skip_on_infer_failure;
@@ -66,6 +81,14 @@ public class ConduitConfig {
         java.lang.String parentPath,
         $TsCfgValidator $tsCfgValidator) {
       this.async = c.hasPathOrNull("async") && c.getBoolean("async");
+      this.connector_cache =
+          c.hasPathOrNull("connector_cache")
+              ? new Ingest.Connector_cache(
+                  c.getConfig("connector_cache"), parentPath + "connector_cache.", $tsCfgValidator)
+              : new Ingest.Connector_cache(
+                  com.typesafe.config.ConfigFactory.parseString("connector_cache{}"),
+                  parentPath + "connector_cache.",
+                  $tsCfgValidator);
       this.event_transformer =
           c.hasPathOrNull("event_transformer")
               ? new Ingest.Event_transformer(

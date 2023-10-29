@@ -1,6 +1,7 @@
 {
     "connection": {
         "type": "HTTP",
+        "cache_key": "localhost_http_server",
         "config": {
             "authentication": {
                 "username": "some_test_user",

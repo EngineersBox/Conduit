@@ -11,7 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class HTTPConnector implements Connector<String, HTTPConnectorConfiguration> {
+public class HTTPConnector extends Connector<String, HTTPConnectorConfiguration> {
 
     public static final String JSON_KEY = "HTTP";
 

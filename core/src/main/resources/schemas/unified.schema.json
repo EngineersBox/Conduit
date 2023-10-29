@@ -162,6 +162,11 @@
 			"title" : "connection",
 			"description" : "Connection types and attributes for connecting to a metrics source",
 			"type" : "object",
+			"properties" : {
+				"cache_key" : {
+					"type" : "string"
+				}
+			},
 			"allOf" : [
 				{
 					"if" : {
@@ -175,6 +180,9 @@
 						"properties" : {
 							"type" : {
 								"const" : "HTTP"
+							},
+							"cache_key" : {
+								"type" : "string"
 							},
 							"config" : {
 								"$ref" : "#/$subSchemas/connection/$subSchemas/http_connection"
@@ -201,6 +209,9 @@
 							"type" : {
 								"const" : "JMX"
 							},
+							"cache_key" : {
+								"type" : "string"
+							},
 							"config" : {
 								"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection"
 							}
@@ -226,6 +237,9 @@
 					"then" : {
 						"properties" : {
 							"type" : {
+								"type" : "string"
+							},
+							"cache_key" : {
 								"type" : "string"
 							}
 						},

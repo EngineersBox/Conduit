@@ -6,4 +6,5 @@ package com.engineersbox.conduit.core.retrieval.ingest.connection;
  * a given connector type.
  */
 public interface ConnectorConfiguration {
+
 }

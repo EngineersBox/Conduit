@@ -28,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -113,6 +114,7 @@ public class Conduit<T, E> {
                                                  @Nonnull final Source<?> source) throws Exception {
         this.executing = true;
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
+        LOGGER.info("CONNECTOR CACHE KEY: {}", schema.getConnector().cacheKey);
         final RichIterable<Metric> workload = retrieveWorkload(schema, context, source);
         this.contentManager.poll();
         final RichIterable<ForkJoinTask<T>> results = submitWorkload(
@@ -147,12 +149,14 @@ public class Conduit<T, E> {
         private Consumer<ContextTransformer.Builder> contextInjector;
         private IngesterFactory ingesterFactory;
         private ContentManagerFactory contentManagerFactory;
+        private Optional<String> cacheKey;
 
         public Parameters() {
             this.batcher = WorkloadBatcher.defaultBatcher();
             this.contextInjector = (_b) -> {};
             this.ingesterFactory = IngesterFactory.defaultFactory();
             this.contentManagerFactory = ContentManagerFactory.defaultFactory();
+            cacheKey = Optional.empty();
         }
 
         public Parameters<T, E> setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
@@ -206,6 +210,11 @@ public class Conduit<T, E> {
 
         public Parameters<T, E> setContentManagerFactory(ContentManagerFactory contentManagerFactory) {
             this.contentManagerFactory = contentManagerFactory;
+            return this;
+        }
+
+        public Parameters<T, E> setCacheKey(final String cacheKey) {
+            this.cacheKey = Optional.of(cacheKey);
             return this;
         }
 

@@ -3,7 +3,7 @@ package com.engineersbox.conduit.core.retrieval.ingest.connection;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using = AnonymousConnectorDeserializer.class)
-public class AnonymousConnectorSupplier implements Connector<Connector<Object, ConnectorConfiguration>, ConnectorConfiguration> {
+public class AnonymousConnectorSupplier extends Connector<Connector<Object, ConnectorConfiguration>, ConnectorConfiguration> {
 
     @Override
     public void saturate(final ConnectorConfiguration config) {

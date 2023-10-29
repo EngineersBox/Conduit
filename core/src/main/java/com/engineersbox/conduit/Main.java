@@ -53,7 +53,7 @@ public class Main {
 		}
 	}
 
-	public static class CustomConnector implements Connector<String, ConnectorConfiguration> {
+	public static class CustomConnector extends Connector<String, ConnectorConfiguration> {
 		@Override
 		public void close() throws Exception {
 
@@ -82,7 +82,7 @@ public class Main {
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
 		ConnectorTypeResolver.bindImplementation(
-				"CUSTOM",
+				"CUSTOM_CONNECTOR",
 				CustomConnector::new
 		);
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
@@ -100,7 +100,8 @@ public class Main {
 							)
 					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 					.setBatcher(WorkloadBatcher.defaultBatcher())
-					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3));
+					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3))
+					.setCacheKey("test cache key");
 			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
                     params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
