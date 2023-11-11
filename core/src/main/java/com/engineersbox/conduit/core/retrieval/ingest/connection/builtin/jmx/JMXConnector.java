@@ -19,7 +19,7 @@ import java.rmi.server.RMIClientSocketFactory;
  * that is provided via the "environment" field, queried to JMXEnvironmentProvider
  * should set the following properties:
  * - {@link RMIConnectorServer#RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE} = An instance of {@link SslRMIClientSocketFactory}
- * - {@code "com.sun.jndi.rmi.factory.socket"} = An instance of {@link RMIClientSocketFactory}
+ * - {@code "com.sun.jndi.rmi.factory.socket"} = An instance of {@link RMIClientSocketFactory} like {@link SslRMIClientSocketFactory}
  */
 public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorConfiguration> {
 
