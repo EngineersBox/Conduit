@@ -1,6 +1,8 @@
 # Conduit
 Structured metrics ingester based on JSON paths and destructuring patterns to produce Riemann events
 
+**TODO: REDO THIS ENTIRE DOC TO BE CONSISTENT WITH MORE EXPANSIVE ARCHITECTURE**
+
 ## Design Requirements
 
 TODO
