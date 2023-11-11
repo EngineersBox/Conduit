@@ -5,13 +5,14 @@
     "description": "<TODO>",
     "type": "object",
     "properties": {
-        "authentication": {
-            "$ref": "#/$defs/jmx_connection_authentication"
-        }
-    },
-    "$defs": {
-        "jmx_connection_authentication": {
-            "type": "object"
+        "url": {
+            "type": "string"
+        },
+        "environment": {
+            "type": "string"
+        },
+        "delegation_subject": {
+            "type": "string"
         }
     }
 }

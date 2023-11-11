@@ -29,6 +29,7 @@ public class HTTPConnectorConfiguration implements ConnectorConfiguration {
     private final InetAddress localAddress;
 
     @JsonCreator
+    // TODO: Make the necessary fields required = true
     public HTTPConnectorConfiguration(@JsonProperty("uri") @JsonDeserialize(using = UriDeserialiser.class) final URI uri,
                                       @JsonProperty("authentication") final AuthenticatorProvider authentication,
                                       @JsonProperty("sslContext") @JsonAlias("ssl_context") final SSLContextProvider sslContext,

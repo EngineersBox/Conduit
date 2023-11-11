@@ -417,13 +417,14 @@
 					"description" : "<TODO>",
 					"type" : "object",
 					"properties" : {
-						"authentication" : {
-							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$defs/jmx_connection_authentication"
-						}
-					},
-					"$defs" : {
-						"jmx_connection_authentication" : {
-							"type" : "object"
+						"url" : {
+							"type" : "string"
+						},
+						"environment" : {
+							"type" : "string"
+						},
+						"delegation_subject" : {
+							"type" : "string"
 						}
 					}
 				}
