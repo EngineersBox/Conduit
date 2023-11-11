@@ -56,7 +56,7 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
     }
 
     @Override
-    public MBeanServerConnection retrieve() throws Exception {
+    public MBeanServerConnection retrieve() {
         return this.serverConnection;
     }
 
