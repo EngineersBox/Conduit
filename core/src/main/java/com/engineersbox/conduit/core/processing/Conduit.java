@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -68,6 +69,7 @@ public class Conduit<T, E> {
                     context,
                     this.params.ingesterFactory
             );
+            this.contentManager.setCacheKey(this.params.cacheKey);
         }
         RichIterable<Metric> workload = schema.metricsView();
         if (this.config.executor.lazy) {
@@ -103,16 +105,23 @@ public class Conduit<T, E> {
         }
     }
 
-    public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context) throws Exception {
+    public RichIterable<ForkJoinTask<T>> execute() throws Exception {
+        return execute(null);
+    }
+
+    public RichIterable<ForkJoinTask<T>> execute(@Nullable IngestionContext context) throws Exception {
         return execute(
                 context,
                 Source.singleConfigurable()
         );
     }
 
-    public RichIterable<ForkJoinTask<T>> execute(final IngestionContext context,
+    public RichIterable<ForkJoinTask<T>> execute(@Nullable IngestionContext context,
                                                  @Nonnull final Source<?> source) throws Exception {
         this.executing = true;
+        if (context == null) {
+            context = IngestionContext.defaultContext();
+        }
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
         LOGGER.info("CONNECTOR CACHE KEY: {}", schema.getConnector().cacheKey);
         final RichIterable<Metric> workload = retrieveWorkload(schema, context, source);
@@ -156,7 +165,7 @@ public class Conduit<T, E> {
             this.contextInjector = (_b) -> {};
             this.ingesterFactory = IngesterFactory.defaultFactory();
             this.contentManagerFactory = ContentManagerFactory.defaultFactory();
-            cacheKey = Optional.empty();
+            this.cacheKey = Optional.empty();
         }
 
         public Parameters<T, E> setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
@@ -214,7 +223,7 @@ public class Conduit<T, E> {
         }
 
         public Parameters<T, E> setCacheKey(final String cacheKey) {
-            this.cacheKey = Optional.of(cacheKey);
+            this.cacheKey = Optional.ofNullable(cacheKey);
             return this;
         }
 

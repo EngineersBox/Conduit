@@ -10,6 +10,8 @@ import com.jayway.jsonpath.TypeRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 public class ContentManager<T, E extends ConnectorConfiguration, C extends Connector<T, E>> implements RetrievalHandler<Metric> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContentManager.class);
@@ -24,6 +26,10 @@ public class ContentManager<T, E extends ConnectorConfiguration, C extends Conne
         this.ingester = ingester;
         this.context = context;
         this.pathTraversalHandler = pathTraversalHandler;
+    }
+
+    public void setCacheKey(final Optional<String> key) {
+        this.ingester.setCacheKey(key);
     }
 
     public void poll() throws Exception {

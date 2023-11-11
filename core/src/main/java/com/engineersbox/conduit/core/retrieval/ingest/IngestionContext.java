@@ -1,15 +1,20 @@
 package com.engineersbox.conduit.core.retrieval.ingest;
 
+import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
+import com.google.common.cache.Cache;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class IngestionContext {
 
     private final Map<String, Object> globalAttributes;
     private final Map<Long, Map<String, Object>> threadAttributes;
+    private final Map<String, ConnectorCache> connectorCaches;
     private long timeout;
     private TimeUnit timeUnit;
 
@@ -26,6 +31,7 @@ public class IngestionContext {
                 timeout,
                 timeUnit,
                 new ConcurrentHashMap<>(),
+                Maps.mutable.empty(),
                 Maps.mutable.empty()
         );
     }
@@ -33,9 +39,11 @@ public class IngestionContext {
     public IngestionContext(final long timeout,
                             final TimeUnit timeUnit,
                             final Map<String, Object> globalAttributes,
-                            final Map<Long, Map<String, Object>> threadAttributes) {
+                            final Map<Long, Map<String, Object>> threadAttributes,
+                            final Map<String, ConnectorCache> connectorCaches) {
         this.globalAttributes = globalAttributes;
         this.threadAttributes = threadAttributes;
+        this.connectorCaches = connectorCaches;
         this.timeout = timeout;
         this.timeUnit = timeUnit;
     }
@@ -45,9 +53,9 @@ public class IngestionContext {
      * @param key Attribute key
      * @param value Attribute value
      */
-    public void putAttribute(final String key,
+    public IngestionContext putAttribute(final String key,
                              final Object value) {
-        putAttribute(
+        return putAttribute(
                 Thread.currentThread().threadId(),
                 key,
                 value
@@ -60,13 +68,14 @@ public class IngestionContext {
      * @param key Attribute key
      * @param value Attribute value
      */
-    public void putAttribute(final long threadId,
+    public IngestionContext putAttribute(final long threadId,
                              final String key,
                              final Object value) {
         this.threadAttributes.computeIfAbsent(
                 threadId,
                 (_map) -> Maps.mutable.empty()
         ).put(key, value);
+        return this;
     }
 
     /**
@@ -118,9 +127,10 @@ public class IngestionContext {
      * @param key Attribute key
      * @param value Attribute value
      */
-    public void putGlobalAttribute(final String key,
+    public IngestionContext putGlobalAttribute(final String key,
                                    final Object value) {
         this.globalAttributes.put(key, value);
+        return this;
     }
 
     /**
@@ -136,22 +146,37 @@ public class IngestionContext {
         return this.globalAttributes;
     }
 
-    public void setTimeout(final long timeout) {
+    public IngestionContext setTimeout(final long timeout) {
         this.timeout = timeout;
+        return this;
     }
 
     public long getTimeout() {
         return this.timeout;
     }
 
-    public void setTimeUnit(final TimeUnit timeUnit) {
+    public IngestionContext setTimeUnit(final TimeUnit timeUnit) {
         this.timeUnit = timeUnit;
+        return this;
     }
 
     public TimeUnit getTimeUnit() {
         return this.timeUnit;
     }
 
+    public ConnectorCache getConnectorCache(final String cacheKey) {
+        return this.connectorCaches.get(cacheKey);
+    }
+
+    public IngestionContext putConnectorCache(final String key,
+                                              final ConnectorCache connectorCache) {
+        this.connectorCaches.put(key, connectorCache);
+        return this;
+    }
+
+    public Map<String, ConnectorCache> getConnectorCaches() {
+        return this.connectorCaches;
+    }
     public static IngestionContext defaultContext() {
         return new IngestionContext() {};
     }

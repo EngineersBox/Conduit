@@ -1,10 +1,7 @@
 package com.engineersbox.conduit.core.retrieval.ingest.connection.cache;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.google.common.cache.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,15 +70,19 @@ public class ConnectorCache implements RemovalListener<String, Connector<?,?>> {
         }
     }
 
-    public void get(final String key,
-                    final Callable<? extends Connector<?,?>> callable) {
+    public String getGlobalKey() {
+        return this.globalKey;
+    }
+    public Connector<?,?> get(final String key,
+                              final Callable<? extends Connector<?,?>> callable) {
         try {
-            this.cache.get(key, callable);
+            return this.cache.get(key, callable);
         } catch (final ExecutionException e) {
             LOGGER.error(
                     "[Cache: " + this.globalKey + "] Unable to retrieve connector from cache with key " + key,
                     e
             );
+            return null;
         }
     }
 

@@ -2,10 +2,13 @@ package com.engineersbox.conduit.core.retrieval.ingest;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
+import com.engineersbox.conduit.core.schema.Schema;
 import com.engineersbox.conduit.core.util.Functional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -16,14 +19,59 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Ingester.class);
 
+    private ConnectorCache cache = null;
+    private final boolean recordCacheStats = false;
+    private final int cacheConcurrency = 5; // TODO: Make this configurable
     private final Source<T> source;
-    private final C connector;
+    private C connector;
+    private Optional<String> cacheKey;
     private T data = null;
 
     public Ingester(final Source<T> source,
                     final C connector) {
         this.source = source;
         this.connector = connector;
+        this.cacheKey = Optional.empty();
+    }
+
+    public void setCacheKey(final Optional<String> cacheKey) {
+        this.cacheKey = cacheKey;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void configureConnector(final IngestionContext context) {
+        if (this.connector.cacheKey.isEmpty()) {
+            LOGGER.trace("Connector has no cache key, skipping caching");
+            return;
+        } else {
+            LOGGER.trace("Connector has cache key, retrieving existing cache if global key is present");
+            this.cacheKey.ifPresent((final String key) -> this.cache = context.getConnectorCache(key));
+        }
+        if (this.cache == null){
+            LOGGER.trace(
+                    "Cache does not exist, creating it [Record Stats: {}] [Concurrecy: {}]",
+                    this.recordCacheStats,
+                    this.cacheConcurrency
+            );
+            this. cache = new ConnectorCache(
+                    this.cacheKey.orElse(null),
+                    this.recordCacheStats,
+                    this.cacheConcurrency
+            );
+        }
+
+        this.cacheKey.ifPresent((final String key) -> context.getConnectorCaches().computeIfAbsent(
+                key,
+                k -> {
+                    LOGGER.trace("Setting global cache instance for key \"{}\"", key);
+                    return this.cache;
+                }
+        ));
+        LOGGER.trace("Retrieved connector from cache");
+        this.connector = (C) this.cache.get(
+                this.connector.cacheKey.get(),
+                () -> this.connector
+        );
     }
 
     public void clear() {
@@ -31,6 +79,7 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
     }
 
     public void consumeSource(final IngestionContext context) throws Exception {
+        configureConnector(context);
         LOGGER.trace(
                 "Consuming source {} from connector {}",
                 this.source.name(),
