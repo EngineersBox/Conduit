@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build;
+package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.constraint.AlgorithmConstraintDeserializer;
 import com.engineersbox.conduit.core.util.Functional;

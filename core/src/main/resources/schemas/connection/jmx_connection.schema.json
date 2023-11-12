@@ -13,6 +13,12 @@
         },
         "delegation_subject": {
             "type": "string"
+        },
+        "ssl_context": {
+            "$ref": "classpath:/schemas/connection/ssl/ssl_context.schema.json"
+        },
+        "ssl_parameters": {
+            "$ref": "classpath:/schemas/connection/ssl/ssl_parameters.schema.json"
         }
     }
 }

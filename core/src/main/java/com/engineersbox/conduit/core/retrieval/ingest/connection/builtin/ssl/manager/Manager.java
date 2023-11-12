@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.manager;
+package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.manager;
 
 public class Manager {
 

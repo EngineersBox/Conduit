@@ -1,7 +1,7 @@
-package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build;
+package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl;
 
-import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.manager.KeyManagers;
-import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.manager.TrustManagers;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.manager.KeyManagers;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.manager.TrustManagers;
 import com.engineersbox.conduit.core.util.Functional;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;

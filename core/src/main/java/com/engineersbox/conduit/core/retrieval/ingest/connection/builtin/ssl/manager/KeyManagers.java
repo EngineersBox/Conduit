@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.manager;
+package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.manager;
 
 import com.engineersbox.conduit.core.util.Functional;
 import com.fasterxml.jackson.annotation.JsonAlias;

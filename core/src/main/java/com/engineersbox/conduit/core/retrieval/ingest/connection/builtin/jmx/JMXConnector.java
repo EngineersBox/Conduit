@@ -1,16 +1,29 @@
 package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.jmx;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLContextProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLParametersProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.factory.SSLParameterisedSocketFactory;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.eclipse.collections.api.factory.Maps;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.rmi.RMIConnectorServer;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLPermission;
+import javax.net.ssl.SSLSocketFactory;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.security.auth.Subject;
+import java.io.IOException;
 import java.rmi.server.RMIClientSocketFactory;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * TODO: DOCSTRING
@@ -24,6 +37,10 @@ import java.rmi.server.RMIClientSocketFactory;
 public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorConfiguration> {
 
     public static final String JSON_KEY = "JMX";
+    private static final String JMX_REMOTE_PROFILES = "jmx.remote.profiles";
+    private static final String JMX_TLS_SOCKET_FACTORY = "jmx.remote.tls.socket.factory";
+    private static final String JMX_TLS_PROTOCOLS = "jmx.remote.tls.enabled.protocols";
+    private static final String JMX_TLS_CIPHER_SUITES = "jmx.remote.tls.enabled.cipher.suites";
 
     @JsonIgnore
     private javax.management.remote.JMXConnector connector;
@@ -41,17 +58,47 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
         this.config = config;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void configure() throws Exception {
+        final Map<String, Object> env = Objects.requireNonNullElseGet(
+                (Map<String,Object>) this.config.getEnvironment(),
+                Maps.mutable::empty
+        );
+        configureSslEnv(env);
         this.connector = JMXConnectorFactory.connect(
                 this.config.getServiceUrl(),
-                this.config.getEnvironment()
+                env
         );
         final Subject delegationSubject = this.config.getDelegationSubject();
         if (delegationSubject != null) {
             this.serverConnection = this.connector.getMBeanServerConnection(delegationSubject);
         } else {
             this.serverConnection = this.connector.getMBeanServerConnection();
+        }
+    }
+
+    private void configureSslEnv(final Map<String, Object> env) throws UnrecoverableKeyException,
+                                                                       CertificateException,
+                                                                       NoSuchAlgorithmException,
+                                                                       KeyStoreException,
+                                                                       IOException,
+                                                                       NoSuchProviderException,
+                                                                       KeyManagementException {
+        final SSLContextProvider sslContextProvider = this.config.getSSLContext();
+        final SSLParametersProvider sslParametersProvider = this.config.sslParametersProvider();
+        if (sslContextProvider != null && sslParametersProvider != null) {
+            env.put(JMX_REMOTE_PROFILES, "TLS");
+            final SSLParameters sslParameters = sslParametersProvider.get();
+            final SSLSocketFactory sslSocketFactory = new SSLParameterisedSocketFactory(
+                    sslContextProvider.get(),
+                    sslParameters
+            );
+            env.put(JMX_TLS_SOCKET_FACTORY, sslSocketFactory);
+            // NOTE: Do we need to set protocols and suites since the factory sets
+            //       the sslParameters on every socket created?
+            env.put(JMX_TLS_PROTOCOLS, sslParameters.getProtocols());
+            env.put(JMX_TLS_CIPHER_SUITES, sslParameters.getCipherSuites());
         }
     }
 

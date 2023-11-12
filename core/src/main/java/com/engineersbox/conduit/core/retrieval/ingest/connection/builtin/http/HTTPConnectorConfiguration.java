@@ -2,8 +2,8 @@ package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.AuthenticatorProvider;
-import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.SSLContextProvider;
-import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.SSLParametersProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLContextProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLParametersProvider;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
