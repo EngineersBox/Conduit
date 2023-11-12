@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
@@ -18,13 +19,13 @@ import java.security.cert.CertificateException;
 public class TrustManagers extends Manager implements Functional.ThrowsSupplier<TrustManager[]> {
 
     @JsonCreator
-    public TrustManagers(@JsonProperty("keyStorePath") @JsonAlias("key_store_path") final String keyStorePath,
-                         @JsonProperty("keyStorePassword") @JsonAlias("key_store_password") final String keyStorePassword,
-                         @JsonProperty("algorithm") final String algorithm,
-                         @JsonProperty("provider") final String provider) {
+    public TrustManagers(@JsonProperty(value = "storePath", required = true) @JsonAlias("store_path") final String storePath,
+                         @JsonProperty("storePassword") @JsonAlias("store_password") @Nullable final String storePassword,
+                         @JsonProperty(value = "algorithm", required = true) final String algorithm,
+                         @JsonProperty("provider") @Nullable final String provider) {
         super(
-                keyStorePath,
-                keyStorePassword,
+                storePath,
+                storePassword,
                 algorithm,
                 provider
         );
@@ -37,8 +38,8 @@ public class TrustManagers extends Manager implements Functional.ThrowsSupplier<
                 this.provider
         );
         final KeyStore keyStore = KeyStore.getInstance(
-                new File(this.keyStorePath),
-                this.keyStorePassword.toCharArray()
+                new File(this.storePath),
+                this.storePassword.toCharArray()
         );
         factory.init(keyStore);
         return factory.getTrustManagers();

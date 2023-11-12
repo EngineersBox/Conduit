@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import java.io.File;
@@ -15,13 +16,13 @@ import java.security.cert.CertificateException;
 public class KeyManagers extends Manager implements Functional.ThrowsSupplier<KeyManager[]> {
 
     @JsonCreator
-    public KeyManagers(@JsonProperty("keyStorePath") @JsonAlias("key_store_path") final String keyStorePath,
-                       @JsonProperty("keyStorePassword") @JsonAlias("key_store_password") final String keyStorePassword,
-                       @JsonProperty("algorithm") final String algorithm,
-                       @JsonProperty("provider") final String provider) {
+    public KeyManagers(@JsonProperty(value ="storePath", required = true) @JsonAlias("store_path") final String storePath,
+                       @JsonProperty("storePassword") @JsonAlias("store_password") @Nullable final String storePassword,
+                       @JsonProperty(value = "algorithm", required = true) final String algorithm,
+                       @JsonProperty("provider") @Nullable final String provider) {
         super(
-                keyStorePath,
-                keyStorePassword,
+                storePath,
+                storePassword,
                 algorithm,
                 provider
         );
@@ -35,10 +36,10 @@ public class KeyManagers extends Manager implements Functional.ThrowsSupplier<Ke
         );
         factory.init(
                 KeyStore.getInstance(
-                        new File(this.keyStorePath),
-                        this.keyStorePassword.toCharArray()
+                        new File(this.storePath),
+                        this.storePassword.toCharArray()
                 ),
-                this.keyStorePassword.toCharArray()
+                this.storePassword.toCharArray()
         );
         return factory.getKeyManagers();
     }

@@ -1,0 +1,52 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "classpath:/schemas/connection/http_connection.schema.json",
+    "title": "SSL Context",
+    "description": "SSL context",
+    "type": "object",
+    "properties": {
+        "protocol": {
+            "type": "string"
+        },
+        "provider": {
+            "type": "string"
+        },
+        "key_manager": {
+            "$ref": "#/$defs/ssl_context_manager"
+        },
+        "trust_manager": {
+            "$ref": "#/$defs/ssl_context_manager"
+        },
+        "secure_random_algorithm": {
+            "type": "string"
+        },
+        "secure_random_provider": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "$defs": {
+        "ssl_context_manager": {
+            "type": "object",
+            "properties": {
+                "store_path": {
+                    "type": "string"
+                },
+                "store_password": {
+                    "type": "string"
+                },
+                "algorithm": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "store_path",
+                "algorithm"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

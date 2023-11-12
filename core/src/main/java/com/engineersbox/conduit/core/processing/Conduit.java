@@ -123,7 +123,6 @@ public class Conduit<T, E> {
             context = IngestionContext.defaultContext();
         }
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
-        LOGGER.info("CONNECTOR CACHE KEY: {}", schema.getConnector().cacheKey);
         final RichIterable<Metric> workload = retrieveWorkload(schema, context, source);
         this.contentManager.poll();
         final RichIterable<ForkJoinTask<T>> results = submitWorkload(

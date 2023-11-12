@@ -2,17 +2,17 @@ package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.b
 
 public class Manager {
 
-    protected final String keyStorePath;
-    protected final String keyStorePassword;
+    protected final String storePath;
+    protected final String storePassword;
     protected final String algorithm;
     protected final String provider;
 
-    public Manager(final String keyStorePath,
-                   final String keyStorePassword,
+    public Manager(final String storePath,
+                   final String storePassword,
                    final String algorithm,
                    final String provider) {
-        this.keyStorePath = keyStorePath;
-        this.keyStorePassword = keyStorePassword;
+        this.storePath = storePath;
+        this.storePassword = storePassword;
         this.algorithm = algorithm;
         this.provider = provider;
     }

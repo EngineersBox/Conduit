@@ -1,0 +1,61 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "classpath:/schemas/connection/http_connection.schema.json",
+    "title": "SSL Parameters",
+    "description": "SSL context support parameters",
+    "type": "object",
+    "properties": {
+        "cipher_suites": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "application_protocols": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "protocols": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "want_client_auth": {
+            "type": "boolean"
+        },
+        "need_client_auth": {
+            "type": "boolean"
+        },
+        "algorithm_constraints": {
+            "type": "string"
+        },
+        "endpoint_identification_algorithm": {
+            "type": "string"
+        },
+        "use_cipher_suites_order": {
+            "type": "boolean"
+        },
+        "enable_retransmissions": {
+            "type": "boolean"
+        },
+        "maximum_packet_size": {
+            "type": "integer"
+        },
+        "signature_schemes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "named_groups": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
+    "additionalProperties": false
+}

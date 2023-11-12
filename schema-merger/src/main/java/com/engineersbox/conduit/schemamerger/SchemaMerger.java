@@ -294,6 +294,7 @@ public class SchemaMerger {
     }
 
     private ResourceRef recursivelyMerge(final ResourceRef resourceRef) {
+        // TODO: Refactor to support iterative merge with optional flattening
         final SchemaMerger merger = new SchemaMerger(
                 resourceRef.schema,
                 resourceRef.prefix
