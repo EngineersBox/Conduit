@@ -7,7 +7,6 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class SSLParameterisedSocketFactory extends SSLSocketFactory {
 
@@ -42,7 +41,7 @@ public class SSLParameterisedSocketFactory extends SSLSocketFactory {
 
     @Override
     public Socket createSocket(final String host,
-                               final int port) throws IOException, UnknownHostException {
+                               final int port) throws IOException {
         final SSLSocket socket = (SSLSocket) this.factory.createSocket(host, port);
         socket.setSSLParameters(this.parameters);
         return socket;
@@ -52,7 +51,7 @@ public class SSLParameterisedSocketFactory extends SSLSocketFactory {
     public Socket createSocket(final String host,
                                final int port,
                                final InetAddress localHost,
-                               final int localPort) throws IOException, UnknownHostException {
+                               final int localPort) throws IOException {
         final SSLSocket socket = (SSLSocket) this.factory.createSocket(
                 host,
                 port,

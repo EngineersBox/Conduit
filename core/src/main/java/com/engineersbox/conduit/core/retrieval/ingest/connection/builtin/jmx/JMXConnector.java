@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.collections.api.factory.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnectorFactory;
@@ -37,6 +39,7 @@ import java.util.Objects;
 public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorConfiguration> {
 
     public static final String JSON_KEY = "JMX";
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMXConnector.class);
     private static final String JMX_REMOTE_PROFILES = "jmx.remote.profiles";
     private static final String JMX_TLS_SOCKET_FACTORY = "jmx.remote.tls.socket.factory";
     private static final String JMX_TLS_PROTOCOLS = "jmx.remote.tls.enabled.protocols";
@@ -85,20 +88,30 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
                                                                        IOException,
                                                                        NoSuchProviderException,
                                                                        KeyManagementException {
+        // See: https://docs.oracle.com/cd/E19698-01/816-7609/security-83/index.html
         final SSLContextProvider sslContextProvider = this.config.getSSLContext();
         final SSLParametersProvider sslParametersProvider = this.config.sslParametersProvider();
-        if (sslContextProvider != null && sslParametersProvider != null) {
-            env.put(JMX_REMOTE_PROFILES, "TLS");
+        if (sslContextProvider != null && sslParametersProvider == null) {
+            LOGGER.warn("JMXConnector: ssl context provided without SSL");
+        }
+        if (sslContextProvider == null) {
+            return;
+        }
+        env.put(JMX_REMOTE_PROFILES, "TLS");
+        if (sslParametersProvider != null) {
             final SSLParameters sslParameters = sslParametersProvider.get();
+            // NOTE: Do we need to set protocols and suites since the factory sets
+            //       the sslParameters on every socket created?
+            env.put(JMX_TLS_PROTOCOLS, sslParameters.getProtocols());
+            env.put(JMX_TLS_CIPHER_SUITES, sslParameters.getCipherSuites());
             final SSLSocketFactory sslSocketFactory = new SSLParameterisedSocketFactory(
                     sslContextProvider.get(),
                     sslParameters
             );
             env.put(JMX_TLS_SOCKET_FACTORY, sslSocketFactory);
-            // NOTE: Do we need to set protocols and suites since the factory sets
-            //       the sslParameters on every socket created?
-            env.put(JMX_TLS_PROTOCOLS, sslParameters.getProtocols());
-            env.put(JMX_TLS_CIPHER_SUITES, sslParameters.getCipherSuites());
+        } else {
+            LOGGER.warn("JMXConnector: SSL parameters not provided, assuming context only");
+            env.put(JMX_TLS_SOCKET_FACTORY, sslContextProvider.get().getSocketFactory());
         }
     }
 
