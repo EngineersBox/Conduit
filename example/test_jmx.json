@@ -17,110 +17,18 @@
     },
     "metrics": [
         {
-            "namespace": "/service/plugin/list_metric",
-            "path": "$..book[?(@.price < $.expensive)].price",
-            "structure": {
-                "type": "LIST",
-                "structure": {
-                    "type": "DOUBLE"
-                },
-                "suffixes": [
-                    {
-                        "template": "/book_{index}",
-                        "to": 1
-                    },
-                    {
-                        "template": "/other_book_{index}",
-                        "from": 1
-                    }
-                ]
-            }
-        },
-        {
-            "namespace": "/service/extension/map_metric",
-            "path": "$.store.counts",
-            "structure": {
-                "type": "MAP",
-                "structure": {
-                    "type": "INTEGER"
-                },
-                "suffixes": [
-                    {
-                        "template": "/count_{name}@{index}",
-                        "to": 2
-                    },
-                    {
-                        "template": "/other_{index}_{name}",
-                        "from": 2
-                    }
-                ]
-            }
-        },
-        {
-            "namespace": "/service/complex/double_nested",
-            "path": "$.store.complex",
-            "structure": {
-                "type": "LIST",
-                "structure": {
-                    "type": "MAP",
-                    "structure": {
-                        "type": "INFER"
-                    },
-                    "suffixes": [
-                        {
-                            "template": "+ALU{index}#{name}",
-                            "to": 1
-                        },
-                        {
-                            "template": "+{index}_REG::BIN#{name}",
-                            "from": 1,
-                            "to": 3
-                        },
-                        {
-                            "template": "+{index}_REGFILE::{name}",
-                            "from": 3
-                        }
-                    ]
-                },
-                "suffixes": [
-                    {
-                        "template": "/calculation::{index}",
-                        "to": 1
-                    },
-                    {
-                        "template": "/perf_counter::{index}",
-                        "from": 1
-                    }
-                ]
-            },
-            "extensions": {
-                "lua_pre_process_handler_definition": "test1"
-            }
-        },
-        {
-            "namespace": "/service/core/books_count",
-            "path": "$..book.length()",
+            "namespace": "/jmx/example/count",
+            "path": "$.jmxMBean(\"SimpleAgent:name=test\",\"count\")",
             "structure": {
                 "type": "INTEGER"
-            },
-            "extensions": {
-                "lua_pre_process_handler_definition": "other"
             }
         },
         {
-            "namespace": "/service/test/custom_func",
-            "path": "$..bicycle.color.someFunc()",
+            "namespace": "/jmx/example/value",
+            "path": "$.jmxMBean(\"SimpleAgent:name=test\",\"value\")",
             "structure": {
-                "type": "STRING"
+                "type": "DOUBLE"
             }
         }
-    ],
-    "extensions": {
-        "lua_handlers": {
-            "lua_pre_process_handler_definitions": {
-                "test1": "example/compiled/handler.class",
-                "other": "example/compiled/handler.class"
-            }
-        }
-    }
+    ]
 }
