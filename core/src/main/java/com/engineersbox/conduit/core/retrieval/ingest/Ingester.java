@@ -3,7 +3,7 @@ package com.engineersbox.conduit.core.retrieval.ingest;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
-import com.engineersbox.conduit.core.schema.Schema;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.util.Functional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

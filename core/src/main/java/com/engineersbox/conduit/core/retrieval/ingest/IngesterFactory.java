@@ -2,6 +2,7 @@ package com.engineersbox.conduit.core.retrieval.ingest;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.schema.Schema;
 
 public abstract class IngesterFactory {

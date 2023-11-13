@@ -17,7 +17,7 @@ import com.engineersbox.conduit.core.schema.json.path.PathFunctionProvider;
 import com.engineersbox.conduit.core.processing.task.worker.client.QueueSuppliedClientPool;
 import com.engineersbox.conduit.core.retrieval.caching.LRUCache;
 import com.engineersbox.conduit.core.retrieval.content.batch.WorkloadBatcher;
-import com.engineersbox.conduit.core.retrieval.ingest.Source;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.PathRef;
 import com.jayway.jsonpath.internal.function.Parameter;
@@ -89,7 +89,7 @@ public class Main {
 			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
 			final Conduit.Parameters<List<Future<JobReport>>, JobExecutor> params = new Conduit.Parameters<List<Future<JobReport>>, JobExecutor>()
-					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test.json", true))
+					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_http.json", true))
 					.setExecutor(
 							new QueueSuppliedClientPool(
 									() -> client,

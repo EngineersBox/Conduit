@@ -13,6 +13,7 @@
         <module>core</module>
         <module>schema-merger</module>
         <module>extensions</module>
+        <module>example</module>
     </modules>
 
     <repositories>

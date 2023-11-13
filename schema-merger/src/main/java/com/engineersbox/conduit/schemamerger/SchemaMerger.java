@@ -12,7 +12,9 @@ import com.networknt.schema.JsonMetaSchema;
 import com.networknt.schema.NonValidationKeyword;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.api.factory.Lists;
+import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.map.MutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,15 +71,16 @@ public class SchemaMerger {
     private ObjectNode mainSchema;
     private ObjectNode subSchemas;
     private final String nestedSchemaPrefix;
-    private String forwardedSchemaPrefix;
     private final String name;
     private final MutableList<SchemaTransformer> transformers;
+    private final MutableMap<String, ObjectNode> referencedSubSchemas;
 
     private SchemaMerger(final String resourcePath) {
         this.mainSchema = readResource(resourcePath);
         this.nestedSchemaPrefix = "#";
         this.transformers = Lists.mutable.empty();
         this.name = getTitle();
+        this.referencedSubSchemas = Maps.mutable.empty();
     }
 
     private SchemaMerger(final ObjectNode mainSchema,
@@ -86,6 +89,7 @@ public class SchemaMerger {
         this.nestedSchemaPrefix = nestedSchemaPrefix;
         this.transformers = Lists.mutable.empty();
         this.name = getTitle();
+        this.referencedSubSchemas = Maps.mutable.empty();
     }
 
     private String getTitle() {

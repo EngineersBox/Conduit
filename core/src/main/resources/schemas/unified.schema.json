@@ -437,6 +437,123 @@
 						},
 						"delegation_subject" : {
 							"type" : "string"
+						},
+						"ssl_context" : {
+							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$subSchemas/ssl_context"
+						},
+						"ssl_parameters" : {
+							"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$subSchemas/ssl_parameters"
+						}
+					},
+					"$subSchemas" : {
+						"ssl_context" : {
+							"title" : "ssl_context",
+							"description" : "SSL context",
+							"type" : "object",
+							"properties" : {
+								"protocol" : {
+									"type" : "string"
+								},
+								"provider" : {
+									"type" : "string"
+								},
+								"key_manager" : {
+									"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$subSchemas/ssl_context/$defs/ssl_context_manager"
+								},
+								"trust_manager" : {
+									"$ref" : "#/$subSchemas/connection/$subSchemas/jmx_connection/$subSchemas/ssl_context/$defs/ssl_context_manager"
+								},
+								"secure_random_algorithm" : {
+									"type" : "string"
+								},
+								"secure_random_provider" : {
+									"type" : "string"
+								}
+							},
+							"additionalProperties" : false,
+							"$defs" : {
+								"ssl_context_manager" : {
+									"type" : "object",
+									"properties" : {
+										"store_path" : {
+											"type" : "string"
+										},
+										"store_password" : {
+											"type" : "string"
+										},
+										"algorithm" : {
+											"type" : "string"
+										},
+										"provider" : {
+											"type" : "string"
+										}
+									},
+									"required" : [
+										"store_path",
+										"algorithm"
+									],
+									"additionalProperties" : false
+								}
+							}
+						},
+						"ssl_parameters" : {
+							"title" : "ssl_parameters",
+							"description" : "SSL context support parameters",
+							"type" : "object",
+							"properties" : {
+								"cipher_suites" : {
+									"type" : "array",
+									"items" : {
+										"type" : "string"
+									}
+								},
+								"application_protocols" : {
+									"type" : "array",
+									"items" : {
+										"type" : "string"
+									}
+								},
+								"protocols" : {
+									"type" : "array",
+									"items" : {
+										"type" : "string"
+									}
+								},
+								"want_client_auth" : {
+									"type" : "boolean"
+								},
+								"need_client_auth" : {
+									"type" : "boolean"
+								},
+								"algorithm_constraints" : {
+									"type" : "string"
+								},
+								"endpoint_identification_algorithm" : {
+									"type" : "string"
+								},
+								"use_cipher_suites_order" : {
+									"type" : "boolean"
+								},
+								"enable_retransmissions" : {
+									"type" : "boolean"
+								},
+								"maximum_packet_size" : {
+									"type" : "integer"
+								},
+								"signature_schemes" : {
+									"type" : "array",
+									"items" : {
+										"type" : "string"
+									}
+								},
+								"named_groups" : {
+									"type" : "array",
+									"items" : {
+										"type" : "string"
+									}
+								}
+							},
+							"additionalProperties" : false
 						}
 					}
 				}

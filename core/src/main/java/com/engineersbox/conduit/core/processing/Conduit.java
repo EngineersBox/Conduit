@@ -12,7 +12,7 @@ import com.engineersbox.conduit.core.retrieval.content.ContentManagerFactory;
 import com.engineersbox.conduit.core.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit.core.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
-import com.engineersbox.conduit.core.retrieval.ingest.Source;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit.core.schema.Schema;
 import com.engineersbox.conduit.core.schema.metric.Metric;

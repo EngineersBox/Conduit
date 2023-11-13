@@ -3,7 +3,7 @@ package com.engineersbox.conduit.core.retrieval.content;
 import com.engineersbox.conduit.core.retrieval.configuration.AffinityBoundConfigProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.IngesterFactory;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
-import com.engineersbox.conduit.core.retrieval.ingest.Source;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.path.PathTraversalHandler;
