@@ -1,36 +1,47 @@
 package com.engineersbox.conduit.example.jmx;
 
-import com.engineersbox.conduit.example.bean.Hello;
+import com.engineersbox.conduit.example.bean.Example;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.management.*;
-import java.lang.management.*;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnectorServer;
+import javax.management.remote.JMXConnectorServerFactory;
+import javax.management.remote.JMXServiceURL;
+import java.lang.management.ManagementFactory;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class JMXSimpleAgent {
 
-    public JMXSimpleAgent() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMXSimpleAgent.class);
+
+    public JMXSimpleAgent() throws Exception {
+        final Registry registry = LocateRegistry.createRegistry(5555);
+        LOGGER.info("Started RMI registry on port 5555");
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        final Hello helloBean = new Hello();
-        final ObjectName helloName;
-        try {
-            helloName = new ObjectName("SimpleAgent:name=hellothere");
-            mbs.registerMBean(helloBean, helloName);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        final Example helloBean = new Example();
+        final ObjectName helloName = new ObjectName("SimpleAgent:name=test");
+        mbs.registerMBean(helloBean, helloName);
+        final JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://localhost/jndi/rmi://localhost:5555/jmxrmi");
+        mbs.addNotificationListener(
+                helloName,
+                new LoggingListener(),
+                null,
+                null
+        );
+        LOGGER.info("Service URL: " + url);
+        final JMXConnectorServer cs = JMXConnectorServerFactory.newJMXConnectorServer(
+                url,
+                null,
+                mbs
+        );
+        cs.start();
     }
 
-    private static void waitForEnterPressed() {
-        try {
-            System.out.println("Press <enter> to continue...");
-            System.in.read();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void main(final String args[]) {
+    public static void main(final String[] args) throws Exception {
         final JMXSimpleAgent agent = new JMXSimpleAgent();
-        System.out.println("SimpleAgent is running...");
-        JMXSimpleAgent.waitForEnterPressed();
+        LOGGER.info("SimpleAgent is running...");
     }
 }

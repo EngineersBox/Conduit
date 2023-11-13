@@ -3,7 +3,7 @@
         "type": "JMX",
         "cache_key": "localhost_jmx_server",
         "config": {
-            "url": "service:jmx:rmi:///jndi/rmi://localhost:9999/server"
+            "url": "service:jmx:rmi://localhost/jndi/rmi://localhost:5555/jmxrmi"
         }
     },
     "configuration": {
