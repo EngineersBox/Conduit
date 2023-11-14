@@ -4,6 +4,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
+import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.source.method.JMXMBeanInvoke;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConfigFactory;
@@ -110,7 +111,7 @@ public class Main {
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
-			final JobReport[] reports = conduit.execute(ingestionContext, Source.singleConfigurable())
+			final JobReport[] reports = conduit.execute(ingestionContext, SourceProvider.universal(Source.singleConfigurable()))
 					.flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()
