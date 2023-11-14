@@ -4,6 +4,8 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
 import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
+import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
+import com.engineersbox.conduit.core.schema.metric.Metric;
 import com.engineersbox.conduit.core.util.Functional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +24,14 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
     private ConnectorCache cache = null;
     private final boolean recordCacheStats = false;
     private final int cacheConcurrency = 5; // TODO: Make this configurable
-    private final Source<T> source;
+    private final SourceProvider<T> sourceProvider;
     private C connector;
     private Optional<String> cacheKey;
     private T data = null;
 
-    public Ingester(final Source<T> source,
+    public Ingester(final SourceProvider<T> sourceProvider,
                     final C connector) {
-        this.source = source;
+        this.sourceProvider = sourceProvider;
         this.connector = connector;
         this.cacheKey = Optional.empty();
     }
@@ -53,7 +55,7 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
                     this.recordCacheStats,
                     this.cacheConcurrency
             );
-            this. cache = new ConnectorCache(
+            this.cache = new ConnectorCache(
                     this.cacheKey.orElse(null),
                     this.recordCacheStats,
                     this.cacheConcurrency
@@ -78,16 +80,20 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
         this.data = null;
     }
 
-    public void consumeSource(final IngestionContext context) throws Exception {
+    public void consumeSource(final IngestionContext context,
+                              final Metric metric) throws Exception {
         configureConnector(context);
+        final Source<T> source = this.sourceProvider.apply(Thread.currentThread().threadId());
         LOGGER.trace(
                 "Consuming source {} from connector {}",
-                this.source.name(),
+                source.name(),
                 this.connector.name()
         );
-        final Supplier<T> dataSupplier = Functional.uncheckedSupplier(
-                () -> this.source.invoke(this.connector, context)
-        );
+        final Supplier<T> dataSupplier = Functional.uncheckedSupplier(() -> source.invoke(
+                this.connector,
+                metric,
+                context
+        ));
         final Supplier<IngestionContext> contextSupplier = () -> context;
         final Long timeout = Functional.checkedApply(
                 contextSupplier,
@@ -112,14 +118,16 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
             consumeSourceAsync(
                     dataSupplier,
                     timeout,
-                    timeUnit
+                    timeUnit,
+                    source
             );
         }
     }
 
     private void consumeSourceAsync(final Supplier<T> dataSupplier,
                                     final long timeout,
-                                    final TimeUnit timeUnit) throws ExecutionException, InterruptedException {
+                                    final TimeUnit timeUnit,
+                                    final Source<T> source) throws ExecutionException, InterruptedException {
         LOGGER.trace(
                 "Invoking source with timeout of {} {}",
                 timeout,

@@ -4,6 +4,7 @@ import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit.core.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit.core.processing.task.worker.executor.JobExecutorPool;
+import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConduitConfig;
 import com.engineersbox.conduit.core.processing.generation.TaskBatchGenerator;
@@ -60,14 +61,15 @@ public class Conduit<T, E> {
 
     private RichIterable<Metric> retrieveWorkload(final Schema schema,
                                                   final IngestionContext context,
-                                                  final Source<?> source) {
+                                                  final SourceProvider<?> sourceProvider) {
         if (this.params.schemaProvider.instanceRefreshed()) {
             LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
             this.contentManager = this.params.contentManagerFactory.construct(
                     schema,
-                    source,
+                    sourceProvider,
                     context,
-                    this.params.ingesterFactory
+                    this.params.ingesterFactory,
+                    this.params.pollingCondition
             );
             this.contentManager.setCacheKey(this.params.cacheKey);
         }
@@ -112,18 +114,18 @@ public class Conduit<T, E> {
     public RichIterable<ForkJoinTask<T>> execute(@Nullable IngestionContext context) throws Exception {
         return execute(
                 context,
-                Source.singleConfigurable()
+                SourceProvider.universal(Source.singleConfigurable())
         );
     }
 
     public RichIterable<ForkJoinTask<T>> execute(@Nullable IngestionContext context,
-                                                 @Nonnull final Source<?> source) throws Exception {
+                                                 @Nonnull final SourceProvider<?> sourceProvider) throws Exception {
         this.executing = true;
         if (context == null) {
             context = IngestionContext.defaultContext();
         }
         final Schema schema = this.params.schemaProvider.provide(this.config.ingest.schema_provider_locking);
-        final RichIterable<Metric> workload = retrieveWorkload(schema, context, source);
+        final RichIterable<Metric> workload = retrieveWorkload(schema, context, sourceProvider);
         this.contentManager.poll();
         final RichIterable<ForkJoinTask<T>> results = submitWorkload(
                 schema,
@@ -158,6 +160,7 @@ public class Conduit<T, E> {
         private IngesterFactory ingesterFactory;
         private ContentManagerFactory contentManagerFactory;
         private Optional<String> cacheKey;
+        private PollingCondition pollingCondition;
 
         public Parameters() {
             this.batcher = WorkloadBatcher.defaultBatcher();
@@ -165,6 +168,7 @@ public class Conduit<T, E> {
             this.ingesterFactory = IngesterFactory.defaultFactory();
             this.contentManagerFactory = ContentManagerFactory.defaultFactory();
             this.cacheKey = Optional.empty();
+            this.pollingCondition = PollingCondition.ON_EXECUTE;
         }
 
         public Parameters<T, E> setSchemaProvider(final MetricsSchemaFactory schemaProvider) {
@@ -223,6 +227,11 @@ public class Conduit<T, E> {
 
         public Parameters<T, E> setCacheKey(final String cacheKey) {
             this.cacheKey = Optional.ofNullable(cacheKey);
+            return this;
+        }
+
+        public Parameters<T, E> setPollingCondition(final PollingCondition pollingCondition) {
+            this.pollingCondition = pollingCondition;
             return this;
         }
 

@@ -3,6 +3,10 @@ package com.engineersbox.conduit.core.retrieval.ingest.source;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.schema.metric.Metric;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class Source<T> {
 
@@ -10,7 +14,9 @@ public abstract class Source<T> {
         return this.getClass().getName();
     }
 
-    abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> T invoke(final C connector, final IngestionContext ctx) throws Exception;
+    abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> T invoke(@Nonnull final C connector,
+                                                                                           @Nullable final Metric currentMetric,
+                                                                                           @Nullable final IngestionContext ctx) throws Exception;
 
     /**
      * Value to return when source invocation times out.

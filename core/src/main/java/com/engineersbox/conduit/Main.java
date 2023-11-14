@@ -4,6 +4,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
+import com.engineersbox.conduit.core.retrieval.ingest.source.method.JMXMBeanInvoke;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.Conduit;
@@ -79,6 +80,8 @@ public class Main {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
 		AffinityCacheProvider.removeDefaultCache();
 		CacheProvider.setCache(new LRUCache(10));
+//		JMXMBeanInvoke.register();
+		PathFunctionProvider.bindFunction(JMXMBeanInvoke.FUNCTION_NAME, JMXMBeanInvoke.class);
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
 		ConnectorTypeResolver.bindImplementation(

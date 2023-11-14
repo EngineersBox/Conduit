@@ -12,7 +12,7 @@ public class PathTraversalHandler<R> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PathTraversalHandler.class);
 
-    private ReadContext context;
+    private ThreadLocal<ReadContext> context;
     private ParseContext parseContext;
     private Configuration config;
     private final boolean cachedConfig;
@@ -57,19 +57,19 @@ public class PathTraversalHandler<R> {
             ctx = this.parseContext;
         }
         if (raw instanceof String rawString) {
-            this.context = ctx.parse(rawString);
+            this.context.set(ctx.parse(rawString));
         } else if (raw instanceof InputStream rawInputStream) {
-            this.context = ctx.parse(rawInputStream);
+            this.context.set(ctx.parse(rawInputStream));
         } else if (raw instanceof byte[] rawBytes) {
-            this.context = ctx.parseUtf8(rawBytes);
+            this.context.set(ctx.parseUtf8(rawBytes));
         } else {
-            this.context = ctx.parse(raw);
+            this.context.set(ctx.parse(raw));
         }
     }
 
     public <T> T read(final String path,
                       final TypeRef<T> type) {
-        return this.context.read(path, type);
+        return this.context.get().read(path, type);
     }
 
 }
