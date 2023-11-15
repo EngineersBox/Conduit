@@ -41,7 +41,7 @@ public class JMXClient {
         );
         LOGGER.info(
                 "Bean count={}",
-                bean.getCount()
+                bean.count()
         );
         LOGGER.info(
                 "Bean value={}",

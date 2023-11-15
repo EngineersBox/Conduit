@@ -37,7 +37,7 @@ public abstract class ContentManagerFactory {
                                                            final PollingCondition pollingCondition) {
                 final Configuration config = schema.getJsonPathConfiguration();
                 return new ContentManager<>(
-                        ingesterFactory.construct(schema, sourceProvider),
+                        ingesterFactory.construct(schema, sourceProvider, pollingCondition),
                         context,
                         new PathTraversalHandler<>(config),
                         pollingCondition
@@ -60,7 +60,7 @@ public abstract class ContentManagerFactory {
                                                        final PollingCondition pollingCondition) {
                 AffinityBoundConfigProvider.bindDefaultConfiguration(schema.getJsonPathConfiguration());
                 return new ContentManager<>(
-                        ingesterFactory.construct(schema, sourceProvider),
+                        ingesterFactory.construct(schema, sourceProvider, pollingCondition),
                         context,
                         new PathTraversalHandler<>(cachedConfig),
                         pollingCondition

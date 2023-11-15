@@ -18,13 +18,13 @@ public class JMXServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(JMXServer.class);
 
     public JMXServer() throws Exception {
-        final Registry registry = LocateRegistry.createRegistry(5555);
-        LOGGER.info("Started RMI registry on port 5555");
+        final Registry registry = LocateRegistry.createRegistry(9081);
+        LOGGER.info("Started RMI registry on port 9081");
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         final Example helloBean = new Example();
         final ObjectName helloName = new ObjectName("SimpleAgent:name=test");
         mbs.registerMBean(helloBean, helloName);
-        final JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://localhost/jndi/rmi://localhost:5555/jmxrmi");
+        final JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://localhost/jndi/rmi://localhost:9081/jmxrmi");
         mbs.addNotificationListener(
                 helloName,
                 new LoggingListener(),

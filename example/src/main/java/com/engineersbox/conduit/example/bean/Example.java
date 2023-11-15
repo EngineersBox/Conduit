@@ -25,7 +25,7 @@ public class Example implements ExampleMBean, NotificationBroadcaster {
     }
 
     @Override
-    public long getCount() {
+    public long count() {
         return this.count;
     }
 

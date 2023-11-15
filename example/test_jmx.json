@@ -3,7 +3,7 @@
         "type": "JMX",
         "cache_key": "localhost_jmx_server",
         "config": {
-            "url": "service:jmx:rmi://localhost/jndi/rmi://localhost:5555/jmxrmi"
+            "url": "service:jmx:rmi://localhost/jndi/rmi://localhost:9081/jmxrmi"
         }
     },
     "configuration": {
@@ -25,7 +25,7 @@
         },
         {
             "namespace": "/jmx/example/value",
-            "path": "$.jmxMBean(\"SimpleAgent:name=test\",\"value\")",
+            "path": "$.jmxMBean(\"SimpleAgent:name=test\",\"totalValue\")",
             "structure": {
                 "type": "DOUBLE"
             }

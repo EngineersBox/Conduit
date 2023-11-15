@@ -9,6 +9,9 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.Path;
 import com.jayway.jsonpath.internal.path.PathCompiler;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class JMXSource extends Source<MBeanServerConnection, String> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMXSource.class);
     private static final ConcurrentMap<String, Path> PATHS = new ConcurrentHashMap<>();
 
     private final boolean cachePaths;
@@ -44,25 +48,43 @@ public class JMXSource extends Source<MBeanServerConnection, String> {
             throw new IllegalArgumentException("Cannot query JMX server with null Metric");
         }
         final MBeanServerConnection connection = connector.retrieve();
-        final Path path;
+        final Path jsonPath;
         if (this.cachePaths) {
-            path = PATHS.computeIfAbsent(
+            jsonPath = PATHS.computeIfAbsent(
                     currentMetric.getPath(),
                     PathCompiler::compile
             );
         } else {
-            path = PathCompiler.compile(currentMetric.getPath());
+            jsonPath = PathCompiler.compile(currentMetric.getPath());
         }
-        // TODO: Figure out what the params to this arg is from GitHub for JsonPath
-        //       and verify if we can supply the connection for the jmxMBean function
-        final EvaluationContext evalCtx = path.evaluate(
+        final EvaluationContext evalCtx = jsonPath.evaluate(
                 connection,
                 connection,
                 Configuration.defaultConfiguration(),
                 false
         );
         final Object value = evalCtx.getValue();
-        return value instanceof String stringValue ? stringValue : (String) value;
+        if (!(value instanceof Pair<?,?> pair)) {
+            throw new IllegalStateException("Expected Pair<String,Object> from JMX MBean call");
+        }
+        final String methodName = (String) pair.getLeft();
+        final String previousPath = currentMetric.getPath();
+        currentMetric.setPath("$.['" + methodName + "']");
+        LOGGER.trace(
+                "Updated metric path from {} to {}",
+                previousPath,
+                currentMetric.getPath()
+        );
+        final Object result = pair.getRight();
+        final String jsonDoc = String.format(
+                "{\"%s\":%s}",
+                methodName,
+                result instanceof String stringResult
+                        ? stringResult
+                        : String.valueOf(result)
+        );
+        LOGGER.trace("Constructed JSON doc for method target and value: {}", jsonDoc);
+        return jsonDoc;
     }
 
 }

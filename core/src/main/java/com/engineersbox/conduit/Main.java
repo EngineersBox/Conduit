@@ -115,7 +115,6 @@ public class Main {
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
-			ingestionContext.setTimeout(-1L);
 			final JobReport[] reports = conduit.execute(
 					ingestionContext,
 					SourceProvider.threaded(JMXSource::new)

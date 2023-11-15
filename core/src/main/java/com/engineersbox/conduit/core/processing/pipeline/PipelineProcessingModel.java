@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Queue;
 import java.util.Spliterators;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
@@ -27,7 +28,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineProcessingModel.class);
 
-    private final DirectedAcyclicGraph<JobBuilder<?,?>, MessagePassingQueue> graph;
+    private final DirectedAcyclicGraph<JobBuilder<?,?>, Queue> graph;
     private final boolean blockOnFutures;
 
     public PipelineProcessingModel(final boolean blockOnFutures) {
@@ -37,7 +38,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         );
     }
 
-    public PipelineProcessingModel(final Class<? extends MessagePassingQueue> edgeClass,
+    public PipelineProcessingModel(final Class<? extends Queue> edgeClass,
                                    final boolean blockOnFutures) {
         this.graph = new DirectedAcyclicGraph<>(edgeClass);
         this.blockOnFutures = blockOnFutures;
@@ -51,7 +52,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
                                                                         @Nonnull final JobBuilder<T, ?> destination,
                                                                         @Nonnull final Q queue) {
         if (source == null) {
@@ -68,7 +69,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         );
     }
 
-    public <T, E, Q extends MessagePassingQueue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
                                                                         @Nullable final RecordWriter<T> sourceQueueWriter,
                                                                         @Nonnull final JobBuilder<T, ?> destination,
                                                                         @Nullable final RecordReader<T> destinationQueueReader,
@@ -91,7 +92,7 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
 
     @Override
     public List<Future<JobReport>> submitAll(final JobExecutor executor) {
-        final TopologicalOrderIterator<JobBuilder<?,?>, ? extends MessagePassingQueue> iterator = new TopologicalOrderIterator<>(this.graph);
+        final TopologicalOrderIterator<JobBuilder<?,?>, ? extends Queue> iterator = new TopologicalOrderIterator<>(this.graph);
         Stream<Future<JobReport>> stream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                 .map(JobBuilder::build)
                 .map(executor::submit);

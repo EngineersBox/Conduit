@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.retrieval.ingest;
 
+import com.engineersbox.conduit.core.processing.PollingCondition;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
@@ -7,6 +8,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.schema.metric.Metric;
 import com.engineersbox.conduit.core.util.Functional;
+import com.engineersbox.conduit.core.util.threading.ScopedThreadLocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +29,17 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
     private final SourceProvider<T, R> sourceProvider;
     private C connector;
     private Optional<String> cacheKey;
-    private R data = null;
+    private final PollingCondition pollingCondition;
+    private ScopedThreadLocal<R, PollingCondition> data;
 
     public Ingester(final SourceProvider<T, R> sourceProvider,
-                    final C connector) {
+                    final C connector,
+                    final PollingCondition pollingCondition) {
         this.sourceProvider = sourceProvider;
         this.connector = connector;
         this.cacheKey = Optional.empty();
+        this.pollingCondition = pollingCondition;
+        this.data = new ScopedThreadLocal<>(PollingCondition.ON_EXECUTE::equals);
     }
 
     public void setCacheKey(final Optional<String> cacheKey) {
@@ -77,7 +83,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
     }
 
     public void clear() {
-        this.data = null;
+        this.data.set(null, this.pollingCondition);
     }
 
     public void consumeSource(final IngestionContext context,
@@ -113,7 +119,10 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
                             TimeUnit::name
                     )
             );
-            this.data = dataSupplier.get();
+            this.data.set(
+                    dataSupplier.get(),
+                    this.pollingCondition
+            );
         } else {
             consumeSourceAsync(
                     dataSupplier,
@@ -133,7 +142,8 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
                 timeout,
                 timeUnit.name()
         );
-        this.data = CompletableFuture.supplyAsync(dataSupplier)
+        this.data.set(
+                CompletableFuture.supplyAsync(dataSupplier)
                 .orTimeout(
                         timeout,
                         timeUnit
@@ -155,11 +165,13 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
                         );
                     }
                     return defaultValue;
-                }).get();
+                }).get(),
+                this.pollingCondition
+        );
     }
 
     public R getCurrent() {
-        return this.data;
+        return this.data.get(this.pollingCondition);
     }
 
 }

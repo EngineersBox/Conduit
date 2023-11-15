@@ -5,6 +5,8 @@ import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.PathRef;
 import com.jayway.jsonpath.internal.function.Parameter;
 import com.jayway.jsonpath.internal.function.PathFunction;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.management.*;
 import java.io.IOException;
@@ -28,27 +30,28 @@ public class JMXMBeanInvoke implements PathFunction {
                     "Expected function format: jmxMBean(\"<ObjectName>\",\"<Method>\")"
             );
         }
-        final Object objectNameRaw = parameters.get(0);
-        if (!(objectNameRaw instanceof String objectName)) {
-            throw new IllegalArgumentException("Expected string object name, got " + objectNameRaw.getClass());
-        }
-        final Object methodNameRaw = parameters.get(1);
-        if (!(methodNameRaw instanceof String methodName)) {
-            throw new IllegalArgumentException("Expected string method name, got " + methodNameRaw.getClass());
-        }
+        final String objectName = StringUtils.unwrap(
+                parameters.get(0).getJson(),
+                '"'
+        );
+        final String methodName = StringUtils.unwrap(
+                parameters.get(1).getJson(),
+                '"'
+        );
         try {
-            return connection.invoke(
+            final Object result = connection.invoke(
                     new ObjectName(objectName),
                     methodName,
                     new Object[0], // NOTE: Should we expose all of these via path?
                     new String[0]
             );
+            return Pair.of(methodName, result);
         } catch (final InstanceNotFoundException
                  | MalformedObjectNameException
                  | IOException
                  | ReflectionException
                  | MBeanException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Exception occured while interfacing with JMX server", e);
         }
     }
 

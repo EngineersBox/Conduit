@@ -2,7 +2,7 @@ package com.engineersbox.conduit.example.bean;
 
 public interface ExampleMBean {
 
-    long getCount();
+    long count();
 
     double totalValue();
 

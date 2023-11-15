@@ -64,10 +64,7 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
     @SuppressWarnings("unchecked")
     @Override
     public void configure() throws Exception {
-        final Map<String, Object> env = Objects.requireNonNullElseGet(
-                (Map<String,Object>) this.config.getEnvironment(),
-                Maps.mutable::empty
-        );
+        final Map<String, Object> env = (Map<String,Object>) this.config.getEnvironment();
         configureSslEnv(env);
         try {
             this.connector = JMXConnectorFactory.connect(

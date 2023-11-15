@@ -8,15 +8,19 @@ import com.engineersbox.conduit.core.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit.core.schema.extension.LuaHandlerExtension;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.schema.metric.Metric;
+import com.engineersbox.conduit.core.util.Functional;
 import io.riemann.riemann.Proto;
 import io.riemann.riemann.client.IRiemannClient;
 import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.map.ImmutableMap;
 import org.jctools.queues.SpscLinkedQueue;
+import org.jctools.queues.atomic.SpscLinkedAtomicQueue;
 import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
+import org.jeasy.batch.core.listener.BatchListener;
 import org.jeasy.batch.core.reader.IterableRecordReader;
+import org.jeasy.batch.core.reader.RecordReader;
 import org.jeasy.batch.core.record.Batch;
 import org.jeasy.batch.core.record.GenericRecord;
 import org.jeasy.batch.core.record.Record;
@@ -26,8 +30,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -160,7 +167,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         );
     } */
 
-    private JobBuilder<Metric, Proto.Event[]> createTransformerJob(final PipelineProcessingModel model) {
+    private JobBuilder<Metric, Proto.Event[]> createTransformerJob(final PipelineProcessingModel model,
+                                                                   final AtomicBoolean endIndicator) {
         return model.<Metric, Proto.Event[]>addJob("Parse Metric Events")
                 .batchSize(BATCH_SIZE)
                 .processor((final Record<Metric> record) -> {
@@ -183,6 +191,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                 .batchSize(BATCH_SIZE)
                 .writer((final Batch<Proto.Event[]> batch) -> {
                     try {
+                        LOGGER.debug("Batch size {}, Batch: {}", batch.size(), batch);
                         for (final Record<Proto.Event[]> eventsRecord : batch) {
                             final Proto.Event[] events = eventsRecord.getPayload();
                             LOGGER.info(
@@ -224,17 +233,31 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
     @Override
     public ProcessingModel<List<Future<JobReport>>, JobExecutor> apply(final IRiemannClient riemannClient) {
         final PipelineProcessingModel model = new PipelineProcessingModel(false);
-        final JobBuilder<Metric, Proto.Event[]> transformerJob = createTransformerJob(model);
+        final AtomicBoolean endIndicator = new AtomicBoolean(false);
+        final JobBuilder<Metric, Proto.Event[]> transformerJob = createTransformerJob(model, endIndicator);
         final JobBuilder<Proto.Event[], Proto.Event[]> riemannSendJob = createRiemannSendJob(model, riemannClient);
-        final SpscLinkedQueue<Record<Proto.Event[]>> queue = new SpscLinkedQueue<>();
+//        final SpscLinkedQueue<Record<Proto.Event[]>> queue = new SpscLinkedQueue<>();
+//        final LinkedBlockingQueue<Record<Proto.Event[]>> queue = new LinkedBlockingQueue<>();
+        final SpscLinkedAtomicQueue<Record<Proto.Event[]>> queue = new SpscLinkedAtomicQueue<>();
+//        final ArrayBlockingQueue<Record<Proto.Event[]>> queue = new ArrayBlockingQueue<>(10);
         model.connectJobs(
                 transformerJob,
                 (final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer),
                 riemannSendJob,
-                queue::poll,
+                () -> {
+                    Record<Proto.Event[]> record;
+                    while ((record = queue.poll()) == null && !endIndicator.get());
+                    return record;
+                },
                 queue
         );
-        transformerJob.reader(new IterableRecordReader<>(this.initialMetrics));
+        transformerJob.reader(new IterableRecordReader<>(this.initialMetrics){
+            @Override
+            public void close() throws Exception {
+                endIndicator.set(true);
+                super.close();
+            }
+        });
         // TODO: Finish implementing jobs
         return model;
     }
