@@ -4,7 +4,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
 import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
-import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.schema.metric.Metric;
 import com.engineersbox.conduit.core.util.Functional;
 import org.slf4j.Logger;
@@ -17,19 +17,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
-public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T, E>> {
+public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connector<T, E>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Ingester.class);
 
     private ConnectorCache cache = null;
     private final boolean recordCacheStats = false;
     private final int cacheConcurrency = 5; // TODO: Make this configurable
-    private final SourceProvider<T> sourceProvider;
+    private final SourceProvider<T, R> sourceProvider;
     private C connector;
     private Optional<String> cacheKey;
-    private T data = null;
+    private R data = null;
 
-    public Ingester(final SourceProvider<T> sourceProvider,
+    public Ingester(final SourceProvider<T, R> sourceProvider,
                     final C connector) {
         this.sourceProvider = sourceProvider;
         this.connector = connector;
@@ -83,13 +83,13 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
     public void consumeSource(final IngestionContext context,
                               final Metric metric) throws Exception {
         configureConnector(context);
-        final Source<T> source = this.sourceProvider.apply(Thread.currentThread().threadId());
+        final Source<T, R> source = this.sourceProvider.apply(Thread.currentThread().threadId());
         LOGGER.trace(
                 "Consuming source {} from connector {}",
                 source.name(),
                 this.connector.name()
         );
-        final Supplier<T> dataSupplier = Functional.uncheckedSupplier(() -> source.invoke(
+        final Supplier<R> dataSupplier = Functional.uncheckedSupplier(() -> source.invoke(
                 this.connector,
                 metric,
                 context
@@ -124,10 +124,10 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
         }
     }
 
-    private void consumeSourceAsync(final Supplier<T> dataSupplier,
+    private void consumeSourceAsync(final Supplier<R> dataSupplier,
                                     final long timeout,
                                     final TimeUnit timeUnit,
-                                    final Source<T> source) throws ExecutionException, InterruptedException {
+                                    final Source<T, R> source) throws ExecutionException, InterruptedException {
         LOGGER.trace(
                 "Invoking source with timeout of {} {}",
                 timeout,
@@ -138,13 +138,15 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
                         timeout,
                         timeUnit
                 ).exceptionally((final Throwable throwable) -> {
-                    final T defaultValue = source.defaultDataValue();
+                    final R defaultValue = source.defaultDataValue();
                     if (throwable instanceof TimeoutException) {
+                        throwable.fillInStackTrace();
                         LOGGER.warn(
-                                "Source invocation did not complete within timeout of {} {}, defaulting to provided value [{}]",
+                                "Source invocation did not complete within timeout of {} {}, defaulting to provided value [{}], Exception: {}",
                                 timeout,
                                 timeUnit.name(),
-                                defaultValue
+                                defaultValue,
+                                throwable
                         );
                     } else {
                         LOGGER.error(
@@ -156,7 +158,7 @@ public class Ingester<T, E extends ConnectorConfiguration, C extends Connector<T
                 }).get();
     }
 
-    public T getCurrent() {
+    public R getCurrent() {
         return this.data;
     }
 

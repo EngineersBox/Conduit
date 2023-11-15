@@ -1,4 +1,4 @@
-package com.engineersbox.conduit.core.util;
+package com.engineersbox.conduit.core.util.threading;
 
 import java.util.concurrent.Future;
 

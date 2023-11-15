@@ -1,10 +1,12 @@
 package com.engineersbox.conduit;
 
+import com.engineersbox.conduit.core.processing.PollingCondition;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
-import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.source.JMXSource;
+import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.source.method.JMXMBeanInvoke;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConfigFactory;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class Main {
 
@@ -93,7 +96,7 @@ public class Main {
 			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
 			final Conduit.Parameters<List<Future<JobReport>>, JobExecutor> params = new Conduit.Parameters<List<Future<JobReport>>, JobExecutor>()
-					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_http.json", true))
+					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_jmx.json", true))
 					.setExecutor(
 							new QueueSuppliedClientPool(
 									() -> client,
@@ -105,14 +108,18 @@ public class Main {
 					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 					.setBatcher(WorkloadBatcher.defaultBatcher())
 					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3))
+					.setPollingCondition(PollingCondition.PER_METRIC)
 					.setCacheKey("test cache key");
 			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
                     params,
                     ConfigFactory.load(Path.of("./example/config.conf"))
             );
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
-			final JobReport[] reports = conduit.execute(ingestionContext, SourceProvider.universal(Source.singleConfigurable()))
-					.flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
+			ingestionContext.setTimeout(-1L);
+			final JobReport[] reports = conduit.execute(
+					ingestionContext,
+					SourceProvider.threaded(JMXSource::new)
+			).flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()
 							.map((final Future<JobReport> report) -> {

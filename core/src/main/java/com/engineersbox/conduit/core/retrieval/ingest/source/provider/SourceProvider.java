@@ -1,46 +1,24 @@
-package com.engineersbox.conduit.core.retrieval.ingest.source;
+package com.engineersbox.conduit.core.retrieval.ingest.source.provider;
+
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface SourceProvider<T> extends Function<Long, Source<T>> {
+public interface SourceProvider<T, R> extends Function<Long, Source<T, R>> {
     @Override
-    Source<T> apply(final Long threadId);
+    Source<T, R> apply(final Long threadId);
 
-    static <T> SourceProvider<T> perInvocation(final Supplier<Source<T>> constructor) {
+    static <T, R> SourceProvider<T, R> perInvocation(final Supplier<Source<T, R>> constructor) {
         return new ConstructingSourceProvider<>(constructor);
     }
 
-    static <T> SourceProvider<T> universal(final Source<T> instance) {
+    static <T, R> SourceProvider<T, R> universal(final Source<T, R> instance) {
         return new UniversalSourceProvider<>(instance);
     }
 
-    class ConstructingSourceProvider<T> implements SourceProvider<T> {
-
-        private final Supplier<Source<T>> constructor;
-
-        public ConstructingSourceProvider(final Supplier<Source<T>> constructor) {
-            this.constructor = constructor;
-        }
-
-        @Override
-        public Source<T> apply(final Long threadId) {
-            return this.constructor.get();
-        }
-    }
-
-    class UniversalSourceProvider<T> implements SourceProvider<T> {
-
-        private final Source<T> source;
-
-        public UniversalSourceProvider(final Source<T> source) {
-            this.source = source;
-        }
-
-        @Override
-        public Source<T> apply(final Long threadId) {
-            return this.source;
-        }
+    static <T, R> SourceProvider<T, R> threaded(final Supplier<Source<T, R>> threadInstanceSupplier) {
+        return new ThreadSourceProvider<>(threadInstanceSupplier);
     }
 
 }

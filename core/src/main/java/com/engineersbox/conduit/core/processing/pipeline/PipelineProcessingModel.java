@@ -1,6 +1,6 @@
 package com.engineersbox.conduit.core.processing.pipeline;
 
-import com.engineersbox.conduit.core.util.FutureUtils;
+import com.engineersbox.conduit.core.util.threading.FutureUtils;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.atomic.MpscAtomicArrayQueue;
 import org.jeasy.batch.core.job.JobBuilder;

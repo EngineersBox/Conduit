@@ -15,7 +15,7 @@ import java.util.Objects;
 public class Metric {
 
     private final String namespace;
-    private final String path;
+    private String path;
     private final ParameterizedMetricType structure;
     private final DimensionallyIndexedRangeMap suffixes;
     private final ImmutableMap<String, Object> extensions;
@@ -55,6 +55,10 @@ public class Metric {
 
     public String getPath() {
         return this.path;
+    }
+
+    public void setPath(final String path) {
+        this.path = path;
     }
 
     public String getNamespace() {

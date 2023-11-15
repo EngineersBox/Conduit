@@ -13,11 +13,11 @@ import java.lang.management.ManagementFactory;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class JMXSimpleAgent {
+public class JMXServer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JMXSimpleAgent.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMXServer.class);
 
-    public JMXSimpleAgent() throws Exception {
+    public JMXServer() throws Exception {
         final Registry registry = LocateRegistry.createRegistry(5555);
         LOGGER.info("Started RMI registry on port 5555");
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -41,7 +41,7 @@ public class JMXSimpleAgent {
     }
 
     public static void main(final String[] args) throws Exception {
-        final JMXSimpleAgent agent = new JMXSimpleAgent();
+        final JMXServer agent = new JMXServer();
         LOGGER.info("SimpleAgent is running...");
     }
 }

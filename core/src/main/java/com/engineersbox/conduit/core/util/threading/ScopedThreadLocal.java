@@ -1,8 +1,10 @@
-package com.engineersbox.conduit.core.threading;
+package com.engineersbox.conduit.core.util.threading;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
+@ThreadSafe
 public class ScopedThreadLocal<T, P> {
 
     private final ThreadLocal<T> local;

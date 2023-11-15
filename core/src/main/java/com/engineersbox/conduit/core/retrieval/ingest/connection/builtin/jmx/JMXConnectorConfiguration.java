@@ -27,11 +27,11 @@ public class JMXConnectorConfiguration implements ConnectorConfiguration {
     public JMXConnectorConfiguration(@JsonProperty(value = "url", required = true) final String url,
                                      @JsonProperty("environment") @Nullable final String environment,
                                      @JsonProperty("delegationSubject") @JsonAlias("delegation_subject") @Nullable final String delegationSubject,
-                                     @JsonProperty("sslContext") @JsonAlias("ssl_context") final SSLContextProvider sslContextProvider,
-                                     @JsonProperty("sslParameters") @JsonAlias("ssl_parameters") final SSLParametersProvider sslParametersProvider) throws MalformedURLException {
+                                     @JsonProperty("sslContext") @JsonAlias("ssl_context") @Nullable final SSLContextProvider sslContextProvider,
+                                     @JsonProperty("sslParameters") @JsonAlias("ssl_parameters") @Nullable final SSLParametersProvider sslParametersProvider) throws MalformedURLException {
         this.url = new JMXServiceURL(url);
-        this.environment = JMXEnvironmentProvider.getEnvironment(environment);
-        this.delegationSubject = JMXSubjectProvider.getSubject(delegationSubject);
+        this.environment = environment == null ? null : JMXEnvironmentProvider.getEnvironment(environment);
+        this.delegationSubject = delegationSubject == null ? null : JMXSubjectProvider.getSubject(delegationSubject);
         this.sslContextProvider = sslContextProvider;
         this.sslParametersProvider = sslParametersProvider;
     }

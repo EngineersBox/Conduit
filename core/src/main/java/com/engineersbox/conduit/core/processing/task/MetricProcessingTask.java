@@ -55,7 +55,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
         this.contextBuilder = ContextTransformer.builder(new ContextTransformer());
         this.contextInjector = contextInjector;
         LuaHandlerExtension luaHandlerExtension = null;
-        if (schemaExtensions.get(LuaHandlerExtension.SCHEMA_EXTENSION_FIELD_NAME) instanceof LuaHandlerExtension extension) {
+        if (schemaExtensions != null
+            && schemaExtensions.get(LuaHandlerExtension.SCHEMA_EXTENSION_FIELD_NAME) instanceof LuaHandlerExtension extension) {
             luaHandlerExtension = extension;
         }
     }

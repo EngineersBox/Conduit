@@ -21,9 +21,9 @@ import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JMXSSL {
+public class JMXSSLServer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JMXSSL.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JMXSSLServer.class);
 
     public static void main(final String[] args) throws Exception {
         final Registry registry = LocateRegistry.createRegistry(5555);

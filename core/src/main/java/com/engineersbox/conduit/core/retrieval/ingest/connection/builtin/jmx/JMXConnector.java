@@ -69,10 +69,15 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
                 Maps.mutable::empty
         );
         configureSslEnv(env);
-        this.connector = JMXConnectorFactory.connect(
-                this.config.getServiceUrl(),
-                env
-        );
+        try {
+            this.connector = JMXConnectorFactory.connect(
+                    this.config.getServiceUrl(),
+                    env
+            );
+        } catch (final IOException e) {
+            LOGGER.error("Unable to connect to remote JMX server", e);
+            throw e;
+        }
         final Subject delegationSubject = this.config.getDelegationSubject();
         if (delegationSubject != null) {
             this.serverConnection = this.connector.getMBeanServerConnection(delegationSubject);

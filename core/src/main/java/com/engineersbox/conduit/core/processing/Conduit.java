@@ -4,7 +4,7 @@ import com.engineersbox.conduit.core.config.ConfigFactory;
 import com.engineersbox.conduit.core.processing.task.WaitableTaskExecutorPool;
 import com.engineersbox.conduit.core.processing.task.worker.client.ClientPool;
 import com.engineersbox.conduit.core.processing.task.worker.executor.JobExecutorPool;
-import com.engineersbox.conduit.core.retrieval.ingest.source.SourceProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
 import com.engineersbox.conduit.core.config.ConduitConfig;
 import com.engineersbox.conduit.core.processing.generation.TaskBatchGenerator;
@@ -43,7 +43,7 @@ public class Conduit<T, E> {
     private final Parameters<T, E> params;
     private final ConduitConfig config;
     private boolean executing = false;
-    private ContentManager<?, ? ,?> contentManager;
+    private ContentManager<?, ?, ? ,?> contentManager;
 
     public Conduit(@Nonnull final Parameters<T, E> params) {
         this(
@@ -61,7 +61,7 @@ public class Conduit<T, E> {
 
     private RichIterable<Metric> retrieveWorkload(final Schema schema,
                                                   final IngestionContext context,
-                                                  final SourceProvider<?> sourceProvider) {
+                                                  final SourceProvider<?, ?> sourceProvider) {
         if (this.params.schemaProvider.instanceRefreshed()) {
             LOGGER.debug("Schema provider triggered refresh, creating new content manager instance");
             this.contentManager = this.params.contentManagerFactory.construct(
@@ -119,7 +119,7 @@ public class Conduit<T, E> {
     }
 
     public RichIterable<ForkJoinTask<T>> execute(@Nullable IngestionContext context,
-                                                 @Nonnull final SourceProvider<?> sourceProvider) throws Exception {
+                                                 @Nonnull final SourceProvider<?, ?> sourceProvider) throws Exception {
         this.executing = true;
         if (context == null) {
             context = IngestionContext.defaultContext();

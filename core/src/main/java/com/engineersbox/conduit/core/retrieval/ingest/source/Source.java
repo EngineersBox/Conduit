@@ -8,13 +8,13 @@ import com.engineersbox.conduit.core.schema.metric.Metric;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class Source<T> {
+public abstract class Source<T, R> {
 
     public String name() {
         return this.getClass().getName();
     }
 
-    abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> T invoke(@Nonnull final C connector,
+    abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> R invoke(@Nonnull final C connector,
                                                                                            @Nullable final Metric currentMetric,
                                                                                            @Nullable final IngestionContext ctx) throws Exception;
 
@@ -24,11 +24,11 @@ public abstract class Source<T> {
      * from this method.
      * @return Default value (null when not overridden)
      */
-    public T defaultDataValue() {
+    public R defaultDataValue() {
         return null;
     }
 
-    public static Source<Object> singleConfigurable() {
+    public static Source<Object, Object> singleConfigurable() {
         return new SingleConfigurableSource();
     }
 
