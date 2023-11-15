@@ -76,6 +76,10 @@ public class JMXSource extends Source<MBeanServerConnection, String> {
                 currentMetric.getPath()
         );
         final Object result = pair.getRight();
+        /* TODO: Refactor to create a queryable data source based on the json_provider
+         *       and/or mapping_provider set in the schema. This can be arbitrary format
+         *       if there are user defined providers used.
+         */
         final String jsonDoc = String.format(
                 "{\"%s\":%s}",
                 methodName,
