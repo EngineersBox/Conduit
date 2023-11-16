@@ -108,7 +108,7 @@ public class Main {
 					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 					.setBatcher(WorkloadBatcher.defaultBatcher())
 					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3))
-					.setPollingCondition(PollingCondition.PER_METRIC)
+					.setPollingCondition(PollingCondition.PER_METRIC) // This condition is necessary for JMXSource
 					.setCacheKey("test cache key");
 			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
                     params,
@@ -117,7 +117,7 @@ public class Main {
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
 			final JobReport[] reports = conduit.execute(
 					ingestionContext,
-					SourceProvider.threaded(JMXSource::new)
+					SourceProvider.threaded(JMXSource::new) // JMXSource is not required to be threaded
 			).flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()

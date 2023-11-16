@@ -246,6 +246,8 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
                 riemannSendJob,
                 () -> {
                     Record<Proto.Event[]> record;
+                    // TODO: Convert to BlockingQueue with take/put sleep/signal semantics to avoid busy loop
+                    //       will need to tie dependent job close to close this job as well to avoid end indicator
                     while ((record = queue.poll()) == null && !endIndicator.get());
                     return record;
                 },
