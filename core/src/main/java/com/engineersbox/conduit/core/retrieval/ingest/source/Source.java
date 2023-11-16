@@ -3,6 +3,7 @@ package com.engineersbox.conduit.core.retrieval.ingest.source;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.schema.Schema;
 import com.engineersbox.conduit.core.schema.metric.Metric;
 
 import javax.annotation.Nonnull;
@@ -15,6 +16,7 @@ public abstract class Source<T, R> {
     }
 
     abstract public <E extends ConnectorConfiguration, C extends Connector<T, E>> R invoke(@Nonnull final C connector,
+                                                                                           @Nonnull final Schema schema,
                                                                                            @Nullable final Metric currentMetric,
                                                                                            @Nullable final IngestionContext ctx) throws Exception;
 

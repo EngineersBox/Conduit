@@ -16,7 +16,6 @@ public abstract class IngesterFactory {
                                          final SourceProvider<T, R> sourceProvider,
                                          final PollingCondition pollingCondition);
 
-    @SuppressWarnings("unchecked")
     public static IngesterFactory defaultFactory() {
         return new IngesterFactory() {
             @Override
@@ -25,7 +24,7 @@ public abstract class IngesterFactory {
                                                                                                                       final PollingCondition pollingCondition) {
                 return new Ingester<>(
                         sourceProvider,
-                        (C) schema.getConnector(),
+                        schema,
                         pollingCondition
                 );
             }

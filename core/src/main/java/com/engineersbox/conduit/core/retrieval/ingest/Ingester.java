@@ -6,6 +6,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfig
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
 import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
+import com.engineersbox.conduit.core.schema.Schema;
 import com.engineersbox.conduit.core.schema.metric.Metric;
 import com.engineersbox.conduit.core.util.Functional;
 import com.engineersbox.conduit.core.util.threading.ScopedThreadLocal;
@@ -27,16 +28,19 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
     private final boolean recordCacheStats = false;
     private final int cacheConcurrency = 5; // TODO: Make this configurable
     private final SourceProvider<T, R> sourceProvider;
+    private final Schema schema;
     private C connector;
     private Optional<String> cacheKey;
     private final PollingCondition pollingCondition;
-    private ScopedThreadLocal<R, PollingCondition> data;
+    private final ScopedThreadLocal<R, PollingCondition> data;
 
+    @SuppressWarnings("unchecked")
     public Ingester(final SourceProvider<T, R> sourceProvider,
-                    final C connector,
+                    final Schema schema,
                     final PollingCondition pollingCondition) {
         this.sourceProvider = sourceProvider;
-        this.connector = connector;
+        this.schema = schema;
+        this.connector = (C) schema.getConnector();
         this.cacheKey = Optional.empty();
         this.pollingCondition = pollingCondition;
         this.data = new ScopedThreadLocal<>(PollingCondition.ON_EXECUTE::equals);
@@ -97,6 +101,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
         );
         final Supplier<R> dataSupplier = Functional.uncheckedSupplier(() -> source.invoke(
                 this.connector,
+                this.schema,
                 metric,
                 context
         ));

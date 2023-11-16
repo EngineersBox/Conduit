@@ -87,8 +87,7 @@ public class PathTraversalHandler<R> {
     public <T> T read(final String path,
                       final TypeRef<T> type,
                       final PollingCondition condition) {
-        final T value = this.context.get(condition).read(path, type);
-        return value;
+        return this.context.get(condition).read(path, type);
     }
 
 }

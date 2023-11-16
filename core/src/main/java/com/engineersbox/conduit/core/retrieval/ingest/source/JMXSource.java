@@ -3,12 +3,14 @@ package com.engineersbox.conduit.core.retrieval.ingest.source;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
+import com.engineersbox.conduit.core.schema.Schema;
 import com.engineersbox.conduit.core.schema.metric.Metric;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.Path;
 import com.jayway.jsonpath.internal.path.PathCompiler;
+import com.jayway.jsonpath.spi.json.JsonProvider;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,7 @@ import javax.management.MBeanServerConnection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class JMXSource extends Source<MBeanServerConnection, String> {
+public class JMXSource extends Source<MBeanServerConnection, Object> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JMXSource.class);
     private static final ConcurrentMap<String, Path> PATHS = new ConcurrentHashMap<>();
@@ -37,7 +39,8 @@ public class JMXSource extends Source<MBeanServerConnection, String> {
     }
 
     @Override
-    public <E extends ConnectorConfiguration, C extends Connector<MBeanServerConnection, E>> String invoke(@Nonnull final C connector,
+    public <E extends ConnectorConfiguration, C extends Connector<MBeanServerConnection, E>> Object invoke(@Nonnull final C connector,
+                                                                                                           @Nonnull final Schema schema,
                                                                                                            @Nullable final Metric currentMetric,
                                                                                                            @Nullable final IngestionContext ctx) throws Exception {
         if (!this.configured) {
@@ -76,19 +79,23 @@ public class JMXSource extends Source<MBeanServerConnection, String> {
                 currentMetric.getPath()
         );
         final Object result = pair.getRight();
-        /* TODO: Refactor to create a queryable data source based on the json_provider
-         *       and/or mapping_provider set in the schema. This can be arbitrary format
-         *       if there are user defined providers used.
-         */
-        final String jsonDoc = String.format(
-                "{\"%s\":%s}",
+        final String stringResult = result instanceof String strRes
+                ? strRes
+                : String.valueOf(result);
+        final Configuration config = schema.getJsonPathConfiguration();
+        final JsonProvider jsonProvider = config.jsonProvider();
+        final Object map = jsonProvider.createMap();
+        jsonProvider.setProperty(
+                map,
                 methodName,
-                result instanceof String stringResult
-                        ? stringResult
-                        : String.valueOf(result)
+                stringResult
         );
-        LOGGER.trace("Constructed JSON doc for method target and value: {}", jsonDoc);
-        return jsonDoc;
+        LOGGER.trace(
+                "Constructed JSON doc for method [{}] and value [{}]",
+                methodName,
+                stringResult
+        );
+        return map;
     }
 
 }
