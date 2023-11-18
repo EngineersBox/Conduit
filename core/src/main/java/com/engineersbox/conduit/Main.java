@@ -1,27 +1,26 @@
 package com.engineersbox.conduit;
 
+import com.engineersbox.conduit.core.config.ConfigFactory;
+import com.engineersbox.conduit.core.processing.Conduit;
 import com.engineersbox.conduit.core.processing.PollingCondition;
+import com.engineersbox.conduit.core.processing.generation.TaskBatchGeneratorFactory;
+import com.engineersbox.conduit.core.processing.task.worker.client.QueueSuppliedClientPool;
+import com.engineersbox.conduit.core.processing.task.worker.executor.DirectSupplierJobExecutorPool;
+import com.engineersbox.conduit.core.retrieval.caching.LRUCache;
+import com.engineersbox.conduit.core.retrieval.content.batch.WorkloadBatcher;
 import com.engineersbox.conduit.core.retrieval.ingest.IngestionContext;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
 import com.engineersbox.conduit.core.retrieval.ingest.source.JMXSource;
-import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.source.method.JMXMBeanInvoke;
-import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
-import com.engineersbox.conduit.core.config.ConfigFactory;
-import com.engineersbox.conduit.core.processing.Conduit;
-import com.engineersbox.conduit.core.processing.generation.TaskBatchGeneratorFactory;
-import com.engineersbox.conduit.core.processing.task.worker.executor.DirectSupplierJobExecutorPool;
-import com.engineersbox.conduit.core.schema.factory.MetricsSchemaFactory;
+import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.schema.extension.ExtensionProvider;
 import com.engineersbox.conduit.core.schema.extension.LuaHandlerExtension;
+import com.engineersbox.conduit.core.schema.extension.handler.ContextTransformer;
+import com.engineersbox.conduit.core.schema.factory.MetricsSchemaFactory;
 import com.engineersbox.conduit.core.schema.json.path.AffinityCacheProvider;
 import com.engineersbox.conduit.core.schema.json.path.PathFunctionProvider;
-import com.engineersbox.conduit.core.processing.task.worker.client.QueueSuppliedClientPool;
-import com.engineersbox.conduit.core.retrieval.caching.LRUCache;
-import com.engineersbox.conduit.core.retrieval.content.batch.WorkloadBatcher;
-import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.jayway.jsonpath.internal.EvaluationContext;
 import com.jayway.jsonpath.internal.PathRef;
 import com.jayway.jsonpath.internal.function.Parameter;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
-import java.util.function.Supplier;
 
 public class Main {
 
@@ -84,8 +82,8 @@ public class Main {
 //		final Schema schema = Schema.from(new File(Path.of("./example/test.json").toUri()));
 		AffinityCacheProvider.removeDefaultCache();
 		CacheProvider.setCache(new LRUCache(10));
-//		JMXMBeanInvoke.register();
-		PathFunctionProvider.bindFunction(JMXMBeanInvoke.FUNCTION_NAME, JMXMBeanInvoke.class);
+		JMXMBeanInvoke.bindFunction();
+//		PathFunctionProvider.bindFunction(JMXMBeanInvoke.FUNCTION_NAME, JMXMBeanInvoke.class);
 		PathFunctionProvider.bindFunction("someFunc", SomeFunc.class);
 		ExtensionProvider.registerExtension(LuaHandlerExtension.getExtensionMetadata());
 		ConnectorTypeResolver.bindImplementation(

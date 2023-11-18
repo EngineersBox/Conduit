@@ -61,7 +61,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
         }
         if (this.cache == null){
             LOGGER.trace(
-                    "Cache does not exist, creating it [Record Stats: {}] [Concurrecy: {}]",
+                    "Cache does not exist, creating it [Record Stats: {}] [Concurrency: {}]",
                     this.recordCacheStats,
                     this.cacheConcurrency
             );
@@ -147,8 +147,7 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
                 timeout,
                 timeUnit.name()
         );
-        this.data.set(
-                CompletableFuture.supplyAsync(dataSupplier)
+        final CompletableFuture<R> future = CompletableFuture.supplyAsync(dataSupplier)
                 .orTimeout(
                         timeout,
                         timeUnit
@@ -170,7 +169,9 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
                         );
                     }
                     return defaultValue;
-                }).get(),
+                });
+        this.data.set(
+                future.get(),
                 this.pollingCondition
         );
     }

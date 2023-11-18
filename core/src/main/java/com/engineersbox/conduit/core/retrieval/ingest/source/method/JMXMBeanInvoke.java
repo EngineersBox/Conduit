@@ -55,7 +55,7 @@ public class JMXMBeanInvoke implements PathFunction {
         }
     }
 
-    public static void register() {
+    public static void bindFunction() {
         PathFunctionProvider.bindFunction(
                 FUNCTION_NAME,
                 JMXMBeanInvoke.class

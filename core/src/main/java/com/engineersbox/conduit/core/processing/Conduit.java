@@ -150,8 +150,6 @@ public class Conduit<T, E> {
 
     public static class Parameters<T, E> {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(Parameters.class);
-
         private MetricsSchemaFactory schemaProvider;
         private WaitableTaskExecutorPool<T, E> executor;
         private TaskBatchGenerator<T, E> workerTaskGenerator;

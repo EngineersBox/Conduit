@@ -1,13 +1,10 @@
 package com.engineersbox.conduit.core.retrieval.ingest;
 
-import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.cache.ConnectorCache;
-import com.google.common.cache.Cache;
 import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class IngestionContext {
