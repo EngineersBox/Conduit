@@ -4,17 +4,21 @@ import org.jeasy.batch.core.reader.RecordReader;
 import org.jeasy.batch.core.record.Record;
 
 import java.util.Queue;
+import java.util.function.Function;
 
-public class QueueRecordReader<T, Q extends Queue<Record<T>>> implements RecordReader<T> {
+public class QueueRecordReader<T, E, Q extends Queue<E>> implements RecordReader<T> {
 
     protected final Q queue;
+    protected final Function<E, Record<T>> elementAdapter;
 
-    public QueueRecordReader(final Q queue) {
+    public QueueRecordReader(final Q queue,
+                             final Function<E, Record<T>> elementAdapter) {
         this.queue = queue;
+        this.elementAdapter = elementAdapter;
     }
 
     @Override
     public Record<T> readRecord() {
-        return this.queue.poll();
+        return this.elementAdapter.apply(this.queue.poll());
     }
 }

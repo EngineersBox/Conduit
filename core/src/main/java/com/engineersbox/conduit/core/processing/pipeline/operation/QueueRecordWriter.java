@@ -5,19 +5,23 @@ import org.jeasy.batch.core.record.Record;
 import org.jeasy.batch.core.writer.RecordWriter;
 
 import java.util.Queue;
+import java.util.function.Function;
 
-public class QueueRecordWriter<T, Q extends Queue<Record<T>>> implements RecordWriter<T> {
+public class QueueRecordWriter<T, E, Q extends Queue<E>> implements RecordWriter<T> {
 
     private final Q queue;
+    private final Function<Record<T>, E> elementAdapter;
 
-    public QueueRecordWriter(final Q queue) {
+    public QueueRecordWriter(final Q queue,
+                             final Function<Record<T>,E> elementAdapter) {
         this.queue = queue;
+        this.elementAdapter = elementAdapter;
     }
 
     @Override
     public void writeRecords(final Batch<T> batch) {
         for (final Record<T> record : batch) {
-            this.queue.offer(record);
+            this.queue.offer(this.elementAdapter.apply(record));
         }
     }
 }

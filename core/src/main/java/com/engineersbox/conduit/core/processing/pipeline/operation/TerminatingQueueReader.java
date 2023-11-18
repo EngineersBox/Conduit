@@ -4,37 +4,40 @@ import org.jeasy.batch.core.record.Record;
 
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class TerminatingQueueReader<T, Q extends Queue<Record<T>>, I> extends QueueRecordReader<T, Q> {
+public class TerminatingQueueReader<T, E, Q extends Queue<E>, I> extends QueueRecordReader<T, E, Q> {
 
-    private final I indicator;
-    private final BiFunction<Q, I, Record<T>> readOperation;
+    protected final I indicator;
+    protected final Function<TerminatingQueueReader<T,E,Q,I>, Record<T>> readOperation;
 
     public TerminatingQueueReader(final Q queue,
+                                  final Function<E, Record<T>> elementAdapter,
                                   final I indicator,
-                                  final BiFunction<Q, I, Record<T>> readOperation) {
-        super(queue);
+                                  final Function<TerminatingQueueReader<T,E,Q,I>, Record<T>> readOperation) {
+        super(queue, elementAdapter);
         this.indicator = indicator;
         this.readOperation = readOperation;
     }
 
     @Override
     public Record<T> readRecord() {
-        return this.readOperation.apply(
-                super.queue,
-                this.indicator
-        );
+        return this.readOperation.apply(this);
     }
 
-    public static <T, Q extends Queue<Record<T>>> TerminatingQueueReader<T, Q, AtomicBoolean> booleanIndicator(final Q queue,
-                                                                                                               final AtomicBoolean indicator) {
+    public static <T, E, Q extends Queue<E>> TerminatingQueueReader<T, E, Q, AtomicBoolean> booleanIndicator(final Q queue,
+                                                                                                             final Function<E, Record<T>> elementAdapter,
+                                                                                                             final AtomicBoolean indicator) {
         return new TerminatingQueueReader<>(
                 queue,
+                elementAdapter,
                 indicator,
-                (final Q queue2, final AtomicBoolean indicator2) -> {
+                (final TerminatingQueueReader<T,E,Q, AtomicBoolean> _this) -> {
                     Record<T> record;
-                    while ((record = queue2.poll()) == null && !indicator2.get());
+                    while (
+                            (record = _this.elementAdapter.apply(_this.queue.poll())) == null
+                            && !_this.indicator.get()
+                    );
                     return record;
                 }
         );

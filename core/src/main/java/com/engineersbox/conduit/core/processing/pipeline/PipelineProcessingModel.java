@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Spliterators;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -55,10 +56,11 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <T, Q extends Queue<Record<T>>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
-                                                               @Nonnull final JobBuilder<T, ?> destination,
-                                                               @Nonnull final Q queue,
-                                                               final boolean withDefaultReaderWriter) {
+    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                          @Nonnull final JobBuilder<T, ?> destination,
+                                                          @Nonnull final Q queue,
+                                                          @Nullable final Function<Record<T>, E> writerElementAdapter,
+                                                          @Nullable final Function<E, Record<T>> readerElementAdapter) {
         if (source == null) {
             throw new NullPointerException("Cannot connect null source job");
         } else if (destination == null) {
@@ -66,9 +68,9 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         } else if (queue == null) {
             throw new NullPointerException("Cannot connect job via null queue");
         }
-        if (withDefaultReaderWriter) {
-            source.writer(new QueueRecordWriter<>(queue));
-            destination.reader(new QueueRecordReader<>(queue));
+        if (writerElementAdapter != null && readerElementAdapter != null) {
+            source.writer(new QueueRecordWriter<>(queue, writerElementAdapter));
+            destination.reader(new QueueRecordReader<>(queue, readerElementAdapter));
         }
         return this.graph.addEdge(
                 source,
@@ -77,12 +79,24 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         );
     }
 
-    public <T, Q extends Queue<Record<T>>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
-                                                               @Nullable final RecordWriter<T> sourceQueueWriter,
-                                                               @Nonnull final JobBuilder<T, ?> destination,
-                                                               @Nullable final RecordReader<T> destinationQueueReader,
-                                                               @Nonnull final Q queue) {
-        if (!connectJobs(source, destination, queue, false)) {
+    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                          @Nonnull final JobBuilder<T, ?> destination,
+                                                          @Nonnull final Q queue) {
+        return connectJobs(
+                source,
+                destination,
+                queue,
+                null,
+                null
+        );
+    }
+
+    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                          @Nullable final RecordWriter<T> sourceQueueWriter,
+                                                          @Nonnull final JobBuilder<T, ?> destination,
+                                                          @Nullable final RecordReader<T> destinationQueueReader,
+                                                          @Nonnull final Q queue) {
+        if (!connectJobs(source, destination, queue)) {
             return false;
         }
         if (sourceQueueWriter == null) {

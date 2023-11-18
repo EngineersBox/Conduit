@@ -40,6 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<JobReport>>, JobExecutor> {
@@ -246,10 +247,14 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
 //        final ArrayBlockingQueue<Record<Proto.Event[]>> queue = new ArrayBlockingQueue<>(10);
         model.connectJobs(
                 transformerJob,
-                new QueueRecordWriter<>(queue),
+                new QueueRecordWriter<>(
+                        queue,
+                        Function.identity()
+                ),
                 riemannSendJob,
                 TerminatingQueueReader.booleanIndicator(
                         queue,
+                        Function.identity(),
                         endIndicator
                 ),
                 queue
