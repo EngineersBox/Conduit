@@ -3,6 +3,9 @@ package com.engineersbox.conduit.core.processing.task;
 import com.engineersbox.conduit.core.processing.event.EventTransformer;
 import com.engineersbox.conduit.core.processing.pipeline.PipelineProcessingModel;
 import com.engineersbox.conduit.core.processing.pipeline.ProcessingModel;
+import com.engineersbox.conduit.core.processing.pipeline.operation.QueueRecordWriter;
+import com.engineersbox.conduit.core.processing.pipeline.operation.TerminatingQueueReader;
+import com.engineersbox.conduit.core.processing.pipeline.operation.TerminationNotificationListener;
 import com.engineersbox.conduit.core.processing.task.worker.ClientBoundWorkerTask;
 import com.engineersbox.conduit.core.retrieval.content.RetrievalHandler;
 import com.engineersbox.conduit.core.schema.extension.LuaHandlerExtension;
@@ -24,6 +27,7 @@ import org.jeasy.batch.core.reader.RecordReader;
 import org.jeasy.batch.core.record.Batch;
 import org.jeasy.batch.core.record.GenericRecord;
 import org.jeasy.batch.core.record.Record;
+import org.jeasy.batch.core.writer.BlockingQueueRecordWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,25 +246,16 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
 //        final ArrayBlockingQueue<Record<Proto.Event[]>> queue = new ArrayBlockingQueue<>(10);
         model.connectJobs(
                 transformerJob,
-                (final Batch<Proto.Event[]> batch) -> batch.forEach(queue::offer),
+                new QueueRecordWriter<>(queue),
                 riemannSendJob,
-                () -> {
-                    Record<Proto.Event[]> record;
-                    // TODO: Convert to BlockingQueue with take/put sleep/signal semantics to avoid busy loop,
-                    //       will need to into tie dependent job close to close this job as well to avoid end
-                    //       indicator.
-                    while ((record = queue.poll()) == null && !endIndicator.get());
-                    return record;
-                },
+                TerminatingQueueReader.booleanIndicator(
+                        queue,
+                        endIndicator
+                ),
                 queue
         );
-        transformerJob.reader(new IterableRecordReader<>(this.initialMetrics){
-            @Override
-            public void close() throws Exception {
-                endIndicator.set(true);
-                super.close();
-            }
-        });
+        transformerJob.jobListener(TerminationNotificationListener.booleanIndicator(endIndicator))
+                .reader(new IterableRecordReader<>(this.initialMetrics));
         // TODO: Finish implementing jobs
         return model;
     }

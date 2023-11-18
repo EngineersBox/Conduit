@@ -1,5 +1,7 @@
 package com.engineersbox.conduit.core.processing.pipeline;
 
+import com.engineersbox.conduit.core.processing.pipeline.operation.QueueRecordReader;
+import com.engineersbox.conduit.core.processing.pipeline.operation.QueueRecordWriter;
 import com.engineersbox.conduit.core.util.threading.FutureUtils;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.atomic.MpscAtomicArrayQueue;
@@ -7,6 +9,7 @@ import org.jeasy.batch.core.job.JobBuilder;
 import org.jeasy.batch.core.job.JobExecutor;
 import org.jeasy.batch.core.job.JobReport;
 import org.jeasy.batch.core.reader.RecordReader;
+import org.jeasy.batch.core.record.Record;
 import org.jeasy.batch.core.writer.RecordWriter;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
@@ -52,15 +55,20 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         return this.graph.addVertex(builder) ? builder : null;
     }
 
-    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
-                                                                        @Nonnull final JobBuilder<T, ?> destination,
-                                                                        @Nonnull final Q queue) {
+    public <T, Q extends Queue<Record<T>>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                               @Nonnull final JobBuilder<T, ?> destination,
+                                                               @Nonnull final Q queue,
+                                                               final boolean withDefaultReaderWriter) {
         if (source == null) {
             throw new NullPointerException("Cannot connect null source job");
         } else if (destination == null) {
             throw new NullPointerException("Cannot connect null destination job");
         } else if (queue == null) {
             throw new NullPointerException("Cannot connect job via null queue");
+        }
+        if (withDefaultReaderWriter) {
+            source.writer(new QueueRecordWriter<>(queue));
+            destination.reader(new QueueRecordReader<>(queue));
         }
         return this.graph.addEdge(
                 source,
@@ -69,12 +77,12 @@ public class PipelineProcessingModel implements ProcessingModel<List<Future<JobR
         );
     }
 
-    public <T, E, Q extends Queue<E>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
-                                                                        @Nullable final RecordWriter<T> sourceQueueWriter,
-                                                                        @Nonnull final JobBuilder<T, ?> destination,
-                                                                        @Nullable final RecordReader<T> destinationQueueReader,
-                                                                        @Nonnull final Q queue) {
-        if (!connectJobs(source, destination, queue)) {
+    public <T, Q extends Queue<Record<T>>> boolean connectJobs(@Nonnull final JobBuilder<?, T> source,
+                                                               @Nullable final RecordWriter<T> sourceQueueWriter,
+                                                               @Nonnull final JobBuilder<T, ?> destination,
+                                                               @Nullable final RecordReader<T> destinationQueueReader,
+                                                               @Nonnull final Q queue) {
+        if (!connectJobs(source, destination, queue, false)) {
             return false;
         }
         if (sourceQueueWriter == null) {
