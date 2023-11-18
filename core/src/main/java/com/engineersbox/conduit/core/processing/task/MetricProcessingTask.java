@@ -247,10 +247,7 @@ public class MetricProcessingTask implements ClientBoundWorkerTask<List<Future<J
 //        final ArrayBlockingQueue<Record<Proto.Event[]>> queue = new ArrayBlockingQueue<>(10);
         model.connectJobs(
                 transformerJob,
-                new QueueRecordWriter<>(
-                        queue,
-                        Function.identity()
-                ),
+                QueueRecordWriter.identityWriter(queue),
                 riemannSendJob,
                 TerminatingQueueReader.booleanIndicator(
                         queue,

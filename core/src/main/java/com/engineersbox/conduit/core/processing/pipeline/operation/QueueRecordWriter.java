@@ -24,4 +24,12 @@ public class QueueRecordWriter<T, E, Q extends Queue<E>> implements RecordWriter
             this.queue.offer(this.elementAdapter.apply(record));
         }
     }
+
+    public static <T, Q extends Queue<Record<T>>> QueueRecordWriter<T, Record<T>, Q> identityWriter(final Q queue) {
+        return new QueueRecordWriter<>(
+                queue,
+                Function.identity()
+        );
+    }
+
 }

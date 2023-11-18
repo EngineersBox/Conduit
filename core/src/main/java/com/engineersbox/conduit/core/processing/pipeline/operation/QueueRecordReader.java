@@ -21,4 +21,12 @@ public class QueueRecordReader<T, E, Q extends Queue<E>> implements RecordReader
     public Record<T> readRecord() {
         return this.elementAdapter.apply(this.queue.poll());
     }
+
+    public static <T, Q extends Queue<Record<T>>> QueueRecordReader<T,Record<T>,Q> identityReader(final Q queue) {
+        return new QueueRecordReader<>(
+                queue,
+                Function.identity()
+        );
+    }
+
 }
