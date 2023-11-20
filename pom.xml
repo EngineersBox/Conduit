@@ -60,13 +60,14 @@
         <easy-batch.version>7.0.2</easy-batch.version>
         <jgrapht.version>1.5.2</jgrapht.version>
         <jctools.version>4.0.1</jctools.version>
+        <error-prone.version>2.23.0</error-prone.version>
 
         <!-- Plugins -->
         <aspectj-plugin.version>1.14.0</aspectj-plugin.version>
         <exec-plugin.version>3.1.0</exec-plugin.version>
 
         <!-- Maven -->
-        <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-plugin-api.version>3.8.4</maven-plugin-api.version>
         <maven-core.version>3.8.4</maven-core.version>
         <maven-plugin-annotations.version>3.6.4</maven-plugin-annotations.version>
@@ -296,6 +297,23 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>
+                            --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+                            --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+                            --add-opens jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+                            --add-opens jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
+                            --add-opens java.base/java.lang=ALL-UNNAMED
+                            --add-opens java.base/java.util=ALL-UNNAMED
+                            --add-opens java.base/jdk.internal.misc=ALL-UNNAMED
+                        </argLine>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -320,6 +338,32 @@
                     <groupId>com.github.timvlaer</groupId>
                     <artifactId>tscfg-maven-plugin</artifactId>
                     <version>${typesafe.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>UTF-8</encoding>
+                        <compilerArgs>
+                            <arg>-XDcompilePolicy=simple</arg>
+                            <arg>-Xplugin:ErrorProne</arg>
+                        </compilerArgs>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>com.google.errorprone</groupId>
+                                <artifactId>error_prone_core</artifactId>
+                                <version>${error-prone.version}</version>
+                            </path>
+                            <!-- Other annotation processors go here.
+
+                            If 'annotationProcessorPaths' is set, processors will no longer be
+                            discovered on the regular -classpath; see also 'Using Error Prone
+                            together with other annotation processors' below. -->
+                        </annotationProcessorPaths>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

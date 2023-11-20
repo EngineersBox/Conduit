@@ -19,9 +19,11 @@ public class AffinityCacheProvider {
     private static final ConcurrentMutableMap<Long, Cache> CACHES = ConcurrentHashMap.newMap();
     private static final int DEFAULT_CACHE_CAPACITY = 10;
     private static final AtomicReference<Cache> DEFAULT_CACHE = new AtomicReference<>(new LRUCache(DEFAULT_CACHE_CAPACITY));
-    private static final boolean enabled = AgentInspector.agentLoaded(Pattern.compile(".*aspectjweaver.*"));
+    private static final boolean _ENABLED = AgentInspector.agentLoaded(Pattern.compile(".*aspectjweaver.*"));
     static {
-        if (!enabled) {
+        if (_ENABLED) {
+            LOGGER.info("AspectJ runtime weaver detected, AffinityCacheProvider will intercept calls to JsonPath CacheProvider");
+        } else {
             LOGGER.warn("AspectJ runtime weaver agent is not loaded, AffinityCacheProvider will be transparent to JsonPath CacheProvider");
         }
     }
@@ -43,7 +45,7 @@ public class AffinityCacheProvider {
     }
 
     public static void bindCache(final long affinityId, final Cache cache) {
-        if (!enabled) {
+        if (!_ENABLED) {
             return;
         }
         final Cache previousCache = CACHES.put(affinityId, cache);
@@ -58,7 +60,7 @@ public class AffinityCacheProvider {
     }
 
     static Cache getCacheInstance(final long affinityId) {
-        if (!enabled) {
+        if (!_ENABLED) {
             return null;
         }
         return CACHES.getOrDefault(

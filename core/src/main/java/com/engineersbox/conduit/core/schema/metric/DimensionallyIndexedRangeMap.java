@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.util.NoSuchElementException;
 
+@SuppressWarnings("UnstableApiUsage")
 public class DimensionallyIndexedRangeMap {
 
     private final RangeMap<Integer, RangeMap<Integer, String>> dimensionMap;

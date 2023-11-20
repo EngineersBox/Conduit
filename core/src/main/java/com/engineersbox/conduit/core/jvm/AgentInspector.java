@@ -87,7 +87,7 @@ public class AgentInspector {
                 name = Path.of(path).toFile().getName();
             } catch (final InvalidPathException e) {
                 LOGGER.trace(
-                        "Cannot parse {} line [{}], path is invalid",
+                        "Cannot parse {} line [{}], path is invalid, skipping",
                         DYNAMIC_LIBS_OPERATION_NAME,
                         line
                 );
@@ -115,11 +115,12 @@ public class AgentInspector {
                     strippedName,
                     path
             );
-            LOGGER.debug(
-                    "Found attach API agent {} at {} with offset {}",
+
+            LOGGER.trace(
+                    "Found attach API agent {} at {} with offset 0x{}",
                     strippedName,
                     path,
-                    offset
+                    String.format("%016x", offset)
             );
         }
     }
@@ -144,7 +145,7 @@ public class AgentInspector {
                 AGENT_LIB_OPTION_PREFIX + ":"
         );
         LOADED_AGENTS.put(lib, lib);
-        LOGGER.debug(
+        LOGGER.trace(
                 "Found CLI argument agent lib {}",
                 lib
         );
@@ -173,7 +174,7 @@ public class AgentInspector {
                 strippedName,
                 path
         );
-        LOGGER.debug(
+        LOGGER.trace(
                 "Found CLI argument agent {} with path {}",
                 strippedName,
                 path

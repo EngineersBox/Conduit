@@ -40,6 +40,7 @@ public interface ClientPool {
             @Override
             public void close() {
                 clientPool.release(this.client);
+                super.close();
             }
         };
     }

@@ -61,7 +61,7 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
         this.config = config;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","BanJNDI"})
     @Override
     public void configure() throws Exception {
         final Map<String, Object> env = (Map<String,Object>) this.config.getEnvironment();
@@ -94,7 +94,7 @@ public class JMXConnector extends Connector<MBeanServerConnection, JMXConnectorC
         final SSLContextProvider sslContextProvider = this.config.getSSLContext();
         final SSLParametersProvider sslParametersProvider = this.config.sslParametersProvider();
         if (sslContextProvider != null && sslParametersProvider == null) {
-            LOGGER.warn("JMXConnector: ssl context provided without SSL");
+            LOGGER.warn("JMXConnector: SSLContext provided without SSLParameters");
         }
         if (sslContextProvider == null) {
             return;

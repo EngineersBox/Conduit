@@ -129,6 +129,7 @@ public class EventDeserialiser implements Function<LuaValue, Proto.Event> {
         return builder.build();
     }
 
+    @SuppressWarnings("ReturnValueIgnored")
     private <T> void setField(final LuaValue value,
                               final Predicate<LuaValue> predicate,
                               final Function<LuaValue, T> converter,

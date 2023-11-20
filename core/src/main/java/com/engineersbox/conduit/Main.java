@@ -93,7 +93,7 @@ public class Main {
 		try (final RiemannClient client = RiemannClient.tcp("localhost", 5555);
 			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
-			final Conduit.Parameters<List<Future<JobReport>>, JobExecutor> params = new Conduit.Parameters<List<Future<JobReport>>, JobExecutor>()
+			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = Conduit.<List<Future<JobReport>>, JobExecutor>parameterizedBuilder()
 					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_jmx.json", true))
 					.setExecutor(
 							new QueueSuppliedClientPool(
@@ -107,11 +107,8 @@ public class Main {
 					.setBatcher(WorkloadBatcher.defaultBatcher())
 					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3))
 					.setPollingCondition(PollingCondition.PER_METRIC) // This condition is necessary for JMXSource
-					.setCacheKey("test cache key");
-			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = new Conduit<>(
-                    params,
-                    ConfigFactory.load(Path.of("./example/config.conf"))
-            );
+					.setCacheKey("test cache key")
+					.build(ConfigFactory.load(Path.of("./example/config.conf")));
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
 			final JobReport[] reports = conduit.execute(
 					ingestionContext,

@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.schema.json.path;
 
+import com.engineersbox.conduit.core.jvm.AgentInspector;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.internal.function.PathFunction;
 import com.jayway.jsonpath.internal.function.PathFunctionFactory;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 
 @ThreadSafe
 @SuppressWarnings("unchecked")
@@ -24,6 +26,14 @@ public class PathFunctionProvider {
     private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock(true);
     private static final Lock READ_LOCK = RW_LOCK.readLock();
     private static final Lock WRITE_LOCK = RW_LOCK.writeLock();
+    private static final boolean _ENABLED = AgentInspector.agentLoaded(Pattern.compile(".*aspectjweaver.*"));
+    static {
+        if (_ENABLED) {
+            LOGGER.info("AspectJ runtime weaver detected, PathFunctionProvider will intercept calls to JsonPath PathFunctionFactory");
+        } else {
+            LOGGER.warn("AspectJ runtime weaver agent is not loaded, PathFunctionProvider will be transparent to JsonPath PathFunctionFactory");
+        }
+    }
 
     static {
         try {

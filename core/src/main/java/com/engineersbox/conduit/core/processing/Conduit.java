@@ -148,6 +148,10 @@ public class Conduit<T, E> {
         return this.params.executor.getTasksView(origin);
     }
 
+    public static <T, E> Conduit.Parameters<T, E> parameterizedBuilder() {
+        return new Conduit.Parameters<>();
+    }
+
     public static class Parameters<T, E> {
 
         private MetricsSchemaFactory schemaProvider;
@@ -260,6 +264,15 @@ public class Conduit<T, E> {
                 ));
             }
         }
+
+        public Conduit<T, E> build() {
+            return new Conduit<>(this);
+        }
+
+        public Conduit<T, E> build(@Nonnull final ConduitConfig config) {
+            return new Conduit<>(this, config);
+        }
+
     }
 
 }

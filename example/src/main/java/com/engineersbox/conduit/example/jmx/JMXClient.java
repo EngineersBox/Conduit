@@ -17,6 +17,7 @@ public class JMXClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JMXClient.class);
 
+    @SuppressWarnings("BanJNDI")
     public static void main(final String[] args) throws Exception {
         final JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://localhost/jndi/rmi://localhost:5555/jmxrmi");
         final JMXConnector connector = JMXConnectorFactory.connect(url);
