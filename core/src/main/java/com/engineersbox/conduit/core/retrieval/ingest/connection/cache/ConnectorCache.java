@@ -10,18 +10,6 @@ import java.util.concurrent.ExecutionException;
 
 public class ConnectorCache implements RemovalListener<String, Connector<?,?>> {
 
-    /* TODO: Support caching connectors between conduit instances by
-     *       supplying a "cacheOn(<string key>)" parameter to the
-     *       conduit configuration noting which static cache to
-     *       reference existing connectors from. In the schema, a
-     *       connection can optionally provide a "cache_key" field to
-     *       supply a string key to use for the cache. If this is
-     *       not present, then the connector is not cached. Between
-     *       conduit instances, the will first lookup a connector key
-     *       from the schema for an existing connector, or create one
-     *       and saturate the cache.
-     */
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorCache.class);
 
     private final String globalKey;

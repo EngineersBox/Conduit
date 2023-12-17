@@ -69,6 +69,4 @@ public class ContentManager<T, R, E extends ConnectorConfiguration, C extends Co
         );
     }
 
-
-
 }
