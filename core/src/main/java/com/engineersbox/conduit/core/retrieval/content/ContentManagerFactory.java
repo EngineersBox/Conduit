@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.retrieval.content;
 
+import com.engineersbox.conduit.core.config.ConduitConfig;
 import com.engineersbox.conduit.core.processing.PollingCondition;
 import com.engineersbox.conduit.core.retrieval.configuration.AffinityBoundConfigProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.IngesterFactory;
@@ -21,7 +22,8 @@ public abstract class ContentManagerFactory {
                                                final SourceProvider<T, R> sourceProvider,
                                                final IngestionContext context,
                                                final IngesterFactory ingesterFactory,
-                                               final PollingCondition pollingCondition);
+                                               final PollingCondition pollingCondition,
+                                               final ConduitConfig config);
 
     public static ContentManagerFactory defaultFactory() {
         return new ContentManagerFactory() {
@@ -34,10 +36,11 @@ public abstract class ContentManagerFactory {
                                                            final SourceProvider<T, R> sourceProvider,
                                                            final IngestionContext context,
                                                            final IngesterFactory ingesterFactory,
-                                                           final PollingCondition pollingCondition) {
+                                                           final PollingCondition pollingCondition,
+                                                           final ConduitConfig conduitConfig) {
                 final Configuration config = schema.getJsonPathConfiguration();
                 return new ContentManager<>(
-                        ingesterFactory.construct(schema, sourceProvider, pollingCondition),
+                        ingesterFactory.construct(schema, sourceProvider, pollingCondition, conduitConfig),
                         context,
                         new PathTraversalHandler<>(config),
                         pollingCondition
@@ -57,10 +60,11 @@ public abstract class ContentManagerFactory {
                                                        final SourceProvider<T, R> sourceProvider,
                                                        final IngestionContext context,
                                                        final IngesterFactory ingesterFactory,
-                                                       final PollingCondition pollingCondition) {
+                                                       final PollingCondition pollingCondition,
+                                                       final ConduitConfig config) {
                 AffinityBoundConfigProvider.bindDefaultConfiguration(schema.getJsonPathConfiguration());
                 return new ContentManager<>(
-                        ingesterFactory.construct(schema, sourceProvider, pollingCondition),
+                        ingesterFactory.construct(schema, sourceProvider, pollingCondition, config),
                         context,
                         new PathTraversalHandler<>(cachedConfig),
                         pollingCondition

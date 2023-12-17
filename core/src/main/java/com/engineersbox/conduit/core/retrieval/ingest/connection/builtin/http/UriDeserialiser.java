@@ -11,9 +11,9 @@ import java.net.URI;
 public class UriDeserialiser extends JsonDeserializer<URI> {
 
     @Override
-    public URI deserialize(final JsonParser p,
-                           final DeserializationContext ctxt) throws IOException {
-        final JsonNode node = p.getCodec().readTree(p);
+    public URI deserialize(final JsonParser parser,
+                           final DeserializationContext context) throws IOException {
+        final JsonNode node = parser.getCodec().readTree(parser);
         final String stringUrl = node.asText();
         return URI.create(stringUrl);
     }

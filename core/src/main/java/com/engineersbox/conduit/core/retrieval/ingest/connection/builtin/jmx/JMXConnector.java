@@ -7,16 +7,13 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.fac
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.eclipse.collections.api.factory.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.rmi.RMIConnectorServer;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLPermission;
 import javax.net.ssl.SSLSocketFactory;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.security.auth.Subject;
@@ -25,7 +22,6 @@ import java.rmi.server.RMIClientSocketFactory;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * TODO: DOCSTRING

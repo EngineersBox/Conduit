@@ -20,10 +20,11 @@ public class AnonymousConnectorDeserializer extends StdDeserializer<Connector<Ob
         super(Connector.class);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Connector<Object, ConnectorConfiguration> deserialize(final JsonParser parser,
-                                                                 final DeserializationContext ctxt) throws IOException, JacksonException {
-        final Object attribute = ctxt.getAttribute(ConnectorTypeResolver.CURRENT_SUPPLIER_KEY);
+                                                                 final DeserializationContext context) throws IOException {
+        final Object attribute = context.getAttribute(ConnectorTypeResolver.CURRENT_SUPPLIER_KEY);
         if (attribute == null) {
             throw new JsonParseException(
                     parser,
@@ -49,9 +50,9 @@ public class AnonymousConnectorDeserializer extends StdDeserializer<Connector<Ob
                 "Retrieved anonymous supplier {} with class {} for connection type {}",
                 supplier,
                 instance.name(),
-                ctxt.getAttribute(ConnectorTypeResolver.CURRENT_SUPPLIER_TYPE_ID_KEY)
+                context.getAttribute(ConnectorTypeResolver.CURRENT_SUPPLIER_TYPE_ID_KEY)
         );
-        ctxt.setAttribute(
+        context.setAttribute(
                 ConnectorTypeResolver.CURRENT_SUPPLIER_KEY,
                 null
         ).setAttribute(

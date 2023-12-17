@@ -2,6 +2,7 @@ package com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http;
 
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.http.build.AuthenticatorProvider;
+import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.proxy.ProxySelectorDeserialiser;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLContextProvider;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.builtin.ssl.SSLParametersProvider;
 import com.fasterxml.jackson.annotation.JsonAlias;
@@ -38,8 +39,7 @@ public class HTTPConnectorConfiguration implements ConnectorConfiguration {
                                       @JsonProperty("redirect") final HttpClient.Redirect redirect,
                                       @JsonProperty("priority") final Integer priority,
                                       @JsonProperty("version") final HttpClient.Version version,
-                                      // TODO: Create deserialiser for proxy selector to use ProxySelector.ofDefault() when "default" is the value provided
-                                      @JsonProperty("proxy") final ProxySelector proxy,
+                                      @JsonProperty("proxy") @JsonDeserialize(using = ProxySelectorDeserialiser.class) final ProxySelector proxy,
                                       @JsonProperty("localAddress") @JsonAlias("local_address") final InetAddress localAddress) {
         this.uri = uri;
         this.authentication = authentication;

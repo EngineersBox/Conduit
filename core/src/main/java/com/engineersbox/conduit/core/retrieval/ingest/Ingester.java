@@ -1,5 +1,6 @@
 package com.engineersbox.conduit.core.retrieval.ingest;
 
+import com.engineersbox.conduit.core.config.ConduitConfig;
 import com.engineersbox.conduit.core.processing.PollingCondition;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
@@ -25,8 +26,8 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
     private static final Logger LOGGER = LoggerFactory.getLogger(Ingester.class);
 
     private ConnectorCache cache = null;
-    private final boolean recordCacheStats = false;
-    private final int cacheConcurrency = 5; // TODO: Make this configurable
+    private final boolean recordCacheStats;
+    private final int cacheConcurrency;
     private final SourceProvider<T, R> sourceProvider;
     private final Schema schema;
     private C connector;
@@ -37,13 +38,16 @@ public class Ingester<T, R, E extends ConnectorConfiguration, C extends Connecto
     @SuppressWarnings("unchecked")
     public Ingester(final SourceProvider<T, R> sourceProvider,
                     final Schema schema,
-                    final PollingCondition pollingCondition) {
+                    final PollingCondition pollingCondition,
+                    final ConduitConfig config) {
         this.sourceProvider = sourceProvider;
         this.schema = schema;
         this.connector = (C) schema.getConnector();
         this.cacheKey = Optional.empty();
         this.pollingCondition = pollingCondition;
         this.data = new ScopedThreadLocal<>(PollingCondition.ON_EXECUTE::equals);
+        this.recordCacheStats = config.ingest.connector_cache.record_stats;
+        this.cacheConcurrency = config.ingest.connector_cache.concurrency_level;
     }
 
     public void setCacheKey(final Optional<String> cacheKey) {

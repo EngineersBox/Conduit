@@ -23,7 +23,14 @@ public class AgentInspector {
     private static final String DYNAMIC_LIBS_OPERATION_NAME = "vmDynlibs";
     private static final String DLL_EXTENSION = ".ddl";
     private static final String DYLIB_EXTENSION = ".dylib";
+    private static final String JNILIB_EXTENSION = ".jnilib";
     private static final String SO_EXTENSION = ".so";
+    private static final String[] EXTENSIONS = new String[]{
+            DLL_EXTENSION,
+            DYLIB_EXTENSION,
+            JNILIB_EXTENSION,
+            SO_EXTENSION
+    };
     private static final String AGENT_PATH_OPTION_PREFIX = "-agentpath";
     private static final String AGENT_LIB_OPTION_PREFIX = "-agentlib";
     private static final String AGENT_JAR_OPTION_PREFIX = "-javaagent";
@@ -93,21 +100,18 @@ public class AgentInspector {
                 );
                 continue;
             }
-            final String strippedName;
-            if (name.endsWith(DLL_EXTENSION)) {
-                strippedName = StringUtils.stripEnd(name, DLL_EXTENSION);
-            } else if (name.endsWith(SO_EXTENSION)) {
-                strippedName = StringUtils.stripEnd(name, SO_EXTENSION);
-            } else if (name.endsWith(DYLIB_EXTENSION)) {
-                strippedName = StringUtils.stripEnd(name, DYLIB_EXTENSION);
-            } else {
+            String strippedName = null;
+            for (final String extension : EXTENSIONS) {
+                if (name.endsWith(extension)) {
+                    strippedName = StringUtils.stripEnd(name, extension);
+                }
+            }
+            if (strippedName == null) {
                 LOGGER.trace(
-                        "{} line {} is not one of [{},{},{}], skipping",
+                        "{} line {} is not one of [{}], skipping",
                         DYNAMIC_LIBS_OPERATION_NAME,
                         line,
-                        DLL_EXTENSION,
-                        DYLIB_EXTENSION,
-                        SO_EXTENSION
+                        String.join(",", EXTENSIONS)
                 );
                 continue;
             }

@@ -69,7 +69,8 @@ public class Conduit<T, E> {
                     sourceProvider,
                     context,
                     this.params.ingesterFactory,
-                    this.params.pollingCondition
+                    this.params.pollingCondition,
+                    this.config
             );
             this.contentManager.setCacheKey(this.params.cacheKey);
         }
