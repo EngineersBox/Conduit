@@ -13,6 +13,7 @@ import com.engineersbox.conduit.core.retrieval.ingest.connection.Connector;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorConfiguration;
 import com.engineersbox.conduit.core.retrieval.ingest.connection.ConnectorTypeResolver;
 import com.engineersbox.conduit.core.retrieval.ingest.source.JMXSource;
+import com.engineersbox.conduit.core.retrieval.ingest.source.Source;
 import com.engineersbox.conduit.core.retrieval.ingest.source.method.JMXMBeanInvoke;
 import com.engineersbox.conduit.core.retrieval.ingest.source.provider.SourceProvider;
 import com.engineersbox.conduit.core.schema.extension.ExtensionProvider;
@@ -94,7 +95,8 @@ public class Main {
 			 final JobExecutor jobExecutor = new JobExecutor(5)) {
 			client.connect();
 			final Conduit<List<Future<JobReport>>, JobExecutor> conduit = Conduit.<List<Future<JobReport>>, JobExecutor>parameterizedBuilder()
-					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_jmx.json", true))
+//					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_jmx.json", true))
+					.setSchemaProvider(MetricsSchemaFactory.checksumRefreshed("./example/test_http.json", true))
 					.setExecutor(
 							new QueueSuppliedClientPool(
 									() -> client,
@@ -106,13 +108,15 @@ public class Main {
 					).setWorkerTaskGenerator(TaskBatchGeneratorFactory.defaultGenerator())
 					.setBatcher(WorkloadBatcher.defaultBatcher())
 					.setContextInjector((final ContextTransformer.Builder builder) -> builder.withReadOnly("service_version", 3))
-					.setPollingCondition(PollingCondition.PER_METRIC) // This condition is necessary for JMXSource
+//					.setPollingCondition(PollingCondition.PER_METRIC) // This condition is necessary for JMXSource
+					.setPollingCondition(PollingCondition.ON_EXECUTE)
 					.setCacheKey("test cache key")
 					.build(ConfigFactory.load(Path.of("./example/config.conf")));
 			final IngestionContext ingestionContext = IngestionContext.defaultContext();
 			final JobReport[] reports = conduit.execute(
 					ingestionContext,
-					SourceProvider.threaded(JMXSource::new) // JMXSource is not required to be threaded
+					SourceProvider.universal(Source.singleConfigurable())
+//					SourceProvider.threaded(JMXSource::new) // JMXSource is not required to be threaded
 			).flatCollect((final ForkJoinTask<List<Future<JobReport>>> task) -> {
 				try {
 					return task.get().stream()
