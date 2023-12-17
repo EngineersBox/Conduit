@@ -10,13 +10,13 @@ import java.net.PasswordAuthentication;
 public class AuthenticatorProvider implements Functional.ThrowsSupplier<Authenticator> {
 
     private final String username;
-    private final String password;
+    private final char[] password;
 
     @JsonCreator
-    public AuthenticatorProvider(@JsonProperty("username") final String username,
+    public AuthenticatorProvider(@JsonProperty(value = "username", required = true) final String username,
                                  @JsonProperty("password") final String password) {
         this.username = username;
-        this.password = password;
+        this.password = password == null ? new char[0] : password.toCharArray() ;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class AuthenticatorProvider implements Functional.ThrowsSupplier<Authenti
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(
                         AuthenticatorProvider.this.username,
-                        AuthenticatorProvider.this.password.toCharArray()
+                        AuthenticatorProvider.this.password
                 );
             }
         };

@@ -24,20 +24,7 @@
             "type": "string"
         },
         "proxy": {
-            "type": "object",
-            "properties": {
-                "host": {
-                    "type": "string"
-                },
-                "port": {
-                    "type": "integer"
-                }
-            },
-            "required": [
-                "host",
-                "port"
-            ],
-            "additionalProperties": false
+            "$ref": "#/$defs/http_proxy"
         },
         "priority": {
             "type": "integer"
@@ -65,6 +52,25 @@
                     "type": "string"
                 }
             },
+            "required": [
+                "username"
+            ],
+            "additionalProperties": false
+        },
+        "http_proxy": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "host",
+                "port"
+            ],
             "additionalProperties": false
         }
     }
